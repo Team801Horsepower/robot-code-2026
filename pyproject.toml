@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "robot-code-2025"
+name = "robot-code-2026"
 version = "0.1.0"
 description = ""
 authors = [
@@ -8,6 +8,7 @@ authors = [
   "Aneesha Guna <aneesha.guna@gmail.com>",
   "Matthew Carr <matthewjumpingdolphin@gmail.com>",
   "Dillon Gutowski <dillongutowski@gmail.com>",
+  "Hudson Jimenez <hudsonjimenez@gmail.com>",
 ]
 readme = "README.md"
 
