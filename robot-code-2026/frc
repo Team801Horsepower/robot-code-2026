@@ -1,0 +1,38 @@
+# This script helps us complete common actions easily. 
+
+case "$1" in
+  verify)
+    echo 'run mypy static type checker:'
+    printf %"$COLUMNS"s | tr " " "_"
+    poetry run mypy src/
+    printf '\n\n\nrun ruff check:\n'
+    printf %"$COLUMNS"s | tr " " "_"
+    poetry run ruff check .
+    poetry run ruff format .
+    ;;
+  deploy)
+    poetry run robotpy --main src/robot.py deploy --skip-tests --team 801 --no-install
+    ;;
+  console)
+    poetry run netconsole 10.8.1.2
+    ;;
+  shell)
+    poetry run $SHELL
+    ;;
+  ssh)
+    ssh -o StrictHostKeyChecking=no admin@10.8.1.2
+    ;;
+  rlds)
+    ssh -o StrictHostKeyChecking=no admin@10.8.1.2 'sh /home/lvuser/rlds/deploy'
+    ;;
+  sb)
+    { poetry run python3 dev-utils/soundboard/play.py dev-utils/soundboard/$2*.wav; } > /dev/null 2>&1
+    ;;
+  install)
+    poetry env remove --all
+    poetry install --no-root
+    ;;
+  *)
+    echo 'Usage: ./frc [verify | deploy | console | shell | ssh | rlds | sb | install]'
+    ;;
+esac
