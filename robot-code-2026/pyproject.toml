@@ -1,29 +1,19 @@
-[tool.poetry]
+[project]
 name = "robot-code-2026"
-version = "0.0.1"
+version = "0.1.0"
 description = ""
 authors = [
-  "Ishaan Sen <ishaan.sen100@gmail.com", 
-  "Omkar Subramaniam <omnikar5@gmail.com>",
-  "Aneesha Guna <aneesha.guna@gmail.com>",
-  "Matthew Carr <matthewjumpingdolphin@gmail.com>",
-  "Dillon Gutowski <dillongutowski@gmail.com>",
-  "Hudson Jimenez <hudsonjimenez@gmail.com>",
+    {name = "rward3595",email = "r.ward3595@gmail.com"}
 ]
 readme = "README.md"
+requires-python = ">=3.13,<3.15"
+dependencies = [
+    "robotpy (>=2026.2.1,<2027.0.0)"
+]
 
-[tool.poetry.dependencies]
-python = ">=3.14,<3.15"
-robotpy = {extras = ["commands2", "phoenix6", "rev", "navx"], version = "^2026.2.1"}
-pycowsay = "^0.0.0.2"
-photonlibpy = "^2025.1.1"
-astar = "^0.99"
-
-[tool.poetry.group.dev.dependencies]
-mypy = "^1.14.1"
-ruff = "^0.9.0"
-python-lsp-server = "^1.12.0"
+[tool.poetry]
+packages = [{include = "robot_code_2026", from = "src"}]
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
