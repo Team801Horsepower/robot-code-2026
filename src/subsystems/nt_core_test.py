@@ -5,7 +5,7 @@ from collections.abc import Sequence
 
 import ntcore
 import wpilib
-from wpimath.geometry import Pose2d, Pose3d, Rotation3d, Translation3d
+from wpimath.geometry import Pose2d, Pose3d, Rotation2d, Rotation3d, Translation3d
 
 from utils.constants import QuestNavConstants
 
@@ -65,11 +65,21 @@ class QuestNavNtBridge:
         self._connected_pub.set(False)
         self._data_age_pub.set(-1.0)
         self._teleop_active_pub.set(False)
+        
+        # Create + publish a Field2d for AdvantageScope
+        self._field = wpilib.Field2d()
+        wpilib.SmartDashboard.putData("QuestNavField", self._field)
+        
+        #Immediately publish a default pose to ensure the topic is populated and subscribers can get an initial value
+        self._publish_default_start_pose()
 
     def on_teleop_enable(self) -> None:
         self._teleop_active_pub.set(True)
         self._connected_pub.set(False)
         self._data_age_pub.set(-1.0)
+        
+        # Reset displayed pose to a reasonable field-relative start position for 2026.
+        self._publish_default_start_pose()
 
     def on_teleop_disable(self) -> None:
         self._teleop_active_pub.set(False)
@@ -128,8 +138,14 @@ class QuestNavNtBridge:
 
         try:
             pose3d = self._to_wpilib_pose(position, euler)
+            pose2d = pose3d.toPose2d()
+
             self._pose3d_pub.set(pose3d)
-            self._pose2d_pub.set(pose3d.toPose2d())
+            self._pose2d_pub.set(pose2d)
+
+            # Update Field2d visualization
+            self._field.setRobotPose(pose2d)
+            
         except Exception as exc:
             self._warn_rate_limited(
                 "questnav_pose",
@@ -175,3 +191,23 @@ class QuestNavNtBridge:
             return
         self._last_warning_s[key] = now_s
         wpilib.reportWarning(message, False)
+
+    def _publish_default_start_pose(self) -> None:
+        """
+        Reasonable REBUILT 2026 default in WPILib/AdvantageScope 'Blue Wall' coordinates:
+          x=1.00m, y=fieldWidth/2, heading=0deg (facing +X, toward red).
+        """
+        field_width_m = 8.07  # from 2026 manual (~8.07m)
+        x_m = 1.00
+        y_m = field_width_m / 2.0
+        heading = Rotation2d.fromDegrees(0.0)
+
+        pose2d = Pose2d(x_m, y_m, heading)
+        pose3d = Pose3d(Translation3d(x_m, y_m, 0.0), Rotation3d(0.0, 0.0, heading.radians()))
+
+        self._pose2d_pub.set(pose2d)
+        self._pose3d_pub.set(pose3d)
+        
+        # Also initialize the Field2d pose
+        if hasattr(self, "_field"):
+            self._field.setRobotPose(pose2d)
