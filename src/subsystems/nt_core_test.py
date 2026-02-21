@@ -20,6 +20,9 @@ class QuestNavNtBridge:
         self._stale_timeout_s = stale_timeout_s
         self._warning_interval_s = 1.0
         self._last_warning_s: dict[str, float] = {}
+        
+        ## Start the server
+        self._nt_instance.startServer(QuestNavConstants.SERVER_NAME)
 
         input_table = self._nt_instance.getTable(QuestNavConstants.INPUT_TABLE)
         output_table = self._nt_instance.getTable(QuestNavConstants.OUTPUT_TABLE)
