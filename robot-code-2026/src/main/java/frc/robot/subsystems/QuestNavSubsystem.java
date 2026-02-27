@@ -1,264 +1,272 @@
-// Copyright QuestNav 2025
-// https://github.com/QuestNav/QuestNav
-// https://questnav.gg/
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// version 3 as published by the Free Software Foundation or
-// available in the root directory of this project.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-
+// Copyright (c) 2026 Team 801 Horsepower
 package frc.robot.subsystems;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
+import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
+import frc.robot.Constants.QuestNavConstants;
+
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.networktables.*;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import gg.questnav.questnav.PoseFrame;
+
 import gg.questnav.questnav.QuestNav;
-import org.littletonrobotics.junction.Logger;
+import gg.questnav.questnav.PoseFrame;
 
 /**
- * QuestNav subsystem for vision-based pose estimation.
+ * QuestNavSubsystem – Integrates the Meta Quest 3 headset as the robot's primary pose / heading
+ * source using the QuestNav vendor library.
  *
- * <p>This subsystem integrates QuestNav vision tracking with the robot's pose estimation. It
- * provides methods to get robot pose from QuestNav and set robot pose in QuestNav.
+ * <h2>How it works</h2>
+ * <ol>
+ *   <li>The Quest headset runs the QuestNav app which publishes its 6-DOF pose over NT4.
+ *   <li>Each periodic loop, this subsystem reads all new {@link PoseFrame}s from the Quest.
+ *   <li>Each frame is transformed from Quest coordinates to robot-centre coordinates using the
+ *       {@link QuestNavConstants#ROBOT_TO_QUEST} offset.
+ *   <li>The resulting {@link Pose3d} is fed into the CTRE swerve pose estimator via
+ *       {@link DrivetrainSubsystem#addVisionMeasurement} with tight standard deviations, so
+ *       <b>QuestNav effectively becomes the primary heading source</b>.
+ * </ol>
+ *
+ * <h2>QuestNav coordinate system vs. WPILib</h2>
+ * The QuestNav vendor library already converts the Quest's Unity coordinate system to the WPILib
+ * NWU (North-West-Up) coordinate system, so no additional axis flipping is required here.
+ *
+ * <h2>Heading convention</h2>
+ * QuestNav's yaw is CCW-positive in the WPILib frame. Wherever the code references "heading" it
+ * means this yaw angle.
  */
 public class QuestNavSubsystem extends SubsystemBase {
-  private final QuestNav questNav;
 
-  // Transform from robot center to QuestNav camera position
-  // TODO: Measure and set the actual transform values
-  private static final Transform2d ROBOT_TO_QUEST = new Transform2d(0.0, 0.0, new Rotation2d());
+  // ─── Hardware ──────────────────────────────────────────────────────────────
 
-  public QuestNavSubsystem() {
-    questNav = new QuestNav();
+  /**
+   * The QuestNav vendor-library object. Manages the NT4 connection to the headset and decodes
+   * incoming {@link PoseFrame} protobuf messages.
+   */
+  private final QuestNav m_questNav = new QuestNav();
+
+  // ─── References to other subsystems ───────────────────────────────────────
+
+  /** The drivetrain subsystem that will receive QuestNav vision measurements. */
+  private final DrivetrainSubsystem m_drivetrain;
+
+  // ─── Vision measurement trust ──────────────────────────────────────────────
+
+  /**
+   * Standard deviations for QuestNav measurements fed into the CTRE pose estimator.
+   *
+   * <p>Lower = more trust. These values (2 cm, 2 cm, ~2 degrees) make QuestNav the dominant
+   * heading source and suppress Pigeon 2 drift.
+   */
+  private static final Matrix<N3, N1> kQuestStdDevs =
+      VecBuilder.fill(
+          QuestNavConstants.kStdDevX,
+          QuestNavConstants.kStdDevY,
+          QuestNavConstants.kStdDevTheta);
+
+  // ─── State ─────────────────────────────────────────────────────────────────
+
+  /** The last valid robot pose3d received from QuestNav. May be null before first packet. */
+  private Pose3d m_lastPose3d = null;
+
+  /** True when the Quest is connected and actively tracking. */
+  private boolean m_isTracking = false;
+
+  // ─── NetworkTables debug publishers ────────────────────────────────────────
+
+  /**
+   * Publishes the raw Quest pose (not transformed) for debugging in AdvantageScope.
+   * AdvantageScope path: {@code /QuestNav/RawQuestPose3d}.
+   */
+  private final DoubleArrayPublisher m_rawPosePublisher;
+
+  /**
+   * Publishes the transformed robot pose (what gets sent to the drivetrain estimator).
+   * AdvantageScope path: {@code /QuestNav/RobotPose3d}.
+   */
+  private final DoubleArrayPublisher m_robotPosePublisher;
+
+  /** Publishes the current heading (yaw) in degrees for easy dashboard reading. */
+  private final DoublePublisher m_headingDegPublisher;
+
+  /** Publishes whether QuestNav is actively tracking as a boolean. */
+  private final BooleanPublisher m_trackingPublisher;
+
+  // ─── Constructor ───────────────────────────────────────────────────────────
+
+  /**
+   * Constructs the QuestNavSubsystem.
+   *
+   * @param drivetrain The {@link DrivetrainSubsystem} that QuestNav will update
+   */
+  public QuestNavSubsystem(DrivetrainSubsystem drivetrain) {
+    this.m_drivetrain = drivetrain;
+
+    // ── NetworkTables publishers ──────────────────────────────────────────────
+    NetworkTableInstance nt = NetworkTableInstance.getDefault();
+    NetworkTable table = nt.getTable("QuestNav");
+
+    m_rawPosePublisher    = table.getDoubleArrayTopic("RawQuestPose3d").publish();
+    m_robotPosePublisher  = table.getDoubleArrayTopic("RobotPose3d").publish();
+    m_headingDegPublisher = table.getDoubleTopic("HeadingDegrees").publish();
+    m_trackingPublisher   = table.getBooleanTopic("IsTracking").publish();
   }
 
+  // ─── Periodic ──────────────────────────────────────────────────────────────
+
+  /**
+   * Called every 20 ms by the CommandScheduler.
+   *
+   * <ol>
+   *   <li>Calls {@link QuestNav#commandPeriodic()} – required by QuestNav vendor library.
+   *   <li>Reads all new pose frames since the last loop.
+   *   <li>For each valid frame, transforms to robot pose and feeds the drivetrain estimator.
+   *   <li>Publishes debug data to NetworkTables.
+   * </ol>
+   */
   @Override
   public void periodic() {
-    questNav.commandPeriodic();
+    // ── REQUIRED: must be called every periodic loop ─────────────────────────
+    m_questNav.commandPeriodic();
 
-    // Log QuestNav data
-    Logger.recordOutput("QuestNav/Connected", questNav.isConnected());
-    Logger.recordOutput("QuestNav/Tracking", questNav.isTracking());
-    Logger.recordOutput("QuestNav/Latency", questNav.getLatency());
+    // ── Read all unread pose frames ────────────────────────────────────────────
+    PoseFrame[] frames = m_questNav.getAllUnreadPoseFrames();
 
-    // Log QuestNav pose data for AdvantageScope visualization
-    try {
-      Pose2d currentPose = getRobotPose();
+    boolean anyTracking = false;
 
-      // Log complete pose for 2D field visualization
-      Logger.recordOutput("QuestNav/Pose", currentPose);
-
-      // Log raw QuestNav pose (before robot transform) for comparison
-      PoseFrame[] poseFrames = questNav.getAllUnreadPoseFrames();
-      if (poseFrames.length > 0) {
-        Pose2d rawQuestPose = poseFrames[poseFrames.length - 1].questPose();
-        if (rawQuestPose != null) {
-          Logger.recordOutput("QuestNav/RawPose", rawQuestPose);
-        }
+    for (PoseFrame frame : frames) {
+      if (!frame.isTracking()) {
+        continue; // Skip frames where Quest lost tracking
       }
 
-    } catch (Exception e) {
-      Logger.recordOutput("QuestNav/Error", e.getMessage());
+      anyTracking = true;
+
+      // Raw Quest pose (in WPILib coordinate frame, already converted by the library)
+      Pose3d questPose = frame.questPose3d();
+
+      // Transform from Quest-mounting-point coordinates to robot-center coordinates.
+      // We use the inverse of ROBOT_TO_QUEST: going from Quest pose → robot pose.
+      Pose3d robotPose3d = questPose.transformBy(QuestNavConstants.ROBOT_TO_QUEST.inverse());
+
+      // Timestamp of when the data was captured on the Quest (seconds, FPGA epoch)
+      double timestamp = frame.dataTimestamp();
+
+      // Feed into the CTRE swerve pose estimator.
+      // With tight std devs this effectively replaces Pigeon heading with QuestNav heading.
+      m_drivetrain.addVisionMeasurement(robotPose3d.toPose2d(), timestamp, kQuestStdDevs);
+
+      // Cache the last valid pose for callers who just want the current pose
+      m_lastPose3d = robotPose3d;
+
+      // ── Debug publishers ───────────────────────────────────────────────────
+      publishPose3d(m_rawPosePublisher, questPose);
+      publishPose3d(m_robotPosePublisher, robotPose3d);
     }
 
-    // Log battery percentage if available
-    questNav
-        .getBatteryPercent()
-        .ifPresent(battery -> Logger.recordOutput("QuestNav/BatteryPercent", battery));
+    m_isTracking = anyTracking;
 
-    // Log frame count if available
-    questNav
-        .getFrameCount()
-        .ifPresent(frameCount -> Logger.recordOutput("QuestNav/FrameCount", frameCount));
+    // ── Heading + status to dashboard ─────────────────────────────────────────
+    m_trackingPublisher.set(m_isTracking);
 
-    // Log additional data for plotting and analysis
-    try {
-      PoseFrame[] poseFrames = questNav.getAllUnreadPoseFrames();
-      Logger.recordOutput("QuestNav/PoseFrameCount", poseFrames.length);
-
-      // Log app timestamp if available
-      questNav
-          .getAppTimestamp()
-          .ifPresent(timestamp -> Logger.recordOutput("QuestNav/AppTimestamp", timestamp));
-
-      // Log tracking lost counter if available
-      questNav
-          .getTrackingLostCounter()
-          .ifPresent(counter -> Logger.recordOutput("QuestNav/TrackingLostCounter", counter));
-
-    } catch (Exception e) {
-      // Ignore errors for additional logging
+    if (m_lastPose3d != null) {
+      double headingDeg = Math.toDegrees(m_lastPose3d.getRotation().getZ());
+      m_headingDegPublisher.set(headingDeg);
+      SmartDashboard.putNumber("QuestNav/Heading (deg)", headingDeg);
     }
+
+    SmartDashboard.putBoolean("QuestNav/Tracking", m_isTracking);
   }
 
-  /**
-   * Gets the latest robot pose from QuestNav.
-   *
-   * @return The robot's current pose, or a default pose if no data is available
-   */
-  public Pose2d getRobotPose() {
-    try {
-      PoseFrame[] poseFrames = questNav.getAllUnreadPoseFrames();
-      if (poseFrames.length > 0) {
-        Pose2d questPose = poseFrames[poseFrames.length - 1].questPose();
-        if (questPose != null) {
-          return questPose.transformBy(ROBOT_TO_QUEST.inverse());
-        }
-      }
-    } catch (Exception e) {
-      // Log error and return default pose
-      System.err.println("Error getting QuestNav pose: " + e.getMessage());
-    }
-    return new Pose2d(); // Return default pose if no data is available
-  }
+  // ─── Public API ────────────────────────────────────────────────────────────
 
   /**
-   * Sets the robot's pose in QuestNav.
+   * Returns true when the Quest headset is connected and actively tracking.
    *
-   * @param robotPose The robot's pose to set in QuestNav
-   */
-  public void setRobotPose(Pose2d robotPose) {
-    Pose2d questPose = robotPose.transformBy(ROBOT_TO_QUEST);
-    questNav.setPose(questPose);
-  }
-
-  /**
-   * Checks if QuestNav is connected and active.
+   * <p>Always check this before trusting QuestNav pose data in auto routines.
    *
-   * @return true if QuestNav is connected, false otherwise
-   */
-  public boolean isActive() {
-    return questNav.isConnected();
-  }
-
-  /**
-   * Checks if QuestNav is currently tracking.
-   *
-   * @return true if QuestNav is tracking, false otherwise
+   * @return {@code true} if tracking
    */
   public boolean isTracking() {
-    return questNav.isTracking();
+    return m_isTracking;
   }
 
   /**
-   * Gets all unread pose frames from QuestNav.
+   * Returns the last known robot {@link Pose3d} derived from QuestNav, or {@code null} if no data
+   * has been received yet.
    *
-   * @return Array of unread pose frames
+   * @return Latest robot pose, or {@code null}
    */
-  public PoseFrame[] getAllUnreadPoseFrames() {
-    return questNav.getAllUnreadPoseFrames();
+  public Pose3d getLatestRobotPose3d() {
+    return m_lastPose3d;
   }
 
   /**
-   * Gets the current latency of QuestNav in seconds.
+   * Returns the last known robot {@link Pose2d}, or {@code null} if no data has been received.
    *
-   * @return Latency in seconds
+   * @return Latest 2-D pose, or {@code null}
    */
-  public double getLatency() {
-    return questNav.getLatency();
+  public Pose2d getLatestRobotPose2d() {
+    return m_lastPose3d != null ? m_lastPose3d.toPose2d() : null;
   }
 
   /**
-   * Gets the battery percentage of the QuestNav device.
+   * Returns the current heading (yaw) from QuestNav in radians, CCW-positive.
    *
-   * @return Optional containing battery percentage if available
+   * <p>Returns {@code 0.0} if no pose data is available yet.
+   *
+   * @return Heading in radians
    */
-  public java.util.OptionalInt getBatteryPercent() {
-    return questNav.getBatteryPercent();
+  public double getHeadingRadians() {
+    if (m_lastPose3d == null) return 0.0;
+    return m_lastPose3d.getRotation().getZ();
   }
 
   /**
-   * Gets the current frame count from QuestNav.
+   * Returns the current heading from QuestNav as a {@link Rotation2d}.
    *
-   * @return Optional containing frame count if available
+   * @return Heading rotation
    */
-  public java.util.OptionalInt getFrameCount() {
-    return questNav.getFrameCount();
+  public Rotation2d getHeading() {
+    return new Rotation2d(getHeadingRadians());
   }
 
   /**
-   * Gets the tracking lost counter from QuestNav.
+   * Commands the QuestNav system to reset its internal pose to a known field-relative pose.
    *
-   * @return Optional containing tracking lost counter if available
+   * <p>Use this at the start of autonomous to align QuestNav's origin with a known starting
+   * position on the field.
+   *
+   * <p>Internally converts the robot pose back to Quest coordinates before sending.
+   *
+   * @param robotPose The desired field-relative robot pose
    */
-  public java.util.OptionalInt getTrackingLostCounter() {
-    return questNav.getTrackingLostCounter();
+  public void resetPoseToFieldPosition(Pose2d robotPose) {
+    // Convert robot pose → Quest pose (apply the mount transform forward, not inverse)
+    Pose3d questPose = new Pose3d(robotPose).transformBy(QuestNavConstants.ROBOT_TO_QUEST);
+    m_questNav.setPose(questPose);
+
+    // Also seed the CTRE estimator immediately so driving is field-correct right away
+    m_drivetrain.seedPose(robotPose);
   }
 
-  /**
-   * Gets the app timestamp from QuestNav.
-   *
-   * @return Optional containing app timestamp if available
-   */
-  public java.util.OptionalDouble getAppTimestamp() {
-    return questNav.getAppTimestamp();
-  }
+  // ─── Helpers ───────────────────────────────────────────────────────────────
 
   /**
-   * Gets the current yaw (heading) from QuestNav in degrees.
-   *
-   * @return Current yaw in degrees, or 0.0 if no data available
+   * Serialises a {@link Pose3d} into the double[] format expected by AdvantageScope's 3-D field
+   * widget: {@code [x, y, z, roll, pitch, yaw]} (all in meters and radians).
    */
-  public double getCurrentYawDegrees() {
-    try {
-      Pose2d currentPose = getRobotPose();
-      return currentPose.getRotation().getDegrees();
-    } catch (Exception e) {
-      System.err.println("Error getting QuestNav yaw degrees: " + e.getMessage());
-      return 0.0;
-    }
-  }
-
-  /**
-   * Gets the current yaw (heading) from QuestNav in radians.
-   *
-   * @return Current yaw in radians, or 0.0 if no data available
-   */
-  public double getCurrentYawRadians() {
-    try {
-      Pose2d currentPose = getRobotPose();
-      return currentPose.getRotation().getRadians();
-    } catch (Exception e) {
-      System.err.println("Error getting QuestNav yaw radians: " + e.getMessage());
-      return 0.0;
-    }
-  }
-
-  /**
-   * Gets the current rotation from QuestNav.
-   *
-   * @return Current rotation, or zero rotation if no data available
-   */
-  public Rotation2d getCurrentRotation() {
-    try {
-      Pose2d currentPose = getRobotPose();
-      return currentPose.getRotation();
-    } catch (Exception e) {
-      System.err.println("Error getting QuestNav rotation: " + e.getMessage());
-      return new Rotation2d();
-    }
-  }
-
-  /**
-   * Gets the current position from QuestNav.
-   *
-   * @return Current position, or zero position if no data available
-   */
-  public Translation2d getCurrentPosition() {
-    try {
-      Pose2d currentPose = getRobotPose();
-      return currentPose.getTranslation();
-    } catch (Exception e) {
-      System.err.println("Error getting QuestNav position: " + e.getMessage());
-      return new Translation2d();
-    }
+  private void publishPose3d(DoubleArrayPublisher publisher, Pose3d pose) {
+    publisher.set(new double[] {
+        pose.getX(),
+        pose.getY(),
+        pose.getZ(),
+        pose.getRotation().getX(), // roll
+        pose.getRotation().getY(), // pitch
+        pose.getRotation().getZ()  // yaw
+    });
   }
 }
