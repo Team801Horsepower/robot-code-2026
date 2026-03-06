@@ -98,14 +98,15 @@ public class TunerConstants {
   // Flip to true if that wheel drives in the wrong direction.
   // TODO: Confirm by driving each module individually.
 
-  private static final InvertedValue kFrontLeftDriveInverted  = InvertedValue.CounterClockwise_Positive;
-  private static final InvertedValue kFrontRightDriveInverted = InvertedValue.Clockwise_Positive;
-  private static final InvertedValue kBackLeftDriveInverted   = InvertedValue.CounterClockwise_Positive;
-  private static final InvertedValue kBackRightDriveInverted  = InvertedValue.Clockwise_Positive;
+  // true = Clockwise_Positive (inverted), false = CounterClockwise_Positive (default)
+  private static final boolean kFrontLeftDriveInverted  = false;
+  private static final boolean kFrontRightDriveInverted = true;
+  private static final boolean kBackLeftDriveInverted   = false;
+  private static final boolean kBackRightDriveInverted  = true;
 
   // ─── Steer Motor Inversion ─────────────────────────────────────────────────
   // On most CTRE X2 builds the steer is inverted. Verify with Tuner X generator output.
-  private static final InvertedValue kSteerMotorInverted = InvertedValue.Clockwise_Positive;
+  private static final boolean kSteerMotorInverted = true;
 
   // ─── Module Geometry (module position relative to robot centre) ────────────
   // Measure centre-to-centre of front and side wheel pair.
@@ -203,7 +204,6 @@ public class TunerConstants {
               .withCurrentLimits(new CurrentLimitsConfigs()
                   .withStatorCurrentLimit(kSteerCurrentLimitAmps)
                   .withStatorCurrentLimitEnable(true)))
-          .withSteerMotorInverted(kSteerMotorInverted)
           .withFeedbackSource(SteerFeedbackType.FusedCANcoder)
           .withDriveMotorType(kDriveMotorType)
           .withSteerMotorType(kSteerMotorType);
@@ -220,8 +220,7 @@ public class TunerConstants {
           Meters.of( kTrackWidthMeters),   // +X = front
           Meters.of( kWheelBaseMeters),    // +Y = left
           kFrontLeftDriveInverted,
-          false,
-          false);
+          kSteerMotorInverted);
 
   public static final SwerveModuleConstants<
       TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> FrontRight =
@@ -233,8 +232,7 @@ public class TunerConstants {
           Meters.of( kTrackWidthMeters),   // +X = front
           Meters.of(-kWheelBaseMeters),    // -Y = right
           kFrontRightDriveInverted,
-          false,
-          false);
+          kSteerMotorInverted);
 
   public static final SwerveModuleConstants<
       TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> BackLeft =
@@ -246,8 +244,7 @@ public class TunerConstants {
           Meters.of(-kTrackWidthMeters),   // -X = back
           Meters.of( kWheelBaseMeters),    // +Y = left
           kBackLeftDriveInverted,
-          false,
-          false);
+          kSteerMotorInverted);
 
   public static final SwerveModuleConstants<
       TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> BackRight =
@@ -259,8 +256,7 @@ public class TunerConstants {
           Meters.of(-kTrackWidthMeters),   // -X = back
           Meters.of(-kWheelBaseMeters),    // -Y = right
           kBackRightDriveInverted,
-          false,
-          false);
+          kSteerMotorInverted);
 
   // ─── Drivetrain Constants ──────────────────────────────────────────────────
 
