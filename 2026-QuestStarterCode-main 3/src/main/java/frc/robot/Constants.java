@@ -16,4 +16,15 @@ public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
   }
+  public static final class CANIDConstants {
+    public static final int GatherMototCANID = 12;
+    public static final int SpindexerMotorCANID = 21;
+  }
+  public static final class FeedConstants {
+    public static final double GatherOuttakeSpeed = -0.50;
+    public static final double SpindexerForwardSpeed = 0.50;
+    public static final double SpindexerReverseSpeed = 0.50;
+    public static final double FeederSpeed = 0.50;
+    public static final double ShooterWheelSpeed = 0.50;
+  }
 }

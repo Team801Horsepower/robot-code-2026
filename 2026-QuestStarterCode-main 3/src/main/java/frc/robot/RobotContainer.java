@@ -4,10 +4,17 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Commands.CommandSwerveDrivetrain;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.GatherSubsystem;
 import frc.robot.subsystems.QuestNavSubsystem;
+import frc.robot.subsystems.SpindexerSubsystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -17,13 +24,19 @@ import frc.robot.subsystems.QuestNavSubsystem;
  */
 public class RobotContainer {
   // The robot's subsystems
+  public static final XboxController driverController = new XboxController(Constants.OperatorConstants.kDriverControllerPort);
+  
+  
   public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   public final QuestNavSubsystem questNav = new QuestNavSubsystem(drivetrain);
+  public static final GatherSubsystem m_GatherSubsystem = new GatherSubsystem();
+  public static final SpindexerSubsystem m_SpindexerSubsystem = new SpindexerSubsystem();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure any trigger bindings (none for QuestNav)
     configureBindings();
+    defaultCommands();
   }
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
@@ -36,6 +49,11 @@ public class RobotContainer {
    */
   private void configureBindings() {
     // Empty on purpose: driving and related bindings removed.
+
+  }
+
+  private void defaultCommands() {
+
   }
 
   /**
