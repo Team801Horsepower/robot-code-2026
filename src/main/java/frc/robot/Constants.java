@@ -83,8 +83,8 @@ public final class Constants {
   // ─── Gather ────────────────────────────────────────────────────────────────
 
   public static final class GatherConstants {
-    /** CAN ID of the NEO Vortex (SparkFlex) powering the gatherer roller. TODO: set real ID. */
-    public static final int kMotorId = 10;
+    /** CAN ID of the NEO Vortex (SparkFlex) powering the gatherer roller. */
+    public static final int kMotorId = 12;
     /** Default roller power when gathering. Positive = intake direction. */
     public static final double kDefaultPower = 0.7;
   }
@@ -92,7 +92,7 @@ public final class Constants {
   // ─── Hopper ────────────────────────────────────────────────────────────────
 
   public static final class HopperConstants {
-    /** CAN ID of the NEO Vortex (SparkFlex) driving the hopper rail. TODO: set real ID. */
+    /** CAN ID of the NEO Vortex (SparkFlex) driving the hopper rail. */
     public static final int kMotorId = 11;
     /**
      * Fully-extended encoder position (motor rotations from home).
@@ -110,8 +110,8 @@ public final class Constants {
   // ─── Spindex ───────────────────────────────────────────────────────────────
 
   public static final class SpindexConstants {
-    /** CAN ID of the NEO Vortex (SparkFlex) spinning the spindexer. TODO: set real ID. */
-    public static final int kMotorId = 12;
+    /** CAN ID of the NEO Vortex (SparkFlex) spinning the spindexer. */
+    public static final int kMotorId = 21;
     /** Power applied during spin() (positive; motor is set negative in code). */
     public static final double kSpinPower = 0.8;
     /** Waveform shape for agitate() and Hopper.jostle(). */
@@ -135,8 +135,8 @@ public final class Constants {
   // ─── Feeder ────────────────────────────────────────────────────────────────
 
   public static final class FeederConstants {
-    /** CAN ID of the NEO Vortex (SparkFlex) powering the feeder. TODO: set real ID. */
-    public static final int kMotorId = 13;
+    /** CAN ID of the NEO Vortex (SparkFlex) powering the feeder. */
+    public static final int kMotorId = 22;
     /** Default feeder power. */
     public static final double kSpinPower = 1.0;
   }
@@ -144,11 +144,11 @@ public final class Constants {
   // ─── Turret ────────────────────────────────────────────────────────────────
 
   public static final class TurretConstants {
-    // CAN IDs – TODO: set real IDs.
-    public static final int kLaunchMotor1Id = 14;
-    public static final int kLaunchMotor2Id = 15;
-    public static final int kHoodMotorId    = 16;
-    public static final int kRotateMotorId  = 17;
+    // CAN IDs
+    public static final int kLaunchMotor1Id = 25;
+    public static final int kLaunchMotor2Id = 26;
+    public static final int kHoodMotorId    = 24;
+    public static final int kRotateMotorId  = 23;
 
     /** Target launch-wheel velocity (RPM). TODO: tune. */
     public static final double kTargetVelocityRPM = 4000.0;
@@ -189,8 +189,8 @@ public final class Constants {
   // ─── Climber ───────────────────────────────────────────────────────────────
 
   public static final class ClimberConstants {
-    /** CAN ID of the NEO Vortex (SparkFlex) driving the climber slide. TODO: set real ID. */
-    public static final int kMotorId = 18;
+    /** CAN ID of the NEO Vortex (SparkFlex) driving the climber slide. */
+    public static final int kMotorId = 31;
     /**
      * Encoder position (motor rotations) when the climber is fully extended to L1.
      * TODO: measure on physical robot.
