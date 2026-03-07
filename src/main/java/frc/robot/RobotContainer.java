@@ -52,7 +52,7 @@ public class RobotContainer {
 
   private final Drive       m_drive      = new Drive(m_drivetrain);
   private final Possession  m_possession = new Possession(m_hopper, m_gather);
-  private final Launch      m_launch     = new Launch(m_spindex, m_feeder, m_turret);
+  private final Launch      m_launch     = new Launch(m_spindex, m_feeder, m_turret, m_gather);
   private final Ascension   m_ascension  = new Ascension(m_level1);
   private final Manipulator m_manipulator = new Manipulator(m_possession, m_launch);
   private final Vision      m_vision     = new Vision(m_questNav, m_drivetrain);
