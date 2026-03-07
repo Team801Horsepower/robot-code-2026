@@ -1,8 +1,9 @@
 // Copyright (c) 2026 Team 801 Horsepower
 package frc.robot.subsystems;
 
-import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -18,16 +19,14 @@ import frc.robot.Constants.HopperConstants;
 /**
  * Hopper – extends and retracts the hopper rail system, and can jostle in place.
  *
- * <p>Uses the built-in NEO Vortex relative encoder (acting like a quadrature encoder)
- * for closed-loop position control. The on-board REV V2 Absolute Encoder is physically
- * present but this code uses the relative encoder as specified ("relative encoder mode").
- * Zero the encoder at startup with the hopper fully retracted.
- *
+ * <p>Uses the REV V2 Absolute Encoder (via SparkFlex data port) with a 2.1 in/rotation
+ * conversion factor for closed-loop position control. Zero reference is the physical
+ * home/retracted position.
  */
 public class Hopper extends SubsystemBase {
 
   private final SparkFlex m_motor;
-  private final RelativeEncoder m_encoder;
+  private final SparkAbsoluteEncoder m_encoder;
   private final SparkClosedLoopController m_pid;
 
   /** Tracks whether the hopper is currently considered extended (for {@link #check()}). */
@@ -35,18 +34,19 @@ public class Hopper extends SubsystemBase {
 
   public Hopper() {
     m_motor = new SparkFlex(HopperConstants.kMotorId, MotorType.kBrushless);
-    m_encoder = m_motor.getEncoder();
+    m_encoder = m_motor.getAbsoluteEncoder();
     m_pid = m_motor.getClosedLoopController();
 
     SparkFlexConfig config = new SparkFlexConfig();
     config.idleMode(IdleMode.kBrake);
+    config.absoluteEncoder.positionConversionFactor(HopperConstants.kEncoderConversionFactor);
     config.closedLoop
+        .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
         .p(HopperConstants.kP)
         .i(HopperConstants.kI)
         .d(HopperConstants.kD);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    m_encoder.setPosition(0.0);
   }
 
   /** Extends the hopper fully to the configured setpoint. */
@@ -89,7 +89,6 @@ public class Hopper extends SubsystemBase {
   public void jostle() {
     double amplitude = HopperConstants.kJostleAmplitude;
     double period    = HopperConstants.kJostlePeriod;
-    boolean reversed = HopperConstants.kJostleReversed;
     double t = Timer.getFPGATimestamp();
 
     double maxPos = (1.0 - amplitude)        * HopperConstants.kExtendedSetpoint;
@@ -101,16 +100,15 @@ public class Hopper extends SubsystemBase {
     AgitationType type = HopperConstants.kJostleAgitationType;
 
     if (type == AgitationType.FLAT) {
-      setpoint = reversed ? minPos : maxPos;
+      setpoint = maxPos;
 
     } else if (type == AgitationType.SINUSOIDAL) {
-      double sinVal = Math.sin(2.0 * Math.PI * t / period);
-      setpoint = midPos + half * (reversed ? -sinVal : sinVal);
+      setpoint = midPos + half * Math.sin(2.0 * Math.PI * t / period);
 
     } else { // ABSOLUTE_VALUE – triangle wave
       double phase = ((t % period) / period + 1.0) % 1.0;
       double tri   = 4.0 * Math.abs(phase - 0.5) - 1.0; // [-1, 1]
-      setpoint = midPos + half * (reversed ? -tri : tri);
+      setpoint = midPos + half * tri;
     }
 
     m_pid.setReference(setpoint, ControlType.kPosition);

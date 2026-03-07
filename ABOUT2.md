@@ -22,6 +22,8 @@
 
 11: Hopper NEO Vortex (extension)
 
+Hopper REV V2 Absolute Encoder (no CAN ID – connected via SparkFlex data port)
+
 12: Gather NEO Vortex (spinning rod)
 
 

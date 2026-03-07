@@ -97,12 +97,18 @@ public final class Constants {
     /** CAN ID of the NEO Vortex (SparkFlex) driving the hopper rail. */
     public static final int kMotorId = 11;
     /**
-     * Fully-extended encoder position (motor rotations from home).
-     * TODO: Take into account that one rotation of the encoder's gear equals 2.1 linear inches.
+     * Position conversion factor for the REV V2 Absolute Encoder.
+     * One full encoder rotation = 2.1 linear inches of rail travel.
+     * After applying this factor, all encoder positions are in inches.
      */
-    public static final double kExtendedSetpoint = 50.0;
-    /** Closed-loop position tolerance (rotations). */
-    public static final double kTolerance = 0.5;
+    public static final double kEncoderConversionFactor = 2.1; // inches per rotation
+    /**
+     * Fully-extended encoder position (inches from home).
+     * Full extension = 12 inches of rail travel.
+     */
+    public static final double kExtendedSetpoint = 12.0; // inches
+    /** Closed-loop position tolerance (inches). */
+    public static final double kTolerance = 0.1; // inches
     // PID gains for hopper position control. TODO: tune.
     public static final double kP = 0.05;
     public static final double kI = 0.0;
@@ -115,14 +121,9 @@ public final class Constants {
      * Jostle amplitude as a fraction of kExtendedSetpoint.
      * MUST be ≤ 0.5 (oscillates between (1−amp)·setpoint and (1−2·amp)·setpoint).
      */
-    public static final double kJostleAmplitude = 0.3;
+    public static final double kJostleAmplitude = 0.1;
     /** Jostle period in seconds. */
-    public static final double kJostlePeriod = 1.0;
-    /**
-     * Reversed flag for jostle.
-     * false → minimum position is center; true → zero is center (oscillates ±amp around midpoint).
-     */
-    public static final boolean kJostleReversed = false;
+    public static final double kJostlePeriod = 0.5;
   }
 
   // ─── Spindex ───────────────────────────────────────────────────────────────

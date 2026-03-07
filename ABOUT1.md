@@ -12,7 +12,7 @@ Our robot uses a ROBORIO 2.0 computer, and a fault-tolerant CAN bus architecture
 
 
 
-Our advanced design uses an extendable hopper with a gatherer (roller) at the end, allowing for high capacity and intake efficiency. The gatherer itself uses a motor to spin the roller. The hopper also uses a motor to expand and retract the hopper. The robot cannot intake with the gatherer unless the hopper is extended. The hopper uses a rail system with a buffer, though ideally the system is tuned as to not cause damage to the bugger. This rail system only requires one motor. The rail system also has a REV V2 Absolute Encoder. However, this encoder ill be set in relative encoder mode, acting like a quadrature encoder.
+Our advanced design uses an extendable hopper with a gatherer (roller) at the end, allowing for high capacity and intake efficiency. The gatherer itself uses a motor to spin the roller. The hopper also uses a motor to expand and retract the hopper. The robot cannot intake with the gatherer unless the hopper is extended. The hopper uses a rail system with a buffer, though ideally the system is tuned as to not cause damage to the bugger. This rail system only requires one motor. The rail system uses a REV V2 Absolute Encoder (connected via the SparkFlex data port, no CAN ID) for closed-loop position control. One rotation = 2.1 linear inches; full extension = 12 inches.
 
 
 
