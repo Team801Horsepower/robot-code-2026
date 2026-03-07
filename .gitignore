@@ -1,8 +1,6 @@
 # This gitignore has been specially created by the WPILib team.
 # If you remove items from this file, intellisense might break.
 
-build/**/*.jar
-
 ### C++ ###
 # Prerequisites
 *.d
@@ -51,7 +49,7 @@ build/**/*.jar
 .mtj.tmp/
 
 # Package Files #
-# *.jar
+*.jar
 *.war
 *.nar
 *.ear
@@ -107,6 +105,10 @@ Temporary Items
 
 ### VisualStudioCode ###
 .vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 
 ### Windows ###
 # Windows thumbnail cache files
@@ -156,38 +158,53 @@ gradle-app.setting
 .settings/
 bin/
 
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
+out/
+
+# Fleet
+.fleet
+
 # Simulation GUI and other tools window save file
-*-window.json
-simgui-ds.json
+networktables.json
 simgui.json
+simgui-ds.json
+*-window.json
+
+# Simulation data log directory
+logs/
+
+# Folder that has CTRE Phoenix Sim device config storage
+ctre_sim/
+
+# clangd
+/.cache
+compile_commands.json
+
+# Eclipse generated file for annotation processors
+.factorypath
 
 
-
-# Modified for Python by Ishaan Sen on 2023-06-30
+# Python artifacts
 
 *.pyc
 *.pyd
 *.pyo
 
-# Further modified for Python by Omkar Subramaniam on 2024-02-16
-
 __pycache__
 
-# Further modified for Python by Ishaan Sen on 2024-05-06
-
-.wpilib
-
-# Further modified for our use case by Ishaan Sen on 2025-03-01
-
-*.xls
-*.xlsx
-*.numbers
 
 # Local Codex artifacts by Hudson Jimenez on 2026-02-19
+
 skills/
 .codex/
 AGENTS.md
 sync-codex-skills.ps1
 
+
 # Claude Code local config by Hudson Jimenez on 2026-03-06
+
 CLAUDE.md
