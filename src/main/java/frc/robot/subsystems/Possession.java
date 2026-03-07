@@ -31,6 +31,16 @@ public class Possession extends SubsystemBase {
     m_gather.gather(GatherConstants.kDefaultPower);
   }
 
+  /**
+   * Ensures the hopper is extended, then spins the gatherer at the given power.
+   *
+   * <p>Call repeatedly from a command's execute() loop.
+   */
+  public void possessWithPower(double power) {
+    m_hopper.extend();
+    m_gather.gather(power);
+  }
+
   /** Stops gathering and optionally retracts. Gather stops; hopper stays in current position. */
   public void stop() {
     m_gather.rest();

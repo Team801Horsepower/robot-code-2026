@@ -5,13 +5,12 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.GatherConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.commands.*;
@@ -23,23 +22,16 @@ import frc.robot.subsystems.*;
  * <p>All subsystems are instantiated here. Controller bindings are configured here. The autonomous
  * command is returned from here.
  *
- * <h2>Drive controls (Xbox Controller – Port 0)</h2>
+ * <h2>Single controller (Xbox Controller – Port 0)</h2>
  * <ul>
- *   <li><b>Left stick X/Y</b> – Translational velocity (field-relative)
- *   <li><b>Right stick X</b> – Rotational velocity
- *   <li><b>Left trigger (held)</b> – Wheel lock (X-stance brake)
- *   <li><b>Start button</b> – Reset QuestNav heading to "forward = current direction"
- *   <li><b>Back button</b> – Reset robot pose to origin (0, 0, 0°) for testing
- *   <li><b>Y button</b> – Re-seed drivetrain heading from QuestNav
- * </ul>
- *
- * <h2>Operator controls (Xbox Controller – Port 1)</h2>
- * <ul>
- *   <li><b>Right bumper (held)</b> – Gather (intake game pieces)
- *   <li><b>Right trigger (held)</b> – Shoot (run launch sequence)
- *   <li><b>Left bumper (held)</b> – Jostle (unjam spindexer + hopper)
- *   <li><b>Left trigger (held)</b> – Aim (update turret angle from vision)
- *   <li><b>A button</b> – Climb to Level 1
+ *   <li><b>Right stick X/Y</b> – Translational velocity (field-relative)
+ *   <li><b>Left stick X</b> – Rotational velocity
+ *   <li><b>Left trigger (&gt;0.08, held)</b> – Scaled intake (trigger axis = gather power)
+ *   <li><b>Left bumper (held)</b> – Reverse intake (full configurable power)
+ *   <li><b>Right trigger (&gt;0.15, held)</b> – Shoot (run launch sequence)
+ *   <li><b>Right bumper (held)</b> – Jostle (unjam spindexer + hopper)
+ *   <li><b>D-pad Up</b> – Climb to Level 1
+ *   <li><b>D-pad Down</b> – Toggle jostle type (cycles FLAT → SINUSOIDAL → ABSOLUTE_VALUE)
  * </ul>
  */
 public class RobotContainer {
@@ -70,9 +62,6 @@ public class RobotContainer {
   private final CommandXboxController m_driverController =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
 
-  private final CommandXboxController m_operatorController =
-      new CommandXboxController(1);
-
   // ─── Swerve requests ───────────────────────────────────────────────────────
 
   private final SwerveRequest.FieldCentric m_fieldCentricRequest =
@@ -81,7 +70,6 @@ public class RobotContainer {
           .withRotationalDeadband(DriveConstants.kMaxAngularSpeedRadPerSec * 0.02)
           .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-  private final SwerveRequest.SwerveDriveBrake m_brakeRequest = new SwerveRequest.SwerveDriveBrake();
 
   // ─── Constructor ───────────────────────────────────────────────────────────
 
@@ -99,13 +87,13 @@ public class RobotContainer {
   }
 
   private SwerveRequest.FieldCentric buildFieldCentricRequest() {
-    double translationX = applyDeadband(-m_driverController.getLeftY())
+    double translationX = applyDeadband(-m_driverController.getRightY())
         * DriveConstants.kMaxSpeedMetersPerSecond;
 
-    double translationY = applyDeadband(-m_driverController.getLeftX())
+    double translationY = applyDeadband(-m_driverController.getRightX())
         * DriveConstants.kMaxSpeedMetersPerSecond;
 
-    double rotation = applyDeadband(-m_driverController.getRightX())
+    double rotation = applyDeadband(-m_driverController.getLeftX())
         * DriveConstants.kMaxAngularSpeedRadPerSec;
 
     return m_fieldCentricRequest
@@ -118,55 +106,37 @@ public class RobotContainer {
 
   private void configureButtonBindings() {
 
-    // ── Driver controller ─────────────────────────────────────────────────────
-
+    // Left trigger (>0.08, held) → scaled intake (trigger axis = gather power)
     m_driverController
-        .leftTrigger(0.5)
-        .whileTrue(m_drive.applyRequest(() -> m_brakeRequest));
+        .leftTrigger(0.08)
+        .whileTrue(new Gathering(m_possession,
+            () -> m_driverController.getLeftTriggerAxis()));
 
+    // Left bumper (held) → reverse intake at configurable full power
     m_driverController
-        .start()
-        .onTrue(Commands.runOnce(() -> m_drive.seedFieldRelative()));
+        .leftBumper()
+        .whileTrue(Commands.run(
+            () -> m_gather.gather(-GatherConstants.kReverseIntakePower), m_gather));
 
+    // Right trigger (>0.15, held) → shoot
     m_driverController
-        .back()
-        .onTrue(Commands.runOnce(() ->
-            m_questNav.resetPoseToFieldPosition(new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0)))));
-
-    m_driverController
-        .y()
-        .onTrue(Commands.runOnce(() -> {
-          if (m_questNav.isTracking()) {
-            m_drive.seedPose(m_questNav.getLatestRobotPose2d());
-          }
-        }));
-
-    // ── Operator controller ───────────────────────────────────────────────────
-
-    // Right bumper (held) → gather game pieces
-    m_operatorController
-        .rightBumper()
-        .whileTrue(new Gathering(m_possession));
-
-    // Right trigger (held) → shoot
-    m_operatorController
-        .rightTrigger(0.5)
+        .rightTrigger(0.15)
         .whileTrue(new Shoot(m_launch));
 
-    // Left bumper (held) → jostle to unjam
-    m_operatorController
-        .leftBumper()
+    // Right bumper (held) → jostle to unjam
+    m_driverController
+        .rightBumper()
         .whileTrue(new Jostling(m_hopper, m_spindex));
 
-    // Left trigger (held) → aim turret
-    m_operatorController
-        .leftTrigger(0.5)
-        .whileTrue(new Aim(m_vision, m_turret));
-
-    // A button → climb to Level 1
-    m_operatorController
-        .a()
+    // D-pad Up → climb to Level 1
+    m_driverController
+        .povUp()
         .onTrue(new ClimbL1(m_hopper, m_ascension));
+
+    // D-pad Down → cycle jostle type
+    m_driverController
+        .povDown()
+        .onTrue(Commands.runOnce(() -> m_spindex.cycleAgitationType()));
   }
 
   // ─── Autonomous ────────────────────────────────────────────────────────────

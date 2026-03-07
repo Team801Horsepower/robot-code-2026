@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Team 801 Horsepower
 package frc.robot.commands;
 
+import java.util.function.DoubleSupplier;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Possession;
 
@@ -12,15 +13,17 @@ import frc.robot.subsystems.Possession;
 public class Gathering extends Command {
 
   private final Possession m_possession;
+  private final DoubleSupplier m_powerSupplier;
 
-  public Gathering(Possession possession) {
+  public Gathering(Possession possession, DoubleSupplier powerSupplier) {
     m_possession = possession;
+    m_powerSupplier = powerSupplier;
     addRequirements(possession);
   }
 
   @Override
   public void execute() {
-    m_possession.possess();
+    m_possession.possessWithPower(m_powerSupplier.getAsDouble());
   }
 
   @Override

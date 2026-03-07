@@ -87,6 +87,8 @@ public final class Constants {
     public static final int kMotorId = 12;
     /** Default roller power when gathering. Positive = intake direction. */
     public static final double kDefaultPower = 0.7;
+    /** Full power for reverse (ejection) intake. Independently configurable. */
+    public static final double kReverseIntakePower = 0.7;
   }
 
   // ─── Hopper ────────────────────────────────────────────────────────────────
@@ -96,7 +98,7 @@ public final class Constants {
     public static final int kMotorId = 11;
     /**
      * Fully-extended encoder position (motor rotations from home).
-     * TODO: measure on physical robot.
+     * TODO: Take into account that one rotation of the encoder's gear equals 2.1 linear inches.
      */
     public static final double kExtendedSetpoint = 50.0;
     /** Closed-loop position tolerance (rotations). */

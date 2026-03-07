@@ -36,6 +36,7 @@ import frc.robot.Constants.SpindexConstants;
 public class Spindex extends SubsystemBase {
 
   private final SparkFlex m_motor;
+  private AgitationType m_currentAgitationType = SpindexConstants.kAgitationType;
 
   public Spindex() {
     m_motor = new SparkFlex(SpindexConstants.kMotorId, MotorType.kBrushless);
@@ -71,7 +72,7 @@ public class Spindex extends SubsystemBase {
     double t = Timer.getFPGATimestamp();
 
     double power;
-    AgitationType type = SpindexConstants.kAgitationType;
+    AgitationType type = m_currentAgitationType;
 
     if (type == AgitationType.FLAT) {
       // Constant power; sign determined by reversed flag.
@@ -99,5 +100,11 @@ public class Spindex extends SubsystemBase {
     }
 
     m_motor.set(power);
+  }
+
+  /** Advances to the next agitation type in the cycle: FLAT → SINUSOIDAL → ABSOLUTE_VALUE → FLAT. */
+  public void cycleAgitationType() {
+    AgitationType[] types = AgitationType.values();
+    m_currentAgitationType = types[(m_currentAgitationType.ordinal() + 1) % types.length];
   }
 }
