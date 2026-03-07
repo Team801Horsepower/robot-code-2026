@@ -150,6 +150,7 @@ launch()
 * Runs Spindex.spin()
 * Runs Feeder.spin() at full positive power (1.0)
 * Runs Turret.spin() to keep launch wheels at velocity
+* Runs Gather.gather() at negative half of kDefaultPower (reverse direction, to clear the gather path)
 
 stop()
 
