@@ -52,7 +52,5 @@
 
 44: Back Right CANCoder
 
-45: Turret CANCoder
-
-
+45: Turret REV V2 Absolute Encoder
 
