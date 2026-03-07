@@ -1,6 +1,16 @@
 %%{init: {"theme": "default"}}%%
 graph TD
 
+  subgraph Ctrl ["Xbox Controller (Port 0)"]
+    direction LR
+    LT["Left Trigger\n(>0.08, held)"]
+    LB["Left Bumper\n(held)"]
+    RT["Right Trigger\n(>0.15, held)"]
+    RB["Right Bumper\n(held)"]
+    DPU["D-Pad Up"]
+    DPD["D-Pad Down"]
+  end
+
   %% ── Leaf Subsystems ───────────────────────────────────────────
   DT[DrivetrainSubsystem]
   QN[QuestNavSubsystem]
@@ -28,6 +38,16 @@ graph TD
   Jostling([Jostling])
   AimCmd([Aim])
   Score([Score])
+  ReverseIntake([Reverse Intake])
+  CycleJostle([Cycle Jostle Type])
+
+  %% ── Button → Command ──────────────────────────────────────────
+  LT --> Gathering
+  LB --> ReverseIntake
+  RT --> Shoot
+  RB --> Jostling
+  DPU --> ClimbL1Cmd
+  DPD --> CycleJostle
 
   %% ── Composite → Leaf composition ─────────────────────────────
   Drive --> DT
@@ -38,6 +58,7 @@ graph TD
   Launch --> Spindex
   Launch --> Feeder
   Launch --> Turret
+  Launch --> Gather
   Ascension --> Level1
   Manipulator --> Possession
   Manipulator --> Launch
@@ -49,17 +70,21 @@ graph TD
   ClimbL1Cmd --> Ascension
   Gathering --> Possession
   Shoot --> Launch
-  Jostling --> Hopper
+  Shoot --> Hopper
   Jostling --> Spindex
   AimCmd --> Vision
   AimCmd --> Turret
   Score --> Manipulator
+  ReverseIntake --> Gather
+  CycleJostle --> Spindex
 
   %% ── Styling ───────────────────────────────────────────────────
   classDef leaf      fill:#dce8f5,stroke:#4a90d9,color:#000;
   classDef composite fill:#d4edda,stroke:#28a745,color:#000;
   classDef command   fill:#fff3cd,stroke:#ffc107,color:#000;
+  classDef button    fill:#f8d7da,stroke:#dc3545,color:#000;
 
   class DT,QN,Gather,Hopper,Spindex,Feeder,Turret,Level1 leaf;
   class Drive,Possession,Launch,Ascension,Manipulator,Vision composite;
-  class DriveToPose,RunLaunchWheel,ClimbL1Cmd,Gathering,Shoot,Jostling,AimCmd,Score command;
+  class DriveToPose,RunLaunchWheel,ClimbL1Cmd,Gathering,Shoot,Jostling,AimCmd,Score,ReverseIntake,CycleJostle command;
+  class LT,LB,RT,RB,DPU,DPD button;
