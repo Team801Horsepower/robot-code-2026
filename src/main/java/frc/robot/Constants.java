@@ -149,6 +149,18 @@ public final class Constants {
      * true  → zero is the center (oscillates ±amplitude around zero).
      */
     public static final boolean kAgitationReversed = false;
+
+    /** Velocity below which the spindexer is considered jammed (RPM). TODO: tune. */
+    public static final double kJamVelocityThresholdRPM = 500.0;
+    /**
+     * How long spin() must be running before a jam can be declared (seconds).
+     * Prevents false positives during motor spin-up.
+     */
+    public static final double kJamDetectDebounce = 0.15;
+    /** How long to run the motor in reverse when clearing a jam (seconds). TODO: tune. */
+    public static final double kJamReverseTime = 0.25;
+    /** Reverse power fraction applied during jam clearing (positive = reverse direction). */
+    public static final double kJamReversePower = 0.4;
   }
 
   // ─── Feeder ────────────────────────────────────────────────────────────────
