@@ -188,3 +188,6 @@ skills/
 .codex/
 AGENTS.md
 sync-codex-skills.ps1
+
+# Claude Code local config by Hudson Jimenez on 2026-03-06
+CLAUDE.md
