@@ -10,8 +10,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Commands.CommandSwerveDrivetrain;
-import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.FeederSubsystem;
 import frc.robot.subsystems.GatherSubsystem;
 import frc.robot.subsystems.QuestNavSubsystem;
 import frc.robot.subsystems.SpindexerSubsystem;
@@ -26,11 +25,10 @@ public class RobotContainer {
   // The robot's subsystems
   public static final XboxController driverController = new XboxController(Constants.OperatorConstants.kDriverControllerPort);
   
-  
-  public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   public final QuestNavSubsystem questNav = new QuestNavSubsystem(drivetrain);
   public static final GatherSubsystem m_GatherSubsystem = new GatherSubsystem();
   public static final SpindexerSubsystem m_SpindexerSubsystem = new SpindexerSubsystem();
+  public static final FeederSubsystem m_FeederSubsystem = new FeederSubsystem();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
