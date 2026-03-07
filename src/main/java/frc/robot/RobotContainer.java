@@ -121,12 +121,12 @@ public class RobotContainer {
     // Right trigger (>0.15, held) → shoot
     m_driverController
         .rightTrigger(0.15)
-        .whileTrue(new Shoot(m_launch));
+        .whileTrue(new Shoot(m_launch, m_hopper));
 
     // Right bumper (held) → jostle to unjam
     m_driverController
         .rightBumper()
-        .whileTrue(new Jostling(m_hopper, m_spindex));
+        .whileTrue(new Jostling(m_spindex));
 
     // D-pad Up → climb to Level 1
     m_driverController

@@ -107,6 +107,22 @@ public final class Constants {
     public static final double kP = 0.05;
     public static final double kI = 0.0;
     public static final double kD = 0.0;
+
+    // ─── Hopper jostle (independent from spindexer agitation) ─────────────────
+    /** Waveform shape for Hopper.jostle(). */
+    public static final AgitationType kJostleAgitationType = AgitationType.SINUSOIDAL;
+    /**
+     * Jostle amplitude as a fraction of kExtendedSetpoint.
+     * MUST be ≤ 0.5 (oscillates between (1−amp)·setpoint and (1−2·amp)·setpoint).
+     */
+    public static final double kJostleAmplitude = 0.3;
+    /** Jostle period in seconds. */
+    public static final double kJostlePeriod = 1.0;
+    /**
+     * Reversed flag for jostle.
+     * false → minimum position is center; true → zero is center (oscillates ±amp around midpoint).
+     */
+    public static final boolean kJostleReversed = false;
   }
 
   // ─── Spindex ───────────────────────────────────────────────────────────────

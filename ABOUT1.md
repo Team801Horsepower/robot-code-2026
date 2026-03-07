@@ -203,8 +203,7 @@ extendTo(pct: double)
 jostle()
 
 * Oscillates the hopper between (1−amplitude)·setpoint and (1−2·amplitude)·setpoint
-* Uses the same agitation type, amplitude, and period constants as Spindex.agitate()
-* Amplitude must be ≤ 0.5
+* Uses independent HopperConstants jostle constants (kJostleAgitationType, kJostleAmplitude, kJostlePeriod, kJostleReversed)
 
 retract()
 
@@ -302,15 +301,15 @@ Gathering(possession: Possession)
 
 
 
-Shoot(launch: Launch)
+Shoot(launch: Launch, hopper: Hopper)
 
-* Runs Launch.launch() each loop; stops on end
+* Runs Launch.launch() and Hopper.jostle() each loop; stops on end
 
 
 
-Jostling(hopper: Hopper, spindex: Spindex)
+Jostling(spindex: Spindex)
 
-* Runs Hopper.jostle() and Spindex.agitate() each loop
+* Runs Spindex.agitate() each loop (hopper jostling removed)
 
 
 

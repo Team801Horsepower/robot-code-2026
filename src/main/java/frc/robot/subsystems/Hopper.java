@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.AgitationType;
 import frc.robot.Constants.HopperConstants;
-import frc.robot.Constants.SpindexConstants;
 
 /**
  * Hopper – extends and retracts the hopper rail system, and can jostle in place.
@@ -24,7 +23,6 @@ import frc.robot.Constants.SpindexConstants;
  * present but this code uses the relative encoder as specified ("relative encoder mode").
  * Zero the encoder at startup with the hopper fully retracted.
  *
- * <p>Amplitude constant shared with {@link Spindex} must be ≤ 0.5.
  */
 public class Hopper extends SubsystemBase {
 
@@ -84,15 +82,14 @@ public class Hopper extends SubsystemBase {
 
   /**
    * Oscillates the hopper between positions (1−amplitude)·setpoint and (1−2·amplitude)·setpoint
-   * using the same agitation parameters as {@link Spindex#agitate()}.
+   * using independent {@link HopperConstants} jostle constants.
    *
-   * <p>Amplitude must be ≤ 0.5 (enforced by {@link SpindexConstants#kAmplitude}).
-   * Call repeatedly (e.g. from a command's execute() loop).
+   * <p>Call repeatedly (e.g. from a command's execute() loop).
    */
   public void jostle() {
-    double amplitude = SpindexConstants.kAmplitude;
-    double period    = SpindexConstants.kPeriod;
-    boolean reversed = SpindexConstants.kAgitationReversed;
+    double amplitude = HopperConstants.kJostleAmplitude;
+    double period    = HopperConstants.kJostlePeriod;
+    boolean reversed = HopperConstants.kJostleReversed;
     double t = Timer.getFPGATimestamp();
 
     double maxPos = (1.0 - amplitude)        * HopperConstants.kExtendedSetpoint;
@@ -101,7 +98,7 @@ public class Hopper extends SubsystemBase {
     double half   = (maxPos - minPos) / 2.0;
 
     double setpoint;
-    AgitationType type = SpindexConstants.kAgitationType;
+    AgitationType type = HopperConstants.kJostleAgitationType;
 
     if (type == AgitationType.FLAT) {
       setpoint = reversed ? minPos : maxPos;
