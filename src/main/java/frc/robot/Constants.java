@@ -97,7 +97,7 @@ public final class Constants {
     /** CAN ID of the NEO Vortex (SparkFlex) driving the hopper rail. */
     public static final int kMotorId = 11;
     /**
-     * Position conversion factor for the REV V2 Absolute Encoder.
+     * Position conversion factor for the REV Through Bore Encoder (relative/quadrature mode).
      * One full encoder rotation = 2.1 linear inches of rail travel.
      * After applying this factor, all encoder positions are in inches.
      */

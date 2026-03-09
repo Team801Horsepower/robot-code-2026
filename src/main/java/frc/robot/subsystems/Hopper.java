@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Team 801 Horsepower
 package frc.robot.subsystems;
 
-import com.revrobotics.spark.SparkAbsoluteEncoder;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -19,14 +19,14 @@ import frc.robot.Constants.HopperConstants;
 /**
  * Hopper – extends and retracts the hopper rail system, and can jostle in place.
  *
- * <p>Uses the REV V2 Absolute Encoder (via SparkFlex data port) with a 2.1 in/rotation
- * conversion factor for closed-loop position control. Zero reference is the physical
- * home/retracted position.
+ * <p>Uses the REV Through Bore Encoder (via SparkFlex data port, relative/quadrature mode) with a
+ * 2.1 in/rotation conversion factor for closed-loop position control. Zero reference is the
+ * physical home/retracted position (encoder zeroes on power-on with hopper retracted).
  */
 public class Hopper extends SubsystemBase {
 
   private final SparkFlex m_motor;
-  private final SparkAbsoluteEncoder m_encoder;
+  private final RelativeEncoder m_encoder;
   private final SparkClosedLoopController m_pid;
 
   /** Tracks whether the hopper is currently considered extended (for {@link #check()}). */
@@ -34,14 +34,14 @@ public class Hopper extends SubsystemBase {
 
   public Hopper() {
     m_motor = new SparkFlex(HopperConstants.kMotorId, MotorType.kBrushless);
-    m_encoder = m_motor.getAbsoluteEncoder();
+    m_encoder = m_motor.getEncoder();
     m_pid = m_motor.getClosedLoopController();
 
     SparkFlexConfig config = new SparkFlexConfig();
     config.idleMode(IdleMode.kBrake);
-    config.absoluteEncoder.positionConversionFactor(HopperConstants.kEncoderConversionFactor);
+    config.encoder.positionConversionFactor(HopperConstants.kEncoderConversionFactor);
     config.closedLoop
-        .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .p(HopperConstants.kP)
         .i(HopperConstants.kI)
         .d(HopperConstants.kD);
