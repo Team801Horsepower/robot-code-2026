@@ -12,7 +12,7 @@ Our robot uses a ROBORIO 2.0 computer, and a fault-tolerant CAN bus architecture
 
 
 
-Our advanced design uses an extendable hopper with a gatherer (roller) at the end, allowing for high capacity and intake efficiency. The gatherer itself uses a motor to spin the roller. The hopper also uses a motor to expand and retract the hopper. The robot cannot intake with the gatherer unless the hopper is extended. The hopper uses a rail system with a buffer, though ideally the system is tuned as to not cause damage to the bugger. This rail system only requires one motor. The rail system uses a REV V2 Absolute Encoder (connected via the SparkFlex data port, no CAN ID) for closed-loop position control. One rotation = 2.1 linear inches; full extension = 12 inches.
+Our advanced design uses an extendable hopper with a gatherer (roller) at the end, allowing for high capacity and intake efficiency. The gatherer itself uses a motor to spin the roller. The hopper also uses a motor to expand and retract the hopper. The robot cannot intake with the gatherer unless the hopper is extended. The hopper uses a rail system with a buffer, though ideally the system is tuned as to not cause damage to the bugger. This rail system only requires one motor. The rail system uses a REV Through Bore Encoder (connected via the SparkFlex data port, no CAN ID) configured in relative/quadrature mode for closed-loop position control, allowing travel beyond 360° of motor rotation. One rotation = 2.1 linear inches; full extension = 12 inches.
 
 
 
@@ -20,7 +20,7 @@ The centerpiece of our robot is a spindexer which stores and deposits game piece
 
 
 
-Our scoring mechanism consists of a feeder, one motor that powers a series of spinners on a horizontal-to-vertical ramp into the turret. The turret has a few motors. The first is connected to another REV V2 Absolute Encoder which can spin the turret 210 degrees in either direction, for a total capability of 420 degrees total. The absolute encoder would have to be configured where 420 degrees = 360 degrees for the encoder. The turret has a final launching wheel that is powered by two motors that face each other (i.e. they must be configured so that one of them is reversed to work in tandem). For the launching system, it is likely that we'll be targeting a specific velocity, not a positional value. Finally, the turret has an angle manipulator, called a hood, that is designed to be able to change the trajectory of a piece anywhere from 15 to 30 degrees. On the turret, there is a camera powered by PhotonVision.
+Our scoring mechanism consists of a feeder, one motor that powers a series of spinners on a horizontal-to-vertical ramp into the turret. The turret has a few motors. The first is connected to a REV Through Bore Encoder (connected via the SparkFlex data port, no CAN ID) configured in absolute mode, allowing 420° of total turret travel (configured so 420° = 1 full encoder revolution). The turret has a final launching wheel that is powered by two motors that face each other (i.e. they must be configured so that one of them is reversed to work in tandem). For the launching system, it is likely that we'll be targeting a specific velocity, not a positional value. Finally, the turret has an angle manipulator, called a hood, that is designed to be able to change the trajectory of a piece anywhere from 15 to 30 degrees. On the turret, there is a camera powered by PhotonVision.
 
 
 
@@ -260,7 +260,7 @@ aim(angleDegrees: double)
 rotate(angleDegrees: double)
 
 * Rotates the turret to angleDegrees relative to robot forward, clamped to ±210°
-* Uses REV V2 Absolute Encoder (1 revolution = 420° of turret travel); drives at kRotatePower
+* Uses REV Through Bore Encoder in absolute mode (1 revolution = 420° of turret travel); drives at kRotatePower
 
 getRotationDeg(): double
 
