@@ -59,8 +59,8 @@ public final class Constants {
     public static final Transform3d ROBOT_TO_QUEST =
         new Transform3d(
             new Translation3d(
-                0.0, // X offset (meters) – forward from robot centre
-                0.0, // Y offset (meters) – left from robot centre
+                0.5, // X offset (meters) – forward from robot center
+                0.0, // Y offset (meters) – left from robot center
                 0.5), // Z offset (meters) – height above ground
             new Rotation3d(
                 0.0, // Roll  (rad)
@@ -97,7 +97,7 @@ public final class Constants {
     /** CAN ID of the NEO Vortex (SparkFlex) driving the hopper rail. */
     public static final int kMotorId = 11;
     /**
-     * Position conversion factor for the REV Through Bore Encoder (relative/quadrature mode).
+     * Position conversion factor for the REV V2 Absolute Encoder.
      * One full encoder rotation = 2.1 linear inches of rail travel.
      * After applying this factor, all encoder positions are in inches.
      */
@@ -148,7 +148,7 @@ public final class Constants {
      * false → zero is the minimum power (center at +amplitude).
      * true  → zero is the center (oscillates ±amplitude around zero).
      */
-    public static final boolean kAgitationReversed = false;
+    public static final boolean kAgitationReversed = true;
 
     /** Velocity below which the spindexer is considered jammed (RPM). TODO: tune. */
     public static final double kJamVelocityThresholdRPM = 500.0;
@@ -156,11 +156,11 @@ public final class Constants {
      * How long spin() must be running before a jam can be declared (seconds).
      * Prevents false positives during motor spin-up.
      */
-    public static final double kJamDetectDebounce = 0.15;
+    public static final double kJamDetectDebounce = 0.5;
     /** How long to run the motor in reverse when clearing a jam (seconds). TODO: tune. */
-    public static final double kJamReverseTime = 0.25;
+    public static final double kJamReverseTime = 3;
     /** Reverse power fraction applied during jam clearing (positive = reverse direction). */
-    public static final double kJamReversePower = 0.4;
+    public static final double kJamReversePower = 0.7;
   }
 
   // ─── Feeder ────────────────────────────────────────────────────────────────
@@ -191,7 +191,7 @@ public final class Constants {
     /** Power applied when rotating the turret to a target angle. */
     public static final double kRotatePower = 0.3;
     /** Turret rotation dead-band (degrees). */
-    public static final double kRotateToleranceDeg = 2.0;
+    public static final double kRotateToleranceDeg = 1.0;
     /**
      * Maximum turret rotation in either direction (degrees).
      * Full range = 2 × 210 = 420°, mapped to one encoder revolution.
