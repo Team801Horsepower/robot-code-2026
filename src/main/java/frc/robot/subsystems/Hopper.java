@@ -11,6 +11,8 @@ import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.AgitationType;
@@ -32,6 +34,11 @@ public class Hopper extends SubsystemBase {
   /** Tracks whether the hopper is currently considered extended (for {@link #check()}). */
   private boolean m_extended = false;
 
+  private boolean m_testMode = false;
+  private final DoublePublisher m_testPowerPub;
+  private final DoublePublisher m_testPositionPub;
+  private final DoublePublisher m_testVelocityPub;
+
   public Hopper() {
     m_motor = new SparkFlex(HopperConstants.kMotorId, MotorType.kBrushless);
     m_encoder = m_motor.getEncoder();
@@ -47,6 +54,11 @@ public class Hopper extends SubsystemBase {
         .d(HopperConstants.kD);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Hopper");
+    m_testPowerPub = table.getDoubleTopic("Power").publish();
+    m_testPositionPub = table.getDoubleTopic("PositionInches").publish();
+    m_testVelocityPub = table.getDoubleTopic("VelocityRPM").publish();
   }
 
   /** Extends the hopper fully to the configured setpoint. */
@@ -112,5 +124,24 @@ public class Hopper extends SubsystemBase {
     }
 
     m_pid.setReference(setpoint, ControlType.kPosition);
+  }
+
+  /** Drives the motor at raw power, bypassing PID control. */
+  public void testRun(double power) {
+    m_motor.set(power);
+  }
+
+  /** Enables or disables test mode telemetry publishing. */
+  public void setTestMode(boolean enabled) {
+    m_testMode = enabled;
+  }
+
+  @Override
+  public void periodic() {
+    if (m_testMode) {
+      m_testPowerPub.set(m_motor.get());
+      m_testPositionPub.set(m_encoder.getPosition());
+      m_testVelocityPub.set(m_encoder.getVelocity());
+    }
   }
 }

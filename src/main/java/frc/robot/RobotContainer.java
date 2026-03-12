@@ -5,7 +5,10 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.event.EventLoop;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
@@ -62,6 +65,8 @@ public class RobotContainer {
   private final CommandXboxController m_driverController =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
 
+  private final EventLoop m_testLoop = new EventLoop();
+
   // ─── Swerve requests ───────────────────────────────────────────────────────
 
   private final SwerveRequest.FieldCentric m_fieldCentricRequest =
@@ -76,6 +81,7 @@ public class RobotContainer {
   public RobotContainer() {
     configureDefaultCommands();
     configureButtonBindings();
+    configureTestBindings();
   }
 
   // ─── Default Commands ──────────────────────────────────────────────────────
@@ -137,6 +143,101 @@ public class RobotContainer {
     m_driverController
         .povDown()
         .onTrue(Commands.runOnce(() -> m_spindex.cycleAgitationType()));
+  }
+
+  // ─── Test Mode Bindings ─────────────────────────────────────────────────────
+
+  private void configureTestBindings() {
+    // Left trigger (held) → Gather forward (+0.1)
+    m_driverController.axisGreaterThan(XboxController.Axis.kLeftTrigger.value, 0.08, m_testLoop)
+        .whileTrue(Commands.run(() -> m_gather.testRun(0.1), m_gather));
+
+    // Left bumper (held) → Gather reverse (-0.1)
+    m_driverController.button(XboxController.Button.kLeftBumper.value, m_testLoop)
+        .whileTrue(Commands.run(() -> m_gather.testRun(-0.1), m_gather));
+
+    // Right trigger (held) → Feeder forward (+0.1)
+    m_driverController.axisGreaterThan(XboxController.Axis.kRightTrigger.value, 0.15, m_testLoop)
+        .whileTrue(Commands.run(() -> m_feeder.testRun(0.1), m_feeder));
+
+    // D-pad Down (held) → Feeder reverse (-0.1)
+    m_driverController.pov(0, 180, m_testLoop)
+        .whileTrue(Commands.run(() -> m_feeder.testRun(-0.1), m_feeder));
+
+    // Right bumper (held) → Spindex (+0.1)
+    m_driverController.button(XboxController.Button.kRightBumper.value, m_testLoop)
+        .whileTrue(Commands.run(() -> m_spindex.testRun(0.1), m_spindex));
+
+    // Y (held) → Hopper forward (+0.1)
+    m_driverController.button(XboxController.Button.kY.value, m_testLoop)
+        .whileTrue(Commands.run(() -> m_hopper.testRun(0.1), m_hopper));
+
+    // D-pad Up (held) → Hopper reverse (-0.1)
+    m_driverController.pov(0, 0, m_testLoop)
+        .whileTrue(Commands.run(() -> m_hopper.testRun(-0.1), m_hopper));
+
+    // Start (held) → Level1 up (+0.1)
+    m_driverController.button(XboxController.Button.kStart.value, m_testLoop)
+        .whileTrue(Commands.run(() -> m_level1.testRun(0.1), m_level1));
+
+    // Back (held) → Level1 down (-0.1)
+    m_driverController.button(XboxController.Button.kBack.value, m_testLoop)
+        .whileTrue(Commands.run(() -> m_level1.testRun(-0.1), m_level1));
+
+    // NOTE: Turret (A, B, X, D-pad Left, D-pad Right) handled via polling default command
+  }
+
+  // ─── Mode Switching ───────────────────────────────────────────────────────────
+
+  public void configureTestMode() {
+    CommandScheduler.getInstance().cancelAll();
+    CommandScheduler.getInstance().setActiveButtonLoop(m_testLoop);
+
+    m_gather.setTestMode(true);
+    m_hopper.setTestMode(true);
+    m_spindex.setTestMode(true);
+    m_feeder.setTestMode(true);
+    m_turret.setTestMode(true);
+    m_level1.setTestMode(true);
+
+    // Drive: same field-centric controls as teleop
+    m_drive.setDefaultCommand(
+        m_drive.applyRequest(() -> buildFieldCentricRequest()));
+
+    // Simple subsystems: idle at 0 (trigger bindings override when held)
+    m_gather.setDefaultCommand(Commands.run(() -> m_gather.testRun(0), m_gather));
+    m_hopper.setDefaultCommand(Commands.run(() -> m_hopper.testRun(0), m_hopper));
+    m_spindex.setDefaultCommand(Commands.run(() -> m_spindex.testRun(0), m_spindex));
+    m_feeder.setDefaultCommand(Commands.run(() -> m_feeder.testRun(0), m_feeder));
+    m_level1.setDefaultCommand(Commands.run(() -> m_level1.testRun(0), m_level1));
+
+    // Turret: polling default command (reads HID directly for 3 motor groups)
+    m_turret.setDefaultCommand(Commands.run(() -> {
+      var hid = m_driverController.getHID();
+
+      double launchPower = hid.getAButton() ? 0.1 : 0;
+      double hoodPower   = hid.getBButton() ? 0.1 : (hid.getPOV() == 90 ? -0.1 : 0);
+      double rotatePower = hid.getXButton() ? 0.1 : (hid.getPOV() == 270 ? -0.1 : 0);
+
+      m_turret.testRunLaunch(launchPower);
+      m_turret.testRunHood(hoodPower);
+      m_turret.testRunRotate(rotatePower);
+    }, m_turret));
+  }
+
+  public void configureNormalMode() {
+    CommandScheduler.getInstance().cancelAll();
+    CommandScheduler.getInstance().setActiveButtonLoop(
+        CommandScheduler.getInstance().getDefaultButtonLoop());
+
+    m_gather.setTestMode(false);
+    m_hopper.setTestMode(false);
+    m_spindex.setTestMode(false);
+    m_feeder.setTestMode(false);
+    m_turret.setTestMode(false);
+    m_level1.setTestMode(false);
+
+    configureDefaultCommands();
   }
 
   // ─── Autonomous ────────────────────────────────────────────────────────────

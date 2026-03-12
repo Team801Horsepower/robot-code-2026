@@ -11,6 +11,8 @@ import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.TurretConstants;
 
@@ -47,6 +49,16 @@ public class Turret extends SubsystemBase {
   private final SparkFlex m_rotateMotor;
   /** V2 Absolute Encoder configured with 420°/revolution conversion factor. */
   private final SparkAbsoluteEncoder m_rotateEncoder;
+
+  private boolean m_testMode = false;
+  private final DoublePublisher m_testLaunch1PowerPub;
+  private final DoublePublisher m_testLaunch1VelocityPub;
+  private final DoublePublisher m_testLaunch2PowerPub;
+  private final DoublePublisher m_testLaunch2VelocityPub;
+  private final DoublePublisher m_testHoodPowerPub;
+  private final DoublePublisher m_testHoodPositionPub;
+  private final DoublePublisher m_testRotatePowerPub;
+  private final DoublePublisher m_testRotatePositionPub;
 
   public Turret() {
     // ── Launch motors ─────────────────────────────────────────────────────────
@@ -85,6 +97,16 @@ public class Turret extends SubsystemBase {
     // One full encoder revolution = 420° of turret travel.
     rotateConfig.absoluteEncoder.positionConversionFactor(TurretConstants.kRotateEncoderConversionFactor);
     m_rotateMotor.configure(rotateConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    var turretTable = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Turret");
+    m_testLaunch1PowerPub    = turretTable.getSubTable("Launch1").getDoubleTopic("Power").publish();
+    m_testLaunch1VelocityPub = turretTable.getSubTable("Launch1").getDoubleTopic("VelocityRPM").publish();
+    m_testLaunch2PowerPub    = turretTable.getSubTable("Launch2").getDoubleTopic("Power").publish();
+    m_testLaunch2VelocityPub = turretTable.getSubTable("Launch2").getDoubleTopic("VelocityRPM").publish();
+    m_testHoodPowerPub       = turretTable.getSubTable("Hood").getDoubleTopic("Power").publish();
+    m_testHoodPositionPub    = turretTable.getSubTable("Hood").getDoubleTopic("Position").publish();
+    m_testRotatePowerPub     = turretTable.getSubTable("Rotate").getDoubleTopic("Power").publish();
+    m_testRotatePositionPub  = turretTable.getSubTable("Rotate").getDoubleTopic("PositionDeg").publish();
   }
 
   /**
@@ -165,5 +187,37 @@ public class Turret extends SubsystemBase {
   /** Returns the current hood encoder position (rotations from min angle). */
   public double getHoodEncoderPos() {
     return m_hoodEncoder.getPosition();
+  }
+
+  /** Sets launch wheel power directly. Motor 2 runs opposite. For test mode only. */
+  public void testRunLaunch(double power) {
+    m_launchMotor1.set(power);
+    m_launchMotor2.set(-power);
+  }
+
+  /** Sets hood motor power directly. For test mode only. */
+  public void testRunHood(double power) {
+    m_hoodMotor.set(power);
+  }
+
+  /** Sets turret rotate motor power directly. For test mode only. */
+  public void testRunRotate(double power) {
+    m_rotateMotor.set(power);
+  }
+
+  public void setTestMode(boolean enabled) { m_testMode = enabled; }
+
+  @Override
+  public void periodic() {
+    if (m_testMode) {
+      m_testLaunch1PowerPub.set(m_launchMotor1.get());
+      m_testLaunch1VelocityPub.set(m_launchMotor1.getEncoder().getVelocity());
+      m_testLaunch2PowerPub.set(m_launchMotor2.get());
+      m_testLaunch2VelocityPub.set(m_launchMotor2.getEncoder().getVelocity());
+      m_testHoodPowerPub.set(m_hoodMotor.get());
+      m_testHoodPositionPub.set(m_hoodEncoder.getPosition());
+      m_testRotatePowerPub.set(m_rotateMotor.get());
+      m_testRotatePositionPub.set(m_rotateEncoder.getPosition());
+    }
   }
 }
