@@ -2,25 +2,25 @@
 
 ## Swerve Drivetrain (CANivore "CAN FD" bus)
 
-01: Back Left Kraken X60 (steer motor)
+01: Back Left Kraken X44 (steer motor)
 
 02: Back Left Kraken X60 (drive motor)
 
 03: Back Left CANcoder
 
-04: Front Right Kraken X60 (steer motor)
+04: Front Right Kraken X44 (steer motor)
 
 05: Front Right Kraken X60 (drive motor)
 
 06: Front Right CANcoder
 
-07: Back Right Kraken X60 (steer motor)
+07: Back Right Kraken X44 (steer motor)
 
 08: Back Right Kraken X60 (drive motor)
 
 09: Back Right CANcoder
 
-10: Front Left Kraken X60 (steer motor)
+10: Front Left Kraken X44 (steer motor)
 
 11: Front Left Kraken X60 (drive motor)
 

@@ -36,7 +36,7 @@ import frc.robot.subsystems.DrivetrainSubsystem;
  * <p>Assumes a standard CTRE "Swerve X2" chassis with:
  * <ul>
  *   <li>4 × Kraken X60 drive motors (TalonFX)
- *   <li>4 × Kraken X60 steer motors (TalonFX)
+ *   <li>4 × Kraken X44 steer motors (TalonFX)
  *   <li>4 × CANcoder absolute encoders
  *   <li>Pigeon 2.0 IMU (used for fast odometry, but heading is overridden by QuestNav)
  *   <li>All on the "CAN FD" CANivore bus
