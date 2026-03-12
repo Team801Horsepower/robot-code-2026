@@ -24,7 +24,7 @@ public final class Constants {
     public static final int FlywheelMotorRightCANID = 26;
     public static final int TurretRotateMotorCANID = 23;
     public static final int HoodTiltMotorCANID = 24;
-    public static final int TurretRotateEncoderCANID = 45;
+    public static final int TurretRotateEncoderDIOID = 0;
   }
   public static final class FeedConstants {
     public static final double GatherOuttakeSpeed = -0.50;
@@ -32,10 +32,25 @@ public final class Constants {
     public static final double SpindexerReverseSpeed = 0.50;
     public static final double FeederSpeed = 0.50;
     public static final double ShooterWheelSpeed = 0.50;
+    public static final double ShooterVelocityEfficiency = 0.5;
   }
-  public static final class GoalPositionConstants{
+  public static final class RedAllianceGoalPositionConstants{
     public static final double GoalX = 1.0;
     public static final double GoalY = 1.0;
     public static final double GoalZ = 1.0;
+  }
+  public static final class BlueAllianceGoalPositionConstants{
+    public static final double GoalX = 1.0;
+    public static final double GoalY = 1.0;
+    public static final double GoalZ = 1.0;
+  }
+  public static final class RobotStartingPositionConstants{
+    public static final double RobotStartX = 1.0;
+    public static final double RobotStartY = 1.0;
+    public static final double RobotStartZ = 1.0;
+    public static final double RobotStartRotation = 1.0;
+  }
+  public static final class RobotConstants{
+    public static final double HoodGearRatio = 26.25;
   }
 }
