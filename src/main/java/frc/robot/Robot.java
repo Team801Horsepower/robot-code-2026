@@ -87,6 +87,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+    m_robotContainer.configureNormalMode();
   }
 
   @Override
@@ -99,15 +100,16 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testInit() {
-    // Kill all running commands before entering test mode
-    CommandScheduler.getInstance().cancelAll();
+    m_robotContainer.configureTestMode();
   }
 
   @Override
   public void testPeriodic() {}
 
   @Override
-  public void testExit() {}
+  public void testExit() {
+    m_robotContainer.configureNormalMode();
+  }
 
   // ─── Simulation ────────────────────────────────────────────────────────────
 

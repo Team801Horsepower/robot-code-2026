@@ -84,7 +84,7 @@ public final class Constants {
 
   public static final class GatherConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) powering the gatherer roller. */
-    public static final int kMotorId = 12;
+    public static final int kMotorId = 23;
     /** Default roller power when gathering. Positive = intake direction. */
     public static final double kDefaultPower = 0.7;
     /** Full power for reverse (ejection) intake. Independently configurable. */
@@ -95,7 +95,7 @@ public final class Constants {
 
   public static final class HopperConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) driving the hopper rail. */
-    public static final int kMotorId = 11;
+    public static final int kMotorId = 27;
     /**
      * Position conversion factor for the REV V2 Absolute Encoder.
      * One full encoder rotation = 2.1 linear inches of rail travel.
@@ -130,7 +130,7 @@ public final class Constants {
 
   public static final class SpindexConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) spinning the spindexer. */
-    public static final int kMotorId = 21;
+    public static final int kMotorId = 25;
     /** Power applied during spin() (positive; motor is set negative in code). */
     public static final double kSpinPower = 0.8;
     /** Waveform shape for agitate() and Hopper.jostle(). */
@@ -167,7 +167,7 @@ public final class Constants {
 
   public static final class FeederConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) powering the feeder. */
-    public static final int kMotorId = 22;
+    public static final int kMotorId = 24;
     /** Default feeder power. */
     public static final double kSpinPower = 1.0;
   }
@@ -176,10 +176,10 @@ public final class Constants {
 
   public static final class TurretConstants {
     // CAN IDs
-    public static final int kLaunchMotor1Id = 25;
-    public static final int kLaunchMotor2Id = 26;
-    public static final int kHoodMotorId    = 24;
-    public static final int kRotateMotorId  = 23;
+    public static final int kLaunchMotor1Id = 20;
+    public static final int kLaunchMotor2Id = 21;
+    public static final int kHoodMotorId    = 26;
+    public static final int kRotateMotorId  = 28;
 
     /** Target launch-wheel velocity (RPM). TODO: tune. */
     public static final double kTargetVelocityRPM = 4000.0;

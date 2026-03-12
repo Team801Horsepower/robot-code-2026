@@ -8,6 +8,8 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkRelativeEncoder;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -44,6 +46,10 @@ public class Spindex extends SubsystemBase {
   private final SparkFlex m_motor;
   private final SparkRelativeEncoder m_encoder;
 
+  private boolean m_testMode = false;
+  private final DoublePublisher m_testPowerPub;
+  private final DoublePublisher m_testVelocityPub;
+
   private AgitationType m_currentAgitationType = SpindexConstants.kAgitationType;
 
   private SpinState m_spinState       = SpinState.SPINNING;
@@ -58,6 +64,10 @@ public class Spindex extends SubsystemBase {
     config.idleMode(IdleMode.kCoast);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Spindex");
+    m_testPowerPub = table.getDoubleTopic("Power").publish();
+    m_testVelocityPub = table.getDoubleTopic("VelocityRPM").publish();
   }
 
   /** Spins the spindexer at launch power (negative = toward feeder). */
@@ -150,5 +160,23 @@ public class Spindex extends SubsystemBase {
   public void cycleAgitationType() {
     AgitationType[] types = AgitationType.values();
     m_currentAgitationType = types[(m_currentAgitationType.ordinal() + 1) % types.length];
+  }
+
+  /** Drives the motor at raw power, bypassing jam detection. */
+  public void testRun(double power) {
+    m_motor.set(power);
+  }
+
+  /** Enables or disables test mode telemetry publishing. */
+  public void setTestMode(boolean enabled) {
+    m_testMode = enabled;
+  }
+
+  @Override
+  public void periodic() {
+    if (m_testMode) {
+      m_testPowerPub.set(m_motor.get());
+      m_testVelocityPub.set(m_encoder.getVelocity());
+    }
   }
 }

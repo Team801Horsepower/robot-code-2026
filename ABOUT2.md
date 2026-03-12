@@ -1,58 +1,53 @@
 # CAN IDs
 
+## Swerve Drivetrain (CANivore "CAN FD" bus)
 
+01: Back Left Kraken X60 (steer motor)
 
-01: Front Left Kraken X60 (main motor)
+02: Back Left Kraken X60 (drive motor)
 
-02: Front Right Kraken X60 (main motor)
+03: Back Left CANcoder
 
-03: Back Left Kraken X60 (main motor)
+04: Front Right Kraken X60 (steer motor)
 
-04: Back Right Kraken X60 (main motor)
+05: Front Right Kraken X60 (drive motor)
 
-05: Front Left Kraken X44 (secondary motor)
+06: Front Right CANcoder
 
-06: Front Right Kraken X44 (secondary motor)
+07: Back Right Kraken X60 (steer motor)
 
-07: Back Left Kraken X44 (secondary motor)
+08: Back Right Kraken X60 (drive motor)
 
-08: Back Right Kraken X44 (secondary motor)
+09: Back Right CANcoder
 
+10: Front Left Kraken X60 (steer motor)
 
+11: Front Left Kraken X60 (drive motor)
 
-11: Hopper NEO Vortex (extension)
+12: Front Left CANcoder
 
-Hopper REV V2 Absolute Encoder (no CAN ID – connected via SparkFlex data port)
+30: Pigeon 2.0 IMU
 
-12: Gather NEO Vortex (spinning rod)
+## Non-Swerve (roboRIO bus)
 
+20: Turret NEO Vortex (main shooting wheel 1)
 
+21: Turret NEO Vortex (main shooting wheel 2)
 
-21: Spindex NEO Vortex (manipulation)
+23: Gather NEO Vortex (spinning rod)
 
-22: Feeder NEO Vortex (feeder)
+24: Feeder NEO Vortex (feeder)
 
-23: Turret NEO Vortex (spin turret)
+25: Spindex NEO Vortex (manipulation)
 
-24: Turret NEO Vortex (adjust hood)
+26: Turret NEO Vortex (adjust hood)
 
-25: Turret NEO Vortex (main shooting wheel forward)
+27: Hopper NEO Vortex (extension)
 
-26: Turret NEO Vortex (main shooting wheel reversed)
+Hopper REV Through Bore Encoder (no CAN ID – connected via SparkFlex data port)
 
-
+28: Turret NEO Vortex (spin turret)
 
 31: Climb NEO Vortex (level 1)
 
-
-
-41: Front Left CANCoder
-
-42: Front Right CanCoder
-
-43: Back Left CANCoder
-
-44: Back Right CANCoder
-
 45: Turret REV V2 Absolute Encoder
-

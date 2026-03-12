@@ -9,6 +9,8 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ClimberConstants;
 
@@ -26,6 +28,10 @@ public class Level1 extends SubsystemBase {
   private final SparkFlex m_motor;
   private final RelativeEncoder m_encoder;
 
+  private boolean m_testMode = false;
+  private final DoublePublisher m_testPowerPub;
+  private final DoublePublisher m_testPositionPub;
+
   private final ElevatorFeedforward m_feedforward = new ElevatorFeedforward(
       ClimberConstants.kFeedforwardKs,
       ClimberConstants.kFeedforwardKg,
@@ -40,6 +46,10 @@ public class Level1 extends SubsystemBase {
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_encoder.setPosition(0.0);
+
+    var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Level1");
+    m_testPowerPub = table.getDoubleTopic("Power").publish();
+    m_testPositionPub = table.getDoubleTopic("PositionRotations").publish();
   }
 
   /**
@@ -82,5 +92,23 @@ public class Level1 extends SubsystemBase {
   /** Returns whether the climber is fully retracted (at home). */
   public boolean isRetracted() {
     return m_encoder.getPosition() <= ClimberConstants.kTolerance;
+  }
+
+  /** Drives the motor at raw power, bypassing feedforward control. */
+  public void testRun(double power) {
+    m_motor.set(power);
+  }
+
+  /** Enables or disables test mode telemetry publishing. */
+  public void setTestMode(boolean enabled) {
+    m_testMode = enabled;
+  }
+
+  @Override
+  public void periodic() {
+    if (m_testMode) {
+      m_testPowerPub.set(m_motor.get());
+      m_testPositionPub.set(m_encoder.getPosition());
+    }
   }
 }
