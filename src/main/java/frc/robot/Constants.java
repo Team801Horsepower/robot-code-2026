@@ -170,6 +170,16 @@ public final class Constants {
     public static final int kMotorId = 24;
     /** Default feeder power. */
     public static final double kSpinPower = 1.0;
+
+    // --- Jam detection (mirrors SpindexConstants) ---
+    /** Velocity below which the feeder is considered jammed (RPM). */
+    public static final double kJamVelocityThresholdRPM = 500.0;
+    /** Debounce before jam detection activates (seconds). */
+    public static final double kJamDetectDebounce = 0.5;
+    /** Duration of reverse to clear a jam (seconds). */
+    public static final double kJamReverseTime = 3;
+    /** Reverse power applied during jam clearing. */
+    public static final double kJamReversePower = 0.7;
   }
 
   // ─── Turret ────────────────────────────────────────────────────────────────
