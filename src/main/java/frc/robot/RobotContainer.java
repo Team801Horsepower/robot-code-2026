@@ -156,25 +156,25 @@ public class RobotContainer {
     m_driverController.button(XboxController.Button.kLeftBumper.value, m_testLoop)
         .whileTrue(Commands.run(() -> m_gather.testRun(-0.1), m_gather));
 
-    // Right trigger (held) → Feeder forward (+0.1)
+    // Right trigger (held) → Feeder forward (+0.75)
     m_driverController.axisGreaterThan(XboxController.Axis.kRightTrigger.value, 0.15, m_testLoop)
-        .whileTrue(Commands.run(() -> m_feeder.testRun(0.1), m_feeder));
+        .whileTrue(Commands.run(() -> m_feeder.testRun(0.75), m_feeder));
 
-    // D-pad Down (held) → Feeder reverse (-0.1)
+    // D-pad Down (held) → Feeder reverse (-0.75)
     m_driverController.pov(0, 180, m_testLoop)
-        .whileTrue(Commands.run(() -> m_feeder.testRun(-0.1), m_feeder));
+        .whileTrue(Commands.run(() -> m_feeder.testRun(-0.75), m_feeder));
 
-    // Right bumper (held) → Spindex (+0.1)
+    // Right bumper (held) → Spindex (+0.5)
     m_driverController.button(XboxController.Button.kRightBumper.value, m_testLoop)
-        .whileTrue(Commands.run(() -> m_spindex.testRun(0.1), m_spindex));
+        .whileTrue(Commands.run(() -> m_spindex.testRun(0.5), m_spindex));
 
-    // Y (held) → Hopper forward (+1.0)
+    // Y (held) → Hopper forward (+0.5)
     m_driverController.button(XboxController.Button.kY.value, m_testLoop)
-        .whileTrue(Commands.run(() -> m_hopper.testRun(1.0), m_hopper));
+        .whileTrue(Commands.run(() -> m_hopper.testRun(0.5), m_hopper));
 
-    // D-pad Up (held) → Hopper reverse (-1.0)
+    // D-pad Up (held) → Hopper reverse (-0.5)
     m_driverController.pov(0, 0, m_testLoop)
-        .whileTrue(Commands.run(() -> m_hopper.testRun(-1.0), m_hopper));
+        .whileTrue(Commands.run(() -> m_hopper.testRun(-0.5), m_hopper));
 
     // Start (held) → Level1 up (+0.1)
     m_driverController.button(XboxController.Button.kStart.value, m_testLoop)
@@ -215,7 +215,7 @@ public class RobotContainer {
     m_turret.setDefaultCommand(Commands.run(() -> {
       var hid = m_driverController.getHID();
 
-      double launchPower = hid.getAButton() ? 0.2 : 0;
+      double launchPower = hid.getAButton() ? 0.75 : 0;
       double hoodPower   = hid.getBButton() ? 0.05 : (hid.getPOV() == 90 ? -0.05 : 0);
       double rotatePower = hid.getXButton() ? 0.1 : (hid.getPOV() == 270 ? -0.1 : 0);
 
