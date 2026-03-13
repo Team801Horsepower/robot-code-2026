@@ -27,8 +27,8 @@ import frc.robot.subsystems.*;
  *
  * <h2>Single controller (Xbox Controller – Port 0)</h2>
  * <ul>
- *   <li><b>Right stick X/Y</b> – Translational velocity (field-relative)
- *   <li><b>Left stick X</b> – Rotational velocity
+ *   <li><b>Left stick X/Y</b> – Translational velocity (field-relative)
+ *   <li><b>Right stick X</b> – Rotational velocity
  *   <li><b>Left trigger (&gt;0.08, held)</b> – Scaled intake (trigger axis = gather power)
  *   <li><b>Left bumper (held)</b> – Reverse intake (full configurable power)
  *   <li><b>Right trigger (&gt;0.15, held)</b> – Shoot (run launch sequence)
@@ -93,13 +93,13 @@ public class RobotContainer {
   }
 
   private SwerveRequest.FieldCentric buildFieldCentricRequest() {
-    double translationX = applyDeadband(-m_driverController.getRightY())
+    double translationX = applyDeadband(-m_driverController.getLeftY())
         * DriveConstants.kMaxSpeedMetersPerSecond;
 
-    double translationY = applyDeadband(-m_driverController.getRightX())
+    double translationY = applyDeadband(-m_driverController.getLeftX())
         * DriveConstants.kMaxSpeedMetersPerSecond;
 
-    double rotation = applyDeadband(-m_driverController.getLeftX())
+    double rotation = applyDeadband(-m_driverController.getRightX())
         * DriveConstants.kMaxAngularSpeedRadPerSec;
 
     return m_fieldCentricRequest
