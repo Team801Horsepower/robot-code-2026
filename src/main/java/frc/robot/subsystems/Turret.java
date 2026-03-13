@@ -75,11 +75,11 @@ public class Turret extends SubsystemBase {
         .velocityFF(TurretConstants.kVelocityFF);
     m_launchMotor1.configure(launchConfig1, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-    // Motor 2 mirrors motor 1 (physically facing the opposite direction).
+    // Motor 2 faces motor 1; opposite inversion ensures opposite physical rotation.
     SparkFlexConfig launchConfig2 = new SparkFlexConfig();
     launchConfig2.idleMode(IdleMode.kCoast);
     launchConfig2.smartCurrentLimit(60);
-    launchConfig2.inverted(true);
+    launchConfig2.inverted(false);
     m_launchMotor2.configure(launchConfig2, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     // ── Hood motor ────────────────────────────────────────────────────────────
@@ -118,13 +118,13 @@ public class Turret extends SubsystemBase {
 
   /**
    * Runs the launch wheels at the target velocity. Both motors follow motor 1's closed-loop
-   * output; motor 2 is inverted to spin in the correct direction.
+   * output; config-level inversion ensures they spin in opposite physical directions.
    *
    * <p>Call once to start; wheels keep spinning until power is cut.
    */
   public void spin() {
     m_launchPid.setReference(TurretConstants.kTargetVelocityRPM, ControlType.kVelocity);
-    // Mirror motor 2 to motor 1's output (they spin in opposite directions physically).
+    // Mirror motor 2 to motor 1's output (config inversion handles opposite spin).
     m_launchMotor2.set(m_launchMotor1.getAppliedOutput());
   }
 
@@ -196,7 +196,7 @@ public class Turret extends SubsystemBase {
     return m_hoodEncoder.getPosition();
   }
 
-  /** Sets launch wheel power directly. Motor 2 runs opposite. For test mode only. */
+  /** Sets launch wheel power directly. Config inversion ensures opposite spin. For test mode only. */
   public void testRunLaunch(double power) {
     m_launchMotor1.set(power);
     m_launchMotor2.set(power);

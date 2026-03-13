@@ -215,7 +215,7 @@ public class RobotContainer {
     m_turret.setDefaultCommand(Commands.run(() -> {
       var hid = m_driverController.getHID();
 
-      double launchPower = hid.getAButton() ? 0.1 : 0;
+      double launchPower = hid.getAButton() ? 0.2 : 0;
       double hoodPower   = hid.getBButton() ? 0.1 : (hid.getPOV() == 90 ? -0.1 : 0);
       double rotatePower = hid.getXButton() ? 0.1 : (hid.getPOV() == 270 ? -0.1 : 0);
 
