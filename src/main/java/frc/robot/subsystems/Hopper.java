@@ -46,6 +46,7 @@ public class Hopper extends SubsystemBase {
 
     SparkFlexConfig config = new SparkFlexConfig();
     config.idleMode(IdleMode.kBrake);
+    config.smartCurrentLimit(60);
     config.encoder.positionConversionFactor(HopperConstants.kEncoderConversionFactor);
     config.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)

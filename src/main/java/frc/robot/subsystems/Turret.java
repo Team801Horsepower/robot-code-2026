@@ -68,6 +68,7 @@ public class Turret extends SubsystemBase {
 
     SparkFlexConfig launchConfig1 = new SparkFlexConfig();
     launchConfig1.idleMode(IdleMode.kCoast);
+    launchConfig1.smartCurrentLimit(60);
     launchConfig1.closedLoop
         .p(TurretConstants.kVelocityP)
         .velocityFF(TurretConstants.kVelocityFF);
@@ -76,6 +77,7 @@ public class Turret extends SubsystemBase {
     // Motor 2 mirrors motor 1 (physically facing the opposite direction).
     SparkFlexConfig launchConfig2 = new SparkFlexConfig();
     launchConfig2.idleMode(IdleMode.kCoast);
+    launchConfig2.smartCurrentLimit(60);
     launchConfig2.inverted(true);
     m_launchMotor2.configure(launchConfig2, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
@@ -85,6 +87,7 @@ public class Turret extends SubsystemBase {
 
     SparkFlexConfig hoodConfig = new SparkFlexConfig();
     hoodConfig.idleMode(IdleMode.kBrake);
+    hoodConfig.smartCurrentLimit(60);
     m_hoodMotor.configure(hoodConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_hoodEncoder.setPosition(0.0); // physical position at boot = 15° minimum
 
@@ -94,6 +97,7 @@ public class Turret extends SubsystemBase {
 
     SparkFlexConfig rotateConfig = new SparkFlexConfig();
     rotateConfig.idleMode(IdleMode.kBrake);
+    rotateConfig.smartCurrentLimit(60);
     // One full encoder revolution = 420° of turret travel.
     rotateConfig.absoluteEncoder.positionConversionFactor(TurretConstants.kRotateEncoderConversionFactor);
     m_rotateMotor.configure(rotateConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);

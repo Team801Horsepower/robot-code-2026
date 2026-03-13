@@ -29,6 +29,7 @@ public class Gather extends SubsystemBase {
 
     SparkFlexConfig config = new SparkFlexConfig();
     config.idleMode(IdleMode.kCoast);
+    config.smartCurrentLimit(60);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 

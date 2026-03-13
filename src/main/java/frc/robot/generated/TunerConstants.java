@@ -73,11 +73,15 @@ public class TunerConstants {
 
   // ─── Current Limits ────────────────────────────────────────────────────────
 
-  private static final Current kSlipCurrent = Amps.of(120);
+  private static final Current kSlipCurrent = Amps.of(60);
 
   // ─── Initial Configs ───────────────────────────────────────────────────────
 
-  private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration();
+  private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration()
+      .withCurrentLimits(
+          new CurrentLimitsConfigs()
+              .withStatorCurrentLimit(Amps.of(60))
+              .withStatorCurrentLimitEnable(true));
   private static final TalonFXConfiguration steerInitialConfigs = new TalonFXConfiguration()
       .withCurrentLimits(
           new CurrentLimitsConfigs()
