@@ -44,6 +44,7 @@ public class Level1 extends SubsystemBase {
     SparkFlexConfig config = new SparkFlexConfig();
     config.idleMode(IdleMode.kBrake);
     config.smartCurrentLimit(60);
+    config.inverted(true);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_encoder.setPosition(0.0);

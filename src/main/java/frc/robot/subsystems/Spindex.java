@@ -63,6 +63,7 @@ public class Spindex extends SubsystemBase {
     SparkFlexConfig config = new SparkFlexConfig();
     config.idleMode(IdleMode.kCoast);
     config.smartCurrentLimit(60);
+    config.inverted(true);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 

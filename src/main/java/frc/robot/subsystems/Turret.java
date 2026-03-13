@@ -69,6 +69,7 @@ public class Turret extends SubsystemBase {
     SparkFlexConfig launchConfig1 = new SparkFlexConfig();
     launchConfig1.idleMode(IdleMode.kCoast);
     launchConfig1.smartCurrentLimit(60);
+    launchConfig1.inverted(true);
     launchConfig1.closedLoop
         .p(TurretConstants.kVelocityP)
         .velocityFF(TurretConstants.kVelocityFF);
@@ -88,6 +89,7 @@ public class Turret extends SubsystemBase {
     SparkFlexConfig hoodConfig = new SparkFlexConfig();
     hoodConfig.idleMode(IdleMode.kBrake);
     hoodConfig.smartCurrentLimit(60);
+    hoodConfig.inverted(true);
     m_hoodMotor.configure(hoodConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_hoodEncoder.setPosition(0.0); // physical position at boot = 15° minimum
 
@@ -98,6 +100,7 @@ public class Turret extends SubsystemBase {
     SparkFlexConfig rotateConfig = new SparkFlexConfig();
     rotateConfig.idleMode(IdleMode.kBrake);
     rotateConfig.smartCurrentLimit(60);
+    rotateConfig.inverted(true);
     // One full encoder revolution = 420° of turret travel.
     rotateConfig.absoluteEncoder.positionConversionFactor(TurretConstants.kRotateEncoderConversionFactor);
     m_rotateMotor.configure(rotateConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -196,7 +199,7 @@ public class Turret extends SubsystemBase {
   /** Sets launch wheel power directly. Motor 2 runs opposite. For test mode only. */
   public void testRunLaunch(double power) {
     m_launchMotor1.set(power);
-    m_launchMotor2.set(-power);
+    m_launchMotor2.set(power);
   }
 
   /** Sets hood motor power directly. For test mode only. */
