@@ -2,7 +2,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkAbsoluteEncoder;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -47,8 +47,8 @@ public class Turret extends SubsystemBase {
   // ─── Rotation ──────────────────────────────────────────────────────────────
 
   private final SparkFlex m_rotateMotor;
-  /** V2 Absolute Encoder configured with 420°/revolution conversion factor. */
-  private final SparkAbsoluteEncoder m_rotateEncoder;
+  /** REV Through Bore Encoder on DIO 3 (absolute/duty-cycle mode). */
+  private final DutyCycleEncoder m_rotateEncoder;
 
   private boolean m_testMode = false;
   private final DoublePublisher m_testLaunch1PowerPub;
@@ -95,14 +95,12 @@ public class Turret extends SubsystemBase {
 
     // ── Rotate motor ──────────────────────────────────────────────────────────
     m_rotateMotor   = new SparkFlex(TurretConstants.kRotateMotorId, MotorType.kBrushless);
-    m_rotateEncoder = m_rotateMotor.getAbsoluteEncoder();
+    m_rotateEncoder = new DutyCycleEncoder(TurretConstants.kRotateEncoderDio);
 
     SparkFlexConfig rotateConfig = new SparkFlexConfig();
     rotateConfig.idleMode(IdleMode.kBrake);
     rotateConfig.smartCurrentLimit(60);
     rotateConfig.inverted(true);
-    // One full encoder revolution = 420° of turret travel.
-    rotateConfig.absoluteEncoder.positionConversionFactor(TurretConstants.kRotateEncoderConversionFactor);
     m_rotateMotor.configure(rotateConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     var turretTable = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Turret");
@@ -160,6 +158,11 @@ public class Turret extends SubsystemBase {
     }
   }
 
+  /** Returns turret position in degrees [0, 420]. */
+  private double getRotateEncoderDeg() {
+    return m_rotateEncoder.get() * TurretConstants.kRotateEncoderConversionFactor;
+  }
+
   /**
    * Rotates the turret to the given angle relative to the robot.
    *
@@ -176,7 +179,7 @@ public class Turret extends SubsystemBase {
     // Map robot-relative angle to encoder position [0, 420°].
     double encoderSetpoint = angleDegrees + TurretConstants.kMaxRotationDeg;
 
-    double currentPos = m_rotateEncoder.getPosition(); // degrees [0, 420]
+    double currentPos = getRotateEncoderDeg(); // degrees [0, 420]
     double error = encoderSetpoint - currentPos;
 
     if (Math.abs(error) > TurretConstants.kRotateToleranceDeg) {
@@ -188,7 +191,7 @@ public class Turret extends SubsystemBase {
 
   /** Returns the current turret rotation angle relative to robot forward (degrees). */
   public double getRotationDeg() {
-    return m_rotateEncoder.getPosition() - TurretConstants.kMaxRotationDeg;
+    return getRotateEncoderDeg() - TurretConstants.kMaxRotationDeg;
   }
 
   /** Returns the current hood encoder position (rotations from min angle). */
@@ -224,7 +227,7 @@ public class Turret extends SubsystemBase {
       m_testHoodPowerPub.set(m_hoodMotor.get());
       m_testHoodPositionPub.set(m_hoodEncoder.getPosition());
       m_testRotatePowerPub.set(m_rotateMotor.get());
-      m_testRotatePositionPub.set(m_rotateEncoder.getPosition());
+      m_testRotatePositionPub.set(getRotateEncoderDeg());
     }
   }
 }

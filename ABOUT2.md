@@ -44,10 +44,10 @@
 
 27: Hopper NEO Vortex (extension)
 
-Hopper REV Through Bore Encoder (no CAN ID – connected via SparkFlex data port)
+Hopper REV Through Bore Encoder (no CAN ID – connected to roboRIO DIO ports 0 and 1)
 
 28: Turret NEO Vortex (spin turret)
 
 31: Climb NEO Vortex (level 1)
 
-45: Turret REV V2 Absolute Encoder
+Turret REV Through Bore Encoder (no CAN ID – connected to roboRIO DIO port 3)

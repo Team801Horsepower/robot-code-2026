@@ -96,12 +96,17 @@ public final class Constants {
   public static final class HopperConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) driving the hopper rail. */
     public static final int kMotorId = 27;
+    /** DIO channel A for the REV Through Bore Encoder (quadrature). */
+    public static final int kEncoderDioA = 0;
+    /** DIO channel B for the REV Through Bore Encoder (quadrature). */
+    public static final int kEncoderDioB = 1;
+    /** Counts per revolution of the REV Through Bore Encoder in quadrature mode. */
+    public static final int kEncoderCPR = 8192;
     /**
-     * Position conversion factor for the REV V2 Absolute Encoder.
-     * One full encoder rotation = 2.1 linear inches of rail travel.
-     * After applying this factor, all encoder positions are in inches.
+     * Position conversion factor: linear inches per encoder rotation.
+     * TODO: measure on rebuilt hopper.
      */
-    public static final double kEncoderConversionFactor = 2.1; // inches per rotation
+    public static final double kEncoderConversionFactor = 2.1; // PLACEHOLDER – measure!
     /**
      * Fully-extended encoder position (inches from home).
      * Full extension = 12 inches of rail travel.
@@ -216,10 +221,12 @@ public final class Constants {
      */
     public static final double kMaxRotationDeg = 210.0;
     /**
-     * Absolute-encoder position conversion factor so that getPosition() returns turret degrees.
+     * Absolute-encoder position conversion factor so that get() returns turret degrees.
      * One full encoder revolution = 420° of turret travel.
      */
     public static final double kRotateEncoderConversionFactor = 420.0;
+    /** DIO channel for the REV Through Bore Encoder (absolute/duty-cycle). */
+    public static final int kRotateEncoderDio = 3;
 
     /** Minimum hood angle (degrees). Physical resting position. */
     public static final double kHoodMinDeg = 15.0;

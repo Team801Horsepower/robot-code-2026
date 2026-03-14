@@ -1,18 +1,16 @@
 // Copyright (c) 2026 Team 801 Horsepower
 package frc.robot.subsystems;
 
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.AgitationType;
@@ -21,15 +19,20 @@ import frc.robot.Constants.HopperConstants;
 /**
  * Hopper – extends and retracts the hopper rail system, and can jostle in place.
  *
- * <p>Uses the REV Through Bore Encoder (via SparkFlex data port, relative/quadrature mode) with a
- * 2.1 in/rotation conversion factor for closed-loop position control. Zero reference is the
+ * <p>Uses the REV Through Bore Encoder (roboRIO DIO 0 &amp; 1, relative/quadrature mode) with a
+ * WPILib software PID controller for closed-loop position control. Zero reference is the
  * physical home/retracted position (encoder zeroes on power-on with hopper retracted).
  */
 public class Hopper extends SubsystemBase {
 
   private final SparkFlex m_motor;
-  private final RelativeEncoder m_encoder;
-  private final SparkClosedLoopController m_pid;
+  private final Encoder m_encoder;
+  private final PIDController m_pid;
+
+  /** Current PID target (inches). */
+  private double m_setpoint = 0.0;
+  /** Whether the software PID loop is active (disabled during testRun). */
+  private boolean m_pidActive = false;
 
   /** Tracks whether the hopper is currently considered extended (for {@link #check()}). */
   private boolean m_extended = false;
@@ -41,19 +44,16 @@ public class Hopper extends SubsystemBase {
 
   public Hopper() {
     m_motor = new SparkFlex(HopperConstants.kMotorId, MotorType.kBrushless);
-    m_encoder = m_motor.getEncoder();
-    m_pid = m_motor.getClosedLoopController();
+
+    m_encoder = new Encoder(HopperConstants.kEncoderDioA, HopperConstants.kEncoderDioB);
+    m_encoder.setDistancePerPulse(HopperConstants.kEncoderConversionFactor / HopperConstants.kEncoderCPR);
+
+    m_pid = new PIDController(HopperConstants.kP, HopperConstants.kI, HopperConstants.kD);
 
     SparkFlexConfig config = new SparkFlexConfig();
     config.idleMode(IdleMode.kBrake);
     config.smartCurrentLimit(80);
     config.inverted(true);
-    config.encoder.positionConversionFactor(HopperConstants.kEncoderConversionFactor);
-    config.closedLoop
-        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-        .p(HopperConstants.kP)
-        .i(HopperConstants.kI)
-        .d(HopperConstants.kD);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
@@ -65,7 +65,8 @@ public class Hopper extends SubsystemBase {
 
   /** Extends the hopper fully to the configured setpoint. */
   public void extend() {
-    m_pid.setReference(HopperConstants.kExtendedSetpoint, ControlType.kPosition);
+    m_setpoint = HopperConstants.kExtendedSetpoint;
+    m_pidActive = true;
     m_extended = true;
   }
 
@@ -75,14 +76,15 @@ public class Hopper extends SubsystemBase {
    * @param pct 0 = fully retracted, 100 = fully extended
    */
   public void extendTo(double pct) {
-    double setpoint = (pct / 100.0) * HopperConstants.kExtendedSetpoint;
-    m_pid.setReference(setpoint, ControlType.kPosition);
+    m_setpoint = (pct / 100.0) * HopperConstants.kExtendedSetpoint;
+    m_pidActive = true;
     m_extended = pct >= 95.0;
   }
 
   /** Retracts the hopper to its home position (encoder = 0). */
   public void retract() {
-    m_pid.setReference(0.0, ControlType.kPosition);
+    m_setpoint = 0.0;
+    m_pidActive = true;
     m_extended = false;
   }
 
@@ -125,11 +127,13 @@ public class Hopper extends SubsystemBase {
       setpoint = midPos + half * tri;
     }
 
-    m_pid.setReference(setpoint, ControlType.kPosition);
+    m_setpoint = setpoint;
+    m_pidActive = true;
   }
 
   /** Drives the motor at raw power, bypassing PID control. */
   public void testRun(double power) {
+    m_pidActive = false;
     m_motor.set(power);
   }
 
@@ -140,10 +144,14 @@ public class Hopper extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (m_pidActive) {
+      double output = m_pid.calculate(m_encoder.getDistance(), m_setpoint);
+      m_motor.set(output);
+    }
     if (m_testMode) {
       m_testPowerPub.set(m_motor.get());
-      m_testPositionPub.set(m_encoder.getPosition());
-      m_testVelocityPub.set(m_encoder.getVelocity());
+      m_testPositionPub.set(m_encoder.getDistance());
+      m_testVelocityPub.set(m_encoder.getRate());
     }
   }
 }

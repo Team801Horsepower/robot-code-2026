@@ -12,7 +12,7 @@ Our robot uses a ROBORIO 2.0 computer, and a fault-tolerant CAN bus architecture
 
 
 
-Our advanced design uses an extendable hopper with a gatherer (roller) at the end, allowing for high capacity and intake efficiency. The gatherer itself uses a motor to spin the roller. The hopper also uses a motor to expand and retract the hopper. The robot cannot intake with the gatherer unless the hopper is extended. The hopper uses a rail system with a buffer, though ideally the system is tuned as to not cause damage to the bugger. This rail system only requires one motor. The rail system uses a REV Through Bore Encoder (connected via the SparkFlex data port, no CAN ID) configured in relative/quadrature mode for closed-loop position control, allowing travel beyond 360° of motor rotation. One rotation = 2.1 linear inches; full extension = 12 inches.
+Our advanced design uses an extendable hopper with a gatherer (roller) at the end, allowing for high capacity and intake efficiency. The gatherer itself uses a motor to spin the roller. The hopper also uses a motor to expand and retract the hopper. The robot cannot intake with the gatherer unless the hopper is extended. The hopper uses a rail system with a buffer, though ideally the system is tuned as to not cause damage to the bugger. This rail system only requires one motor. The rail system uses a REV Through Bore Encoder (connected to roboRIO DIO ports 0 and 1) configured in relative/quadrature mode for closed-loop position control, allowing travel beyond 360° of motor rotation. One rotation = 2.1 linear inches; full extension = 12 inches.
 
 
 
@@ -20,7 +20,7 @@ The centerpiece of our robot is a spindexer which stores and deposits game piece
 
 
 
-Our scoring mechanism consists of a feeder, one motor that powers a series of spinners on a horizontal-to-vertical ramp into the turret. The turret has a few motors. The first is connected to a REV Through Bore Encoder (connected via the SparkFlex data port, no CAN ID) configured in absolute mode, allowing 420° of total turret travel (configured so 420° = 1 full encoder revolution). The turret has a final launching wheel that is powered by two motors that face each other (i.e. they must be configured so that one of them is reversed to work in tandem). For the launching system, it is likely that we'll be targeting a specific velocity, not a positional value. Finally, the turret has an angle manipulator, called a hood, that is designed to be able to change the trajectory of a piece anywhere from 15 to 30 degrees. On the turret, there is a camera powered by PhotonVision.
+Our scoring mechanism consists of a feeder, one motor that powers a series of spinners on a horizontal-to-vertical ramp into the turret. The turret has a few motors. The first is connected to a REV Through Bore Encoder (connected to roboRIO DIO port 3) configured in absolute mode, allowing 420° of total turret travel (configured so 420° = 1 full encoder revolution). The turret has a final launching wheel that is powered by two motors that face each other (i.e. they must be configured so that one of them is reversed to work in tandem). For the launching system, it is likely that we'll be targeting a specific velocity, not a positional value. Finally, the turret has an angle manipulator, called a hood, that is designed to be able to change the trajectory of a piece anywhere from 15 to 30 degrees. On the turret, there is a camera powered by PhotonVision.
 
 
 
@@ -148,7 +148,7 @@ stop()
 launch()
 
 * Runs Spindex.spin()
-* Runs Feeder.spin() at full positive power (1.0)
+* Runs Feeder.spin() at target velocity
 * Runs Turret.spin() to keep launch wheels at velocity
 * Runs Gather.gather() at negative half of kDefaultPower (reverse direction, to clear the gather path)
 
@@ -204,7 +204,7 @@ extendTo(pct: double)
 jostle()
 
 * Oscillates the hopper between (1−amplitude)·setpoint and (1−2·amplitude)·setpoint
-* Uses independent HopperConstants jostle constants (kJostleAgitationType, kJostleAmplitude, kJostlePeriod, kJostleReversed)
+* Uses independent HopperConstants jostle constants (kJostleAgitationType, kJostleAmplitude, kJostlePeriod)
 
 retract()
 
@@ -220,7 +220,7 @@ check(): boolean
 
 spin()
 
-* Spins the spindexer motor at negative the power stored in kSpinPower (toward feeder)
+* Spins the spindexer at target velocity via closed-loop PID (toward feeder)
 
 rest()
 
@@ -235,9 +235,9 @@ agitate()
 
 **feeder.java (class Feeder)**
 
-spin(power: double)
+spin()
 
-* Spins the feeder motor at the given power in \[-1, 1\]; positive = scoring direction
+* Spins the feeder at target velocity via closed-loop PID; positive = scoring direction
 
 rest()
 
