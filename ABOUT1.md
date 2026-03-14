@@ -28,7 +28,7 @@ The climber is a one-motor two-stage slide. It will need to be tuned to move fro
 
 
 
-For most of the system, built-in motor encoders will be used, save the systems that simply spin the game pieces around without a target velocity, such as the gatherer, spindexer, and feeder.
+For most of the system, built-in motor encoders will be used, save the systems that simply spin the game pieces around without a target velocity, such as the gatherer. The spindexer and feeder use closed-loop velocity control targeting specific RPMs via SparkFlex PID, similar to the turret launch wheels.
 
 
 

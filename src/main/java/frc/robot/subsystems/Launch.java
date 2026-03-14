@@ -28,7 +28,7 @@ public class Launch extends SubsystemBase {
    * Executes the scoring sequence:
    * <ol>
    *   <li>Spins the spindexer at launch power.
-   *   <li>Spins the feeder at full power.
+   *   <li>Spins the feeder at target velocity.
    *   <li>Commands the turret to hold its current aim (keeps launch wheels spinning).
    *   <li>Spins the gatherer in reverse at half of {@link GatherConstants#kDefaultPower}
    *       to clear any game piece from the gather path.
@@ -40,7 +40,7 @@ public class Launch extends SubsystemBase {
    */
   public void launch() {
     m_spindex.spin();
-    m_feeder.spin(1.0); // maximum positive power
+    m_feeder.spin();
     m_turret.spin();    // keep launch wheels at target velocity
     m_gather.gather(-GatherConstants.kDefaultPower / 2.0); // reverse at half power to clear gather path
   }

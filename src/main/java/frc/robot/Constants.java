@@ -131,8 +131,12 @@ public final class Constants {
   public static final class SpindexConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) spinning the spindexer. */
     public static final int kMotorId = 25;
-    /** Power applied during spin() (positive; motor is set negative in code). */
-    public static final double kSpinPower = 0.8;
+    /** Target spindexer velocity (RPM). TODO: tune. */
+    public static final double kTargetVelocityRPM = 2750.0;
+    /** Velocity PID P gain. TODO: tune. */
+    public static final double kVelocityP = 0.001;
+    /** Velocity feedforward (fraction per RPM). TODO: tune. */
+    public static final double kVelocityFF = 0.00022;
     /** Waveform shape for agitate() and Hopper.jostle(). */
     public static final AgitationType kAgitationType = AgitationType.SINUSOIDAL;
     /**
@@ -168,8 +172,12 @@ public final class Constants {
   public static final class FeederConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) powering the feeder. */
     public static final int kMotorId = 24;
-    /** Default feeder power. */
-    public static final double kSpinPower = 1.0;
+    /** Target feeder velocity (RPM). TODO: tune. */
+    public static final double kTargetVelocityRPM = 4250.0;
+    /** Velocity PID P gain. TODO: tune. */
+    public static final double kVelocityP = 0.001;
+    /** Velocity feedforward (fraction per RPM). TODO: tune. */
+    public static final double kVelocityFF = 0.00022;
 
     // --- Jam detection (mirrors SpindexConstants) ---
     /** Velocity below which the feeder is considered jammed (RPM). */

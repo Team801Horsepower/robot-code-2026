@@ -1,13 +1,15 @@
 // Copyright (c) 2026 Team 801 Horsepower
 package frc.robot.subsystems;
 
-import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkRelativeEncoder;
-import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -30,6 +32,7 @@ public class Feeder extends SubsystemBase {
 
   private final SparkFlex m_motor;
   private final SparkRelativeEncoder m_encoder;
+  private final SparkClosedLoopController m_pid;
 
   private boolean m_testMode = false;
   private final DoublePublisher m_testPowerPub;
@@ -46,8 +49,13 @@ public class Feeder extends SubsystemBase {
     SparkFlexConfig config = new SparkFlexConfig();
     config.idleMode(IdleMode.kCoast);
     config.smartCurrentLimit(60);
+    config.closedLoop
+        .p(FeederConstants.kVelocityP)
+        .velocityFF(FeederConstants.kVelocityFF);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    m_pid = m_motor.getClosedLoopController();
 
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Feeder");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
@@ -55,15 +63,13 @@ public class Feeder extends SubsystemBase {
   }
 
   /**
-   * Spins the feeder at the given power, with jam detection.
+   * Spins the feeder at the target velocity, with jam detection.
    *
    * <p>After a debounce window, if encoder velocity drops below the jam
    * threshold the motor reverses automatically for a fixed duration to
    * clear the jam, then resumes normal spinning.
-   *
-   * @param power motor power in [-1, 1]; use positive for scoring direction
    */
-  public void spin(double power) {
+  public void spin() {
     double now = Timer.getFPGATimestamp();
 
     // Record when spin() was first called after a rest()
@@ -93,7 +99,7 @@ public class Feeder extends SubsystemBase {
       return;
     }
 
-    m_motor.set(power);
+    m_pid.setReference(FeederConstants.kTargetVelocityRPM, ControlType.kVelocity);
   }
 
   /** Stops the feeder and resets jam detection state. */

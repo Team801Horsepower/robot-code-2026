@@ -1,13 +1,15 @@
 // Copyright (c) 2026 Team 801 Horsepower
 package frc.robot.subsystems;
 
-import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkRelativeEncoder;
-import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -45,6 +47,7 @@ public class Spindex extends SubsystemBase {
 
   private final SparkFlex m_motor;
   private final SparkRelativeEncoder m_encoder;
+  private final SparkClosedLoopController m_pid;
 
   private boolean m_testMode = false;
   private final DoublePublisher m_testPowerPub;
@@ -64,8 +67,13 @@ public class Spindex extends SubsystemBase {
     config.idleMode(IdleMode.kCoast);
     config.smartCurrentLimit(60);
     config.inverted(true);
+    config.closedLoop
+        .p(SpindexConstants.kVelocityP)
+        .velocityFF(SpindexConstants.kVelocityFF);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    m_pid = m_motor.getClosedLoopController();
 
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Spindex");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
@@ -103,7 +111,7 @@ public class Spindex extends SubsystemBase {
       return;
     }
 
-    m_motor.set(-SpindexConstants.kSpinPower);
+    m_pid.setReference(-SpindexConstants.kTargetVelocityRPM, ControlType.kVelocity);
   }
 
   /** Stops the spindexer. */
