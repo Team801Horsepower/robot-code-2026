@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -18,6 +19,7 @@ public class QuestSubsystem extends SubsystemBase {
   QuestNav questNav = new QuestNav();
 
   public Pose3d RobotPose = new Pose3d();
+  public Pose3d QuestPose = new Pose3d();
   
   Pose3d RobotStartingPosition = new Pose3d(
     Constants.QuestSubsystemConstants.RobotStart1TestX, 
@@ -27,6 +29,15 @@ public class QuestSubsystem extends SubsystemBase {
       Constants.QuestSubsystemConstants.RobotStart1TestRoll, 
       Constants.QuestSubsystemConstants.RobotStart1TestPitch, 
       Constants.QuestSubsystemConstants.RobotStart1TestYaw));
+
+  Transform3d QuestToRobot = new Transform3d(
+    Constants.QuestSubsystemConstants.QuestToRobotX, 
+    Constants.QuestSubsystemConstants.QuestToRobotY, 
+    Constants.QuestSubsystemConstants.QuestToRobotZ, 
+    new Rotation3d(
+      Constants.QuestSubsystemConstants.QuestToRobotRoll, 
+      Constants.QuestSubsystemConstants.QuestToRobotPitch, 
+      Constants.QuestSubsystemConstants.QuestToRobotYaw));
 
   StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
 
@@ -45,7 +56,9 @@ public class QuestSubsystem extends SubsystemBase {
             // Make sure the Quest was tracking the pose for this frame
             if (questNav.isTracking()) {
                 // Get the pose of the Quest
-                RobotPose = questFrame.questPose3d();
+                QuestPose = questFrame.questPose3d();
+                RobotPose = QuestPose.transformBy(QuestToRobot.inverse());
+                
                 // Get timestamp for when the data was sent
                 double timestamp = questFrame.dataTimestamp();
             }

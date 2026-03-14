@@ -16,9 +16,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import com.revrobotics.spark.config.SparkFlexConfig;
+import edu.wpi.first.math.MathUtil;
 
 public class TurretSubsystem extends SubsystemBase {
-  /** Creates a new TurretSubsystem. */
 
   SparkFlex s_FlywheelMotorLeft = new SparkFlex(Constants.TurretSubsystemConstants.FlywheelMotorLeftCANID, MotorType.kBrushless);
   SparkFlex s_FlywheelMotorRight = new SparkFlex(Constants.TurretSubsystemConstants.FlywheelMotorRightCANID, MotorType.kBrushless);
@@ -26,13 +26,13 @@ public class TurretSubsystem extends SubsystemBase {
   SparkFlex s_HoodTiltMotor = new SparkFlex(Constants.TurretSubsystemConstants.HoodTiltMotorCANID, MotorType.kBrushless);
 
   DutyCycleEncoder s_TurretRotateEncoder = new DutyCycleEncoder(Constants.TurretSubsystemConstants.TurretRotateEncoderDIOID, Constants.TurretSubsystemConstants.TurretRotateFreedom, 0);
-  RelativeEncoder s_TurretHoodEncoder = s_HoodTiltMotor.getEncoder();
+  private RelativeEncoder HoodEncoder;
 
-  PIDController TurretRotatePID = new PIDController(0.05, 0, 0);
+  PIDController TurretRotatePID = new PIDController(0.5, 0, 0);
   SimpleMotorFeedforward TurretRotateFeedForward = new SimpleMotorFeedforward(0, 0);
-  PIDController TurretHoodPID = new PIDController(0, 0, 0);
+  PIDController TurretHoodPID = new PIDController(0.05, 0, 0);
   SimpleMotorFeedforward TurretHoodFeedForward = new SimpleMotorFeedforward(0, 0, 0);
-  PIDController FlyWheelPID = new PIDController(0, 0, 0);
+  PIDController FlyWheelPID = new PIDController(0.05, 0, 0);
   SimpleMotorFeedforward FlyWheelFeedForward = new SimpleMotorFeedforward(0, 0);
   
   QuestSubsystem questNav = new QuestSubsystem();
@@ -63,11 +63,15 @@ public class TurretSubsystem extends SubsystemBase {
   public double ShooterVelocityActual;
 
   public TurretSubsystem() {
-    s_TurretHoodEncoder.setPosition(0);
+    s_HoodTiltMotor.getEncoder().setPosition(0);
 
     SparkFlexConfig GlobalConfig = new SparkFlexConfig();
     SparkFlexConfig ShooterRightFollowerConfig = new SparkFlexConfig();
     ShooterRightFollowerConfig.inverted(true).apply((GlobalConfig).follow(s_FlywheelMotorRight));
+
+    SmartDashboard.putNumber("ShooterVelocityMultiplier", Constants.TurretSubsystemConstants.ShooterVelocityMultiplier);
+    SmartDashboard.putNumber("ShooterVelocityEficiencey", Constants.TurretSubsystemConstants.ShooterVelcoityEfficiency);
+    SmartDashboard.putNumber("TurretRotateScoreOffset", Constants.TurretSubsystemConstants.TurretRotateScoreOffset);
   }
 
   @Override
@@ -88,7 +92,7 @@ public class TurretSubsystem extends SubsystemBase {
     vX = Constants.TurretSubsystemConstants.BlueGoalX - TurretX;
     vY = Constants.TurretSubsystemConstants.BlueGoalY - TurretY;
     
-    DistanceToGoal = Math.atan(vX / vY);
+    DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
 
     /*
      * TURRET ROTATE
@@ -97,8 +101,9 @@ public class TurretSubsystem extends SubsystemBase {
      * Feedforward helps to overcome system resistance.
      * Feedback drives turret motor to target turret rotate theta.
      */
-    TurretThetaTarget = Math.atan2(vY, vX) - RobotYaw;
     TurretThetaActual = (s_TurretRotateEncoder.get()) - Constants.TurretSubsystemConstants.TurretRotateOffset;
+    TurretThetaTarget = MathUtil.clamp(((Math.atan2(vY, vX) - (RobotYaw)) + Constants.TurretSubsystemConstants.TurretRotateScoreOffset), -3.49066, 3.49066
+    );
 
     s_TurretRotateMotor.set(
     (TurretRotatePID.calculate(TurretThetaActual, TurretThetaTarget)) +
@@ -112,9 +117,12 @@ public class TurretSubsystem extends SubsystemBase {
      * Feedforward helps to overcome system resistance.
      * Feedback drives turret hood motor to target hood theta.
      */
-    TicksPerDegree = (7168 * Constants.TurretSubsystemConstants.HoodGearRatio) / (2 * Math.PI);
-    HoodThetaActual = s_TurretHoodEncoder.getPosition() / TicksPerDegree;
-    HoodThetaTarget = 76.7 + 3.25 * DistanceToGoal + 0.278 * Math.pow(DistanceToGoal, 2);
+    HoodEncoder = s_HoodTiltMotor.getEncoder();
+    HoodThetaActual = (((HoodEncoder.getPosition()) / (Constants.TurretSubsystemConstants.HoodGearRatio)) * (2 * Math.PI)) + 0.261799;
+    HoodThetaTarget = MathUtil.clamp(
+      (0.233 + 0.0567 * DistanceToGoal + -0.00485 * Math.pow(DistanceToGoal, 2)),
+      0.261799, 0.785398
+    );
 
     s_HoodTiltMotor.set(
       (TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)) +
@@ -129,14 +137,18 @@ public class TurretSubsystem extends SubsystemBase {
      * Feedforward drives flywheel to target velocity.
      * Feedback drives flywheel to target velocity. 
      */
-    BallVelocityTarget = 15 + 3.58 * DistanceToGoal + -0.112 * Math.pow(DistanceToGoal, 2);
+    BallVelocityTarget = 4.53 + 1.13 * DistanceToGoal + -0.04 * Math.pow(DistanceToGoal, 2);
     ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterVelcoityEfficiency * Constants.TurretSubsystemConstants.ShooterWheelCircumference);
     ShooterVelocityActual = s_FlywheelMotorLeft.getEncoder().getVelocity();
 
-    s_FlywheelMotorLeft.setVoltage(
+    /*
+    s_FlywheelMotorLeft.setVoltage( (Constants.TurretSubsystemConstants.ShooterVelocityMultiplier) * 
+    (
       (FlyWheelPID.calculate(ShooterVelocityActual, ShooterVelocityTarget)) +
       (FlyWheelFeedForward.calculate(ShooterVelocityTarget))
+    )
     );
+    */
 
     /*
      * Publishes several values to Smart Dashboard which can be accessed in advantagescope under the Smart Dashboard topic.
@@ -154,5 +166,23 @@ public class TurretSubsystem extends SubsystemBase {
     // Shooter Numbers
     SmartDashboard.putNumber("ShooterVelocityEncoder", ShooterVelocityActual);
     SmartDashboard.putNumber("ShooterVelocityTarget", ShooterVelocityTarget);
+    SmartDashboard.getNumber("ShooterLeftMotorVelocity", s_FlywheelMotorLeft.get());
+    SmartDashboard.putNumber("ShooterRightMotorVelocity", s_FlywheelMotorRight.get());
+
+    /*
+     * Publishes numbers to Advantage Scope that can be adjusted without the need for editing robot code.
+     * NOT SUITABLE FOR MATCH CODE
+     */
+    // Turret Tuning Values
+    SmartDashboard.putData(TurretRotatePID);
+    SmartDashboard.getNumber("TurretRotateScoreOffset", Constants.TurretSubsystemConstants.TurretRotateScoreOffset);
+    
+    // Hood Tuning Values
+    SmartDashboard.putData(TurretHoodPID);
+
+    // Shooter Tuning Values
+    SmartDashboard.putData(FlyWheelPID);
+    SmartDashboard.getNumber("ShooterEficiencey", Constants.TurretSubsystemConstants.ShooterVelcoityEfficiency);
+    SmartDashboard.getNumber("ShooterVelocityMultiplier", Constants.TurretSubsystemConstants.ShooterVelocityMultiplier);
   }
 }

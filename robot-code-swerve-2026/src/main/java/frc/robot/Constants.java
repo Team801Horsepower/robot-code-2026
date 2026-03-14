@@ -19,12 +19,20 @@ public final class Constants {
 
   public static final class QuestSubsystemConstants {
     // Starting Position 1 - Testing
-    public static final double RobotStart1TestX = 3.0;
-    public static final double RobotStart1TestY = 4.034;
+    public static final double RobotStart1TestX = 3.383952;
+    public static final double RobotStart1TestY = 4.015336;
     public static final double RobotStart1TestZ = 0.0;
     public static final double RobotStart1TestRoll = 0.0;
     public static final double RobotStart1TestPitch = 0.0;
-    public static final double RobotStart1TestYaw = 3.14;
+    public static final double RobotStart1TestYaw = 3.14159;
+
+    // Quest to Robot Orientation
+    public static final double QuestToRobotX = 0.0;
+    public static final double QuestToRobotY = 0.0;
+    public static final double QuestToRobotZ = 0.0;
+    public static final double QuestToRobotRoll = 0.0;
+    public static final double QuestToRobotPitch = 0.0;
+    public static final double QuestToRobotYaw = 3.14159;
     
   }
 
@@ -51,7 +59,7 @@ public final class Constants {
     public static final double QuestToTurretY = -0.328754;
 
     // Measurements
-    public static final double HoodGearRatio = 1 / 26.25;
+    public static final double HoodGearRatio = 26.25;
     public static final double ShooterWheelCircumference = 0.2934;
 
     // Turret Limits
@@ -59,6 +67,8 @@ public final class Constants {
     public static final double TurretRotateOffset = 3.66519;
 
     // Tuning Constants
-    public static final double ShooterVelcoityEfficiency = 50 / 100;
+    public static double ShooterVelcoityEfficiency = 0.5;
+    public static double ShooterVelocityMultiplier = 1.0;
+    public static double TurretRotateScoreOffset = 0.0;
   }
 }
