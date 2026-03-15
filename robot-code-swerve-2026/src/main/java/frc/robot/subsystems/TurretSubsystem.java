@@ -33,8 +33,8 @@ public class TurretSubsystem extends SubsystemBase {
   SimpleMotorFeedforward TurretRotateFeedForward = new SimpleMotorFeedforward(0, 0);
   PIDController TurretHoodPID = new PIDController(0.9, 0.003, 0);
   SimpleMotorFeedforward TurretHoodFeedForward = new SimpleMotorFeedforward(0, 0, 0);
-  PIDController FlyWheelPID = new PIDController(0, 0, 0);
-  SimpleMotorFeedforward FlyWheelFeedForward = new SimpleMotorFeedforward(0, 0);
+  PIDController FlyWheelPID = new PIDController(0.005, 0.001, 0);
+  SimpleMotorFeedforward FlyWheelFeedForward = new SimpleMotorFeedforward(0, 0.0021, 0.0);
   
   QuestSubsystem questNav = new QuestSubsystem();
 
@@ -73,6 +73,7 @@ public class TurretSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("ShooterVelocityMultiplier", Constants.TurretSubsystemConstants.ShooterVelocityMultiplier);
     SmartDashboard.putNumber("ShooterVelocityEficiencey", Constants.TurretSubsystemConstants.ShooterVelcoityEfficiency);
     SmartDashboard.putNumber("TurretRotateScoreOffset", Constants.TurretSubsystemConstants.TurretRotateScoreOffset);
+    FlyWheelPID.setIZone(50.0);
   }
 
   @Override
@@ -122,7 +123,7 @@ public class TurretSubsystem extends SubsystemBase {
     HoodEncoder = s_HoodTiltMotor.getEncoder();
     HoodThetaActual = (((HoodEncoder.getPosition()) / (Constants.TurretSubsystemConstants.HoodGearRatio)) * (2 * Math.PI)) + 0.261799;
     HoodThetaTarget = MathUtil.clamp(
-      (0.233 + 0.0567 * DistanceToGoal + -0.00485 * Math.pow(DistanceToGoal, 2)),
+      (0.0136 + 0.234 * DistanceToGoal + -0.0205 * Math.pow(DistanceToGoal, 2)),
       0.261799, 0.785398
     );
 
@@ -139,16 +140,14 @@ public class TurretSubsystem extends SubsystemBase {
      * Feedforward drives flywheel to target velocity.
      * Feedback drives flywheel to target velocity. 
      */
-    BallVelocityTarget = 4.53 + 1.13 * DistanceToGoal + -0.04 * Math.pow(DistanceToGoal, 2);
-    ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterVelcoityEfficiency * Constants.TurretSubsystemConstants.ShooterWheelCircumference);
+    BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + -0.0394 * Math.pow(DistanceToGoal, 2);
+    ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterWheelCircumference);
     ShooterEncoder = s_FlywheelMotorLeft.getEncoder();
     ShooterVelocityActual = ShooterEncoder.getVelocity();
 
-    s_FlywheelMotorLeft.setVoltage( (Constants.TurretSubsystemConstants.ShooterVelocityMultiplier) * 
-    (
+    s_FlywheelMotorLeft.setVoltage(
       (FlyWheelPID.calculate(ShooterVelocityActual, ShooterVelocityTarget)) +
       (FlyWheelFeedForward.calculate(ShooterVelocityTarget))
-    )
     );
 
     /*

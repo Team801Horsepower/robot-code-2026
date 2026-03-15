@@ -60,7 +60,7 @@ public final class Constants {
 
     // Measurements
     public static final double HoodGearRatio = 26.25;
-    public static final double ShooterWheelCircumference = 0.2934;
+    public static final double ShooterWheelCircumference = 0.2394;
 
     // Turret Limits
     public static final double TurretRotateFreedom = 7.33038;
@@ -70,5 +70,14 @@ public final class Constants {
     public static double ShooterVelcoityEfficiency = 0.5;
     public static double ShooterVelocityMultiplier = 1.0;
     public static double TurretRotateScoreOffset = 0.0;
+  }
+  public static final class FeederSubsystemConstants{
+    public static final int FeederCANID = 24;
+  }
+  public static final class SpindexerSubsystemConstants{
+    public static final int SpindexerCANID = 25;
+  }
+  public static final class GatherSubsystemConstants {
+    public static final int GatherCANID = 23;
   }
 }

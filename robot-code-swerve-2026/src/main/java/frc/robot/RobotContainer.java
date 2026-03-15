@@ -12,13 +12,17 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.FeederSubsystem;
+import frc.robot.subsystems.GatherSubsystem;
 import frc.robot.subsystems.QuestSubsystem;
+import frc.robot.subsystems.SpindexerSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 
 
@@ -41,6 +45,9 @@ public class RobotContainer {
 
     public final QuestSubsystem questNav = new QuestSubsystem();
     public final TurretSubsystem turret = new TurretSubsystem();
+    public final FeederSubsystem feeder = new FeederSubsystem();
+    public final GatherSubsystem gather = new GatherSubsystem();
+    public final SpindexerSubsystem spindexer = new SpindexerSubsystem();
 
     public RobotContainer() {
         configureBindings();
@@ -81,6 +88,18 @@ public class RobotContainer {
         joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
         drivetrain.registerTelemetry(logger::telemeterize);
+
+        /*
+         * Basic button bindings for gathering, shooting, and unjamming the spindexer.
+         * Does not contained advanced spindexer unjam methods or hopper extention/retraction functionality. 
+         */
+        joystick.rightTrigger(0.5).whileTrue(Commands.parallel(
+            Commands.run(()->feeder.Shoot(), feeder),
+            Commands.run(()->spindexer.SpindexerFeed(), spindexer)
+            )
+        );
+        joystick.leftTrigger(0.5).whileTrue(new RunCommand(()->gather.Gather(), gather));
+        joystick.rightBumper().whileTrue(new RunCommand(()->spindexer.SpindexerUnjam(), spindexer));
     }
 
     public Command getAutonomousCommand() {
