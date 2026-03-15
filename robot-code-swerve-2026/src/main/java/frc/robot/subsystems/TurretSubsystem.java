@@ -27,12 +27,13 @@ public class TurretSubsystem extends SubsystemBase {
 
   DutyCycleEncoder s_TurretRotateEncoder = new DutyCycleEncoder(Constants.TurretSubsystemConstants.TurretRotateEncoderDIOID, Constants.TurretSubsystemConstants.TurretRotateFreedom, 0);
   private RelativeEncoder HoodEncoder;
+  private RelativeEncoder ShooterEncoder;
 
-  PIDController TurretRotatePID = new PIDController(0.5, 0, 0);
+  PIDController TurretRotatePID = new PIDController(1.5, 0, 0);
   SimpleMotorFeedforward TurretRotateFeedForward = new SimpleMotorFeedforward(0, 0);
-  PIDController TurretHoodPID = new PIDController(0.05, 0, 0);
+  PIDController TurretHoodPID = new PIDController(0.9, 0.003, 0);
   SimpleMotorFeedforward TurretHoodFeedForward = new SimpleMotorFeedforward(0, 0, 0);
-  PIDController FlyWheelPID = new PIDController(0.05, 0, 0);
+  PIDController FlyWheelPID = new PIDController(0, 0, 0);
   SimpleMotorFeedforward FlyWheelFeedForward = new SimpleMotorFeedforward(0, 0);
   
   QuestSubsystem questNav = new QuestSubsystem();
@@ -81,7 +82,7 @@ public class TurretSubsystem extends SubsystemBase {
      * and offsets it to the center of the turret.
      */
     TurretX = questNav.RobotPose.getX() + Constants.TurretSubsystemConstants.QuestToTurretX;
-    TurretY = questNav.RobotPose.getY() + Constants.TurretSubsystemConstants.QuestToTurretY;
+    TurretY = questNav.RobotPose.getY() - Constants.TurretSubsystemConstants.QuestToTurretY;
     Rotation3d PoseRotation = questNav.RobotPose.getRotation();
     RobotYaw = PoseRotation.getZ();
 
@@ -102,7 +103,8 @@ public class TurretSubsystem extends SubsystemBase {
      * Feedback drives turret motor to target turret rotate theta.
      */
     TurretThetaActual = (s_TurretRotateEncoder.get()) - Constants.TurretSubsystemConstants.TurretRotateOffset;
-    TurretThetaTarget = MathUtil.clamp(((Math.atan2(vY, vX) - (RobotYaw)) + Constants.TurretSubsystemConstants.TurretRotateScoreOffset), -3.49066, 3.49066
+    TurretThetaTarget = MathUtil.clamp(((-Math.atan2(vY, vX) + (RobotYaw)) + 
+    Constants.TurretSubsystemConstants.TurretRotateScoreOffset), -3.49066, 3.49066
     );
 
     s_TurretRotateMotor.set(
@@ -139,16 +141,15 @@ public class TurretSubsystem extends SubsystemBase {
      */
     BallVelocityTarget = 4.53 + 1.13 * DistanceToGoal + -0.04 * Math.pow(DistanceToGoal, 2);
     ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterVelcoityEfficiency * Constants.TurretSubsystemConstants.ShooterWheelCircumference);
-    ShooterVelocityActual = s_FlywheelMotorLeft.getEncoder().getVelocity();
+    ShooterEncoder = s_FlywheelMotorLeft.getEncoder();
+    ShooterVelocityActual = ShooterEncoder.getVelocity();
 
-    /*
     s_FlywheelMotorLeft.setVoltage( (Constants.TurretSubsystemConstants.ShooterVelocityMultiplier) * 
     (
       (FlyWheelPID.calculate(ShooterVelocityActual, ShooterVelocityTarget)) +
       (FlyWheelFeedForward.calculate(ShooterVelocityTarget))
     )
     );
-    */
 
     /*
      * Publishes several values to Smart Dashboard which can be accessed in advantagescope under the Smart Dashboard topic.
