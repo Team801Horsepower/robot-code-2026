@@ -158,13 +158,13 @@ public class RobotContainer {
     m_driverController.button(XboxController.Button.kRightBumper.value, m_testLoop)
         .whileTrue(Commands.run(() -> m_spindex.testRun(0.5), m_spindex));
 
-    // Y (held) → Hopper forward (+0.3)
+    // Y (held) → Hopper forward (+0.1)
     m_driverController.button(XboxController.Button.kY.value, m_testLoop)
-        .whileTrue(Commands.run(() -> m_hopper.testRun(0.3), m_hopper));
+        .whileTrue(Commands.run(() -> m_hopper.testRun(0.1), m_hopper));
 
-    // D-pad Up (held) → Hopper reverse (-0.3)
+    // D-pad Up (held) → Hopper reverse (-0.1)
     m_driverController.pov(0, 0, m_testLoop)
-        .whileTrue(Commands.run(() -> m_hopper.testRun(-0.3), m_hopper));
+        .whileTrue(Commands.run(() -> m_hopper.testRun(-0.1), m_hopper));
 
     // NOTE: Turret (A, B, X, D-pad Left, D-pad Right) handled via polling default command
   }

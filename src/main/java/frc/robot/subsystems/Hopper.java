@@ -51,8 +51,8 @@ public class Hopper extends SubsystemBase {
     m_pid = new PIDController(HopperConstants.kP, HopperConstants.kI, HopperConstants.kD);
 
     SparkFlexConfig config = new SparkFlexConfig();
-    config.idleMode(IdleMode.kBrake);
-    config.smartCurrentLimit(80);
+    config.idleMode(IdleMode.kCoast);
+    config.smartCurrentLimit(60);
     config.inverted(true);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
