@@ -9,23 +9,23 @@
       "prevControl": null,
       "nextControl": {
         "x": 2.4864194008559197,
-        "y": 1.505492154065622
+        "y": 1.5054921540656219
       },
       "isLocked": false,
       "linkedName": "Right"
     },
     {
       "anchor": {
-        "x": 0.7526390870185449,
-        "y": 0.5868473609129818
+        "x": 0.7397004279681283,
+        "y": 0.6515406562059161
       },
       "prevControl": {
-        "x": 2.331155492154065,
-        "y": 1.4537375178316698
+        "x": 2.318216833103649,
+        "y": 1.518430813124604
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Human Player"
     }
   ],
   "rotationTargets": [],

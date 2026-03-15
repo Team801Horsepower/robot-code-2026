@@ -16,16 +16,16 @@
     },
     {
       "anchor": {
-        "x": 0.7655777460770326,
-        "y": 0.6256633380884444
+        "x": 0.7397004279681283,
+        "y": 0.6515406562059161
       },
       "prevControl": {
-        "x": 2.150014265335235,
-        "y": 0.5609700427960049
+        "x": 2.124136947226332,
+        "y": 0.5868473609134766
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Human Player"
     }
   ],
   "rotationTargets": [],
