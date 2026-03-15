@@ -6,6 +6,8 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.event.EventLoop;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -64,6 +66,10 @@ public class RobotContainer {
 
   private final EventLoop m_testLoop = new EventLoop();
 
+  // ─── Auto chooser ─────────────────────────────────────────────────────────
+
+  private final SendableChooser<Command> m_autoChooser = new SendableChooser<>();
+
   // ─── Swerve requests ───────────────────────────────────────────────────────
 
   private final SwerveRequest.FieldCentric m_fieldCentricRequest =
@@ -79,6 +85,7 @@ public class RobotContainer {
     configureDefaultCommands();
     configureButtonBindings();
     configureTestBindings();
+    configureAutoChooser();
   }
 
   // ─── Default Commands ──────────────────────────────────────────────────────
@@ -228,15 +235,25 @@ public class RobotContainer {
     configureDefaultCommands();
   }
 
+  // ─── Auto Chooser ─────────────────────────────────────────────────────────
+
+  private void configureAutoChooser() {
+    m_autoChooser.setDefaultOption("None", Commands.none());
+
+    m_autoChooser.addOption("CH", Commands.none());
+    m_autoChooser.addOption("CH-Prime", Commands.none());
+    m_autoChooser.addOption("FLS", Commands.none());
+    m_autoChooser.addOption("FRS", Commands.none());
+    m_autoChooser.addOption("LS", Commands.none());
+    m_autoChooser.addOption("RS", Commands.none());
+
+    SmartDashboard.putData("Auto Chooser", m_autoChooser);
+  }
+
   // ─── Autonomous ────────────────────────────────────────────────────────────
 
-  /**
-   * Returns the autonomous command.
-   *
-   * <p>TODO: Replace with a PathPlanner routine or sequential auto once developed.
-   */
   public Command getAutonomousCommand() {
-    return Commands.print("[Auto] No autonomous command configured!");
+    return m_autoChooser.getSelected();
   }
 
   // ─── Helpers ───────────────────────────────────────────────────────────────

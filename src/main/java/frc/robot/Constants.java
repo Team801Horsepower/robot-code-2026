@@ -90,7 +90,7 @@ public final class Constants {
     /** CAN ID of the NEO Vortex (SparkFlex) spinning the spindexer. */
     public static final int kMotorId = 25;
     /** Target spindexer velocity (RPM). TODO: tune. */
-    public static final double kTargetVelocityRPM = 2750.0;
+    public static final double kTargetVelocityRPM = 2000.0;
     /** Velocity PID P gain. TODO: tune. */
     public static final double kVelocityP = 0.001;
     /** Velocity feedforward (fraction per RPM). TODO: tune. */
@@ -131,7 +131,7 @@ public final class Constants {
     /** CAN ID of the NEO Vortex (SparkFlex) powering the feeder. */
     public static final int kMotorId = 24;
     /** Target feeder velocity (RPM). TODO: tune. */
-    public static final double kTargetVelocityRPM = 4250.0;
+    public static final double kTargetVelocityRPM = 2.067 * SpindexConstants.kTargetVelocityRPM;
     /** Velocity PID P gain. TODO: tune. */
     public static final double kVelocityP = 0.001;
     /** Velocity feedforward (fraction per RPM). TODO: tune. */
