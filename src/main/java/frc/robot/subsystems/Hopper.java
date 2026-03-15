@@ -31,7 +31,7 @@ public class Hopper extends SubsystemBase {
   private final RelativeEncoder m_encoder;
   private final PIDController m_pid;
 
-  /** Current PID target (inches). */
+  /** Current PID target (motor rotations). */
   private double m_setpoint = 0.0;
   /** Whether the software PID loop is active (disabled during testRun). */
   private boolean m_pidActive = false;
@@ -43,6 +43,11 @@ public class Hopper extends SubsystemBase {
   private final DoublePublisher m_testPowerPub;
   private final DoublePublisher m_testPositionPub;
   private final DoublePublisher m_testVelocityPub;
+  private final DoublePublisher m_testSetpointPub;
+  private final DoublePublisher m_testErrorPub;
+  private final DoublePublisher m_testPPub;
+  private final DoublePublisher m_testIPub;
+  private final DoublePublisher m_testDPub;
 
   public Hopper() {
     m_motor = new SparkFlex(HopperConstants.kMotorId, MotorType.kBrushless);
@@ -64,8 +69,13 @@ public class Hopper extends SubsystemBase {
 
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Hopper");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
-    m_testPositionPub = table.getDoubleTopic("PositionInches").publish();
+    m_testPositionPub = table.getDoubleTopic("Position").publish();
     m_testVelocityPub = table.getDoubleTopic("VelocityRPM").publish();
+    m_testSetpointPub = table.getDoubleTopic("Setpoint").publish();
+    m_testErrorPub = table.getDoubleTopic("Error").publish();
+    m_testPPub = table.getDoubleTopic("kP").publish();
+    m_testIPub = table.getDoubleTopic("kI").publish();
+    m_testDPub = table.getDoubleTopic("kD").publish();
   }
 
   /** Extends the hopper fully to the configured setpoint. */
@@ -142,6 +152,12 @@ public class Hopper extends SubsystemBase {
     m_motor.set(power);
   }
 
+  /** Sets a PID position target for test mode tuning (motor rotations). */
+  public void testSetPosition(double position) {
+    m_setpoint = position;
+    m_pidActive = true;
+  }
+
   /** Enables or disables test mode telemetry publishing. */
   public void setTestMode(boolean enabled) {
     m_testMode = enabled;
@@ -157,6 +173,11 @@ public class Hopper extends SubsystemBase {
       m_testPowerPub.set(m_motor.get());
       m_testPositionPub.set(m_encoder.getPosition());
       m_testVelocityPub.set(m_encoder.getVelocity());
+      m_testSetpointPub.set(m_setpoint);
+      m_testErrorPub.set(m_setpoint - m_encoder.getPosition());
+      m_testPPub.set(m_pid.getP());
+      m_testIPub.set(m_pid.getI());
+      m_testDPub.set(m_pid.getD());
     }
   }
 }

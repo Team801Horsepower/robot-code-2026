@@ -55,22 +55,20 @@ public final class Constants {
     public static final int kEncoderDioA = 1;
     /** DIO channel B for the REV Through Bore Encoder (quadrature). */
     public static final int kEncoderDioB = 3;
-    /** Counts per revolution of the REV Through Bore Encoder in quadrature mode. */
-    public static final int kEncoderCPR = 8192;
     /**
-     * Position conversion factor: linear inches per encoder rotation.
-     * TODO: measure on rebuilt hopper.
+     * Fully-extended motor encoder position (motor rotations from home).
+     * Measured with motor encoder zeroed at full retraction.
      */
-    public static final double kEncoderConversionFactor = 2.1; // PLACEHOLDER – measure!
+    public static final double kExtendedSetpoint = 28.183872;
     /**
-     * Fully-extended encoder position (inches from home).
-     * Full extension = 12 inches of rail travel.
+     * Partial extension motor encoder position (motor rotations from home).
+     * Measured with motor encoder zeroed at full retraction.
      */
-    public static final double kExtendedSetpoint = 12.0; // inches
-    /** Closed-loop position tolerance (inches). */
-    public static final double kTolerance = 0.1; // inches
+    public static final double kPartialExtendSetpoint = 23.245955;
+    /** Closed-loop position tolerance (motor rotations). */
+    public static final double kTolerance = 0.1;
     // PID gains for hopper position control. TODO: tune.
-    public static final double kP = 0.05;
+    public static final double kP = 0.0;
     public static final double kI = 0.0;
     public static final double kD = 0.0;
 

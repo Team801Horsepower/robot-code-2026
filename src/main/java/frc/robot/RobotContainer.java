@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.GatherConstants;
+import frc.robot.Constants.HopperConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.commands.*;
@@ -158,15 +159,22 @@ public class RobotContainer {
     m_driverController.button(XboxController.Button.kRightBumper.value, m_testLoop)
         .whileTrue(Commands.run(() -> m_spindex.testRun(0.5), m_spindex));
 
-    // Y (held) → Hopper forward (+0.1)
-    m_driverController.button(XboxController.Button.kY.value, m_testLoop)
-        .whileTrue(Commands.run(() -> m_hopper.testRun(0.1), m_hopper));
+    // D-pad Left → Hopper retract (PID to 0)
+    m_driverController.pov(0, 270, m_testLoop)
+        .onTrue(Commands.runOnce(() -> m_hopper.testSetPosition(0), m_hopper));
 
-    // D-pad Up (held) → Hopper reverse (-0.1)
-    m_driverController.pov(0, 0, m_testLoop)
-        .whileTrue(Commands.run(() -> m_hopper.testRun(-0.1), m_hopper));
+    // D-pad Right → Hopper full extend (PID to kExtendedSetpoint)
+    m_driverController.pov(0, 90, m_testLoop)
+        .onTrue(Commands.runOnce(
+            () -> m_hopper.testSetPosition(HopperConstants.kExtendedSetpoint), m_hopper));
 
-    // NOTE: Turret (A, B, X, D-pad Left, D-pad Right) handled via polling default command
+    // A → Hopper partial extend (PID to kPartialExtendSetpoint)
+    m_driverController.button(XboxController.Button.kA.value, m_testLoop)
+        .onTrue(Commands.runOnce(
+            () -> m_hopper.testSetPosition(HopperConstants.kPartialExtendSetpoint), m_hopper));
+
+    // NOTE: Turret (B, X, Y, D-pad Up) handled via polling default command
+    // WARNING: D-pad Left/Right and A overlap with turret polling — both subsystems will respond
   }
 
   // ─── Mode Switching ───────────────────────────────────────────────────────────
@@ -187,16 +195,18 @@ public class RobotContainer {
 
     // Simple subsystems: idle at 0 (trigger bindings override when held)
     m_gather.setDefaultCommand(Commands.run(() -> m_gather.testRun(0), m_gather));
-    m_hopper.setDefaultCommand(Commands.run(() -> m_hopper.testRun(0), m_hopper));
+    // Hopper: no-op default — PID holds last commanded position from test bindings
+    m_hopper.setDefaultCommand(Commands.run(() -> {}, m_hopper));
     m_spindex.setDefaultCommand(Commands.run(() -> m_spindex.testRun(0), m_spindex));
     m_feeder.setDefaultCommand(Commands.run(() -> m_feeder.testRun(0), m_feeder));
     // Turret: polling default command (reads HID directly for 3 motor groups)
+    // Y = launch, B = hood+, D-pad Up = hood-, X = rotate+, D-pad Down = rotate-
     m_TurretSubsystem.setDefaultCommand(Commands.run(() -> {
       var hid = m_driverController.getHID();
 
-      double launchPower = hid.getAButton() ? 0.5 : 0;
-      double hoodPower   = hid.getBButton() ? 0.05 : (hid.getPOV() == 90 ? -0.05 : 0);
-      double rotatePower = hid.getXButton() ? 0.1 : (hid.getPOV() == 270 ? -0.1 : 0);
+      double launchPower = hid.getYButton() ? 0.5 : 0;
+      double hoodPower   = hid.getBButton() ? 0.05 : (hid.getPOV() == 0 ? -0.05 : 0);
+      double rotatePower = hid.getXButton() ? 0.1 : (hid.getPOV() == 180 ? -0.1 : 0);
 
       m_TurretSubsystem.testRunLaunch(launchPower);
       m_TurretSubsystem.testRunHood(hoodPower);
