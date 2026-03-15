@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Team 801 Horsepower
 package frc.robot.subsystems;
 
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkFlex;
@@ -19,14 +20,15 @@ import frc.robot.Constants.HopperConstants;
 /**
  * Hopper – extends and retracts the hopper rail system, and can jostle in place.
  *
- * <p>Uses the REV Through Bore Encoder (roboRIO DIO 0 &amp; 1, relative/quadrature mode) with a
- * WPILib software PID controller for closed-loop position control. Zero reference is the
- * physical home/retracted position (encoder zeroes on power-on with hopper retracted).
+ * <p>Uses the SparkFlex built-in motor encoder with a WPILib software PID controller for
+ * closed-loop position control. Units are motor rotations (zeroed on startup).
+ * The DIO Through Bore Encoder is kept initialized but unused.
  */
 public class Hopper extends SubsystemBase {
 
   private final SparkFlex m_motor;
-  private final Encoder m_encoder;
+  private final Encoder m_throughBoreEncoder;
+  private final RelativeEncoder m_encoder;
   private final PIDController m_pid;
 
   /** Current PID target (inches). */
@@ -45,8 +47,8 @@ public class Hopper extends SubsystemBase {
   public Hopper() {
     m_motor = new SparkFlex(HopperConstants.kMotorId, MotorType.kBrushless);
 
-    m_encoder = new Encoder(HopperConstants.kEncoderDioA, HopperConstants.kEncoderDioB);
-    m_encoder.setDistancePerPulse(HopperConstants.kEncoderConversionFactor / HopperConstants.kEncoderCPR);
+    // Through Bore Encoder — kept initialized but no longer used for control
+    m_throughBoreEncoder = new Encoder(HopperConstants.kEncoderDioA, HopperConstants.kEncoderDioB);
 
     m_pid = new PIDController(HopperConstants.kP, HopperConstants.kI, HopperConstants.kD);
 
@@ -56,6 +58,9 @@ public class Hopper extends SubsystemBase {
     config.inverted(true);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    m_encoder = m_motor.getEncoder();
+    m_encoder.setPosition(0);
 
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Hopper");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
@@ -145,13 +150,13 @@ public class Hopper extends SubsystemBase {
   @Override
   public void periodic() {
     if (m_pidActive) {
-      double output = m_pid.calculate(m_encoder.getDistance(), m_setpoint);
+      double output = m_pid.calculate(m_encoder.getPosition(), m_setpoint);
       m_motor.set(output);
     }
     if (m_testMode) {
       m_testPowerPub.set(m_motor.get());
-      m_testPositionPub.set(m_encoder.getDistance());
-      m_testVelocityPub.set(m_encoder.getRate());
+      m_testPositionPub.set(m_encoder.getPosition());
+      m_testVelocityPub.set(m_encoder.getVelocity());
     }
   }
 }
