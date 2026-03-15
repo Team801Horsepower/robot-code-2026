@@ -281,4 +281,61 @@ public final class Constants {
      */
     public static final double kMaxAngularSpeedRadPerSec = Math.PI * 1.5; // rad/s (~1.5π rad/s)
   }
+  public static final class QuestSubsystemConstants {
+    // Starting Position 1 - Testing
+    public static final double RobotStart1TestX = 3.383952;
+    public static final double RobotStart1TestY = 4.015336;
+    public static final double RobotStart1TestZ = 0.0;
+    public static final double RobotStart1TestRoll = 0.0;
+    public static final double RobotStart1TestPitch = 0.0;
+    public static final double RobotStart1TestYaw = 3.14159;
+
+    // Quest to Robot Orientation
+    public static final double QuestToRobotX = -0.296671;
+    public static final double QuestToRobotY = 0.234704;
+    public static final double QuestToRobotZ = 0.0;
+    public static final double QuestToRobotRoll = 0.0;
+    public static final double QuestToRobotPitch = 0.0;
+    public static final double QuestToRobotYaw = 3.14159;
+    
+  }
+  public static final class TurretSubsystemConstants{
+    // CANIDS
+    public static final int FlywheelMotorLeftCANID = 20;
+    public static final int FlywheelMotorRightCANID = 21;
+    public static final int TurretRotateMotorCANID = 28;
+    public static final int HoodTiltMotorCANID = 26;
+    public static final int TurretRotateEncoderDIOID = 0;
+
+    // Blue Alliance Goal Position
+    public static final double BlueGoalX = 4.635;
+    public static final double BlueGoalY = 4.034;
+    public static final double BlueGoalZ = 1.0;
+
+    // Red Alliance Goal Position
+    public static final double RedGoalX = 1.0;
+    public static final double RedGoalY = 1.0;
+    public static final double RedGoalZ = 1.0;
+    
+    // Robot To Turret
+    public static final double RobotToTurretX = -0.103165;
+    public static final double RobotToTurretY = -0.094050;
+    public static final double RobotToTurretZ = 0.0;
+    public static final double RobotToTurretRoll = 0.0;
+    public static final double RobotToTurretPitch = 0.0;
+    public static final double RobotToTurretYaw = 0.0;
+
+    // Measurements
+    public static final double HoodGearRatio = 26.25;
+    public static final double ShooterWheelCircumference = 0.2394;
+
+    // Turret Limits
+    public static final double TurretRotateFreedom = 7.33038;
+    public static final double TurretRotateOffset = 3.66519;
+
+    // Tuning Constants
+    public static double ShooterVelcoityEfficiency = 0.5;
+    public static double ShooterVelocityMultiplier = 1.0;
+    public static double TurretRotateScoreOffset = 0.232;
+  }
 }
