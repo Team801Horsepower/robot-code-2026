@@ -27,5 +27,8 @@ public class FeederSubsystem extends SubsystemBase {
   public void Shoot() {
     FeederMotor.set(.75);
   }
+  public void FeederStop() {
+    FeederMotor.stopMotor();
+  }
 
 }

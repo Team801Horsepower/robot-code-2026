@@ -25,10 +25,14 @@ public class SpindexerSubsystem extends SubsystemBase {
   }
 
   public void SpindexerFeed() {
-    SpindexerMotor.set(.5);
+    SpindexerMotor.set(1);
   }
 
   public void SpindexerUnjam() {
     SpindexerMotor.set(-0.25);
+  }
+
+  public void SpindexerStop() {
+    SpindexerMotor.stopMotor();
   }
 }

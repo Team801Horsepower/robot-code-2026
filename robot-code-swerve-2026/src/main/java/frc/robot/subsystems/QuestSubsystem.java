@@ -57,7 +57,7 @@ public class QuestSubsystem extends SubsystemBase {
             if (questNav.isTracking()) {
                 // Get the pose of the Quest
                 QuestPose = questFrame.questPose3d();
-                RobotPose = QuestPose.transformBy(QuestToRobot.inverse());
+                RobotPose = QuestPose.transformBy(QuestToRobot);
                 
                 // Get timestamp for when the data was sent
                 double timestamp = questFrame.dataTimestamp();

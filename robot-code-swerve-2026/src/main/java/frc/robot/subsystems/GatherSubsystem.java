@@ -27,4 +27,8 @@ public class GatherSubsystem extends SubsystemBase {
   public void Gather() {
     GatherMotor.set(.5);
   }
+
+  public void StopGather() {
+    GatherMotor.stopMotor();
+  }
 }

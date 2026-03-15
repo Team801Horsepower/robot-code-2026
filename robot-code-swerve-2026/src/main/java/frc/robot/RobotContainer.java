@@ -95,11 +95,19 @@ public class RobotContainer {
          */
         joystick.rightTrigger(0.5).whileTrue(Commands.parallel(
             Commands.run(()->feeder.Shoot(), feeder),
-            Commands.run(()->spindexer.SpindexerFeed(), spindexer)
+            Commands.run(()->spindexer.SpindexerFeed(), spindexer),
+            Commands.run(()->gather.Gather(), gather)
             )
         );
-        joystick.leftTrigger(0.5).whileTrue(new RunCommand(()->gather.Gather(), gather));
-        joystick.rightBumper().whileTrue(new RunCommand(()->spindexer.SpindexerUnjam(), spindexer));
+        joystick.rightTrigger(0.5).whileFalse(Commands.parallel(
+            Commands.run(()->feeder.FeederStop(), feeder),
+            Commands.run(()->spindexer.SpindexerStop(), spindexer),
+            Commands.run(()->gather.StopGather(), gather)
+            )
+        );
+
+        //joystick.leftTrigger(0.5).whileTrue(new RunCommand(()->gather.Gather(), gather));
+        //joystick.rightBumper().whileTrue(new RunCommand(()->spindexer.SpindexerUnjam(), spindexer));
     }
 
     public Command getAutonomousCommand() {

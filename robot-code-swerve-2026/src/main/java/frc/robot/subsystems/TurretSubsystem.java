@@ -10,7 +10,9 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -20,8 +22,8 @@ import edu.wpi.first.math.MathUtil;
 
 public class TurretSubsystem extends SubsystemBase {
 
-  SparkFlex s_FlywheelMotorLeft = new SparkFlex(Constants.TurretSubsystemConstants.FlywheelMotorLeftCANID, MotorType.kBrushless);
-  SparkFlex s_FlywheelMotorRight = new SparkFlex(Constants.TurretSubsystemConstants.FlywheelMotorRightCANID, MotorType.kBrushless);
+  SparkFlex s_ShooterMotorLeft = new SparkFlex(Constants.TurretSubsystemConstants.FlywheelMotorLeftCANID, MotorType.kBrushless);
+  SparkFlex s_ShooterMotorRight = new SparkFlex(Constants.TurretSubsystemConstants.FlywheelMotorRightCANID, MotorType.kBrushless);
   SparkFlex s_TurretRotateMotor = new SparkFlex(Constants.TurretSubsystemConstants.TurretRotateMotorCANID, MotorType.kBrushless);
   SparkFlex s_HoodTiltMotor = new SparkFlex(Constants.TurretSubsystemConstants.HoodTiltMotorCANID, MotorType.kBrushless);
 
@@ -33,10 +35,22 @@ public class TurretSubsystem extends SubsystemBase {
   SimpleMotorFeedforward TurretRotateFeedForward = new SimpleMotorFeedforward(0, 0);
   PIDController TurretHoodPID = new PIDController(0.9, 0.003, 0);
   SimpleMotorFeedforward TurretHoodFeedForward = new SimpleMotorFeedforward(0, 0, 0);
-  PIDController FlyWheelPID = new PIDController(0.005, 0.001, 0);
-  SimpleMotorFeedforward FlyWheelFeedForward = new SimpleMotorFeedforward(0, 0.0021, 0.0);
+  PIDController ShooterPID = new PIDController(0.005, 0.001, 0);
+  SimpleMotorFeedforward ShooterFeedForward = new SimpleMotorFeedforward(0, 0.0023, 0.0);
   
   QuestSubsystem questNav = new QuestSubsystem();
+
+  Transform3d RobotToTurret = new Transform3d(
+    Constants.TurretSubsystemConstants.RobotToTurretX, 
+    Constants.TurretSubsystemConstants.RobotToTurretY, 
+    Constants.TurretSubsystemConstants.RobotToTurretZ, 
+    new Rotation3d(
+      Constants.TurretSubsystemConstants.RobotToTurretRoll, 
+      Constants.TurretSubsystemConstants.RobotToTurretPitch, 
+      Constants.TurretSubsystemConstants.RobotToTurretYaw));
+
+  public Pose3d TurretPose = new Pose3d();
+  public Rotation3d TurretRotation = new Rotation3d();
 
   // Vector Variables
   public double vX;
@@ -46,7 +60,7 @@ public class TurretSubsystem extends SubsystemBase {
   public double TurretX;
   public double TurretY;
   public double TurretZ;
-  public double RobotYaw;
+  public double TurretYaw;
 
   //Turret Variables
   public double TicksPerDegree;
@@ -68,12 +82,12 @@ public class TurretSubsystem extends SubsystemBase {
 
     SparkFlexConfig GlobalConfig = new SparkFlexConfig();
     SparkFlexConfig ShooterRightFollowerConfig = new SparkFlexConfig();
-    ShooterRightFollowerConfig.inverted(true).apply((GlobalConfig).follow(s_FlywheelMotorRight));
+    ShooterRightFollowerConfig.inverted(true).apply((GlobalConfig).follow(s_ShooterMotorRight));
 
     SmartDashboard.putNumber("ShooterVelocityMultiplier", Constants.TurretSubsystemConstants.ShooterVelocityMultiplier);
     SmartDashboard.putNumber("ShooterVelocityEficiencey", Constants.TurretSubsystemConstants.ShooterVelcoityEfficiency);
     SmartDashboard.putNumber("TurretRotateScoreOffset", Constants.TurretSubsystemConstants.TurretRotateScoreOffset);
-    FlyWheelPID.setIZone(50.0);
+    ShooterPID.setIZone(50.0);
   }
 
   @Override
@@ -82,10 +96,11 @@ public class TurretSubsystem extends SubsystemBase {
      * Takes robot pose2d published by QuestNav (Position of Quest, NOT position of center of robot)
      * and offsets it to the center of the turret.
      */
-    TurretX = questNav.RobotPose.getX() + Constants.TurretSubsystemConstants.QuestToTurretX;
-    TurretY = questNav.RobotPose.getY() - Constants.TurretSubsystemConstants.QuestToTurretY;
-    Rotation3d PoseRotation = questNav.RobotPose.getRotation();
-    RobotYaw = PoseRotation.getZ();
+    TurretPose = questNav.RobotPose.transformBy(RobotToTurret);
+    TurretX = TurretPose.getX();
+    TurretY = TurretPose.getY();
+    TurretRotation = TurretPose.getRotation();
+    TurretYaw = TurretRotation.getZ();
 
     /*
      * Creates a 2D unit vector from the robot to the goal.
@@ -104,7 +119,7 @@ public class TurretSubsystem extends SubsystemBase {
      * Feedback drives turret motor to target turret rotate theta.
      */
     TurretThetaActual = (s_TurretRotateEncoder.get()) - Constants.TurretSubsystemConstants.TurretRotateOffset;
-    TurretThetaTarget = MathUtil.clamp(((-Math.atan2(vY, vX) + (RobotYaw)) + 
+    TurretThetaTarget = MathUtil.clamp(((-Math.atan2(vY, vX) + (TurretYaw)) + 
     Constants.TurretSubsystemConstants.TurretRotateScoreOffset), -3.49066, 3.49066
     );
 
@@ -142,12 +157,12 @@ public class TurretSubsystem extends SubsystemBase {
      */
     BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + -0.0394 * Math.pow(DistanceToGoal, 2);
     ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterWheelCircumference);
-    ShooterEncoder = s_FlywheelMotorLeft.getEncoder();
+    ShooterEncoder = s_ShooterMotorLeft.getEncoder();
     ShooterVelocityActual = ShooterEncoder.getVelocity();
 
-    s_FlywheelMotorLeft.setVoltage(
-      (FlyWheelPID.calculate(ShooterVelocityActual, ShooterVelocityTarget)) +
-      (FlyWheelFeedForward.calculate(ShooterVelocityTarget))
+    s_ShooterMotorLeft.setVoltage(
+      (ShooterPID.calculate(ShooterVelocityActual, ShooterVelocityTarget)) +
+      (ShooterFeedForward.calculate(ShooterVelocityTarget))
     );
 
     /*
@@ -166,8 +181,7 @@ public class TurretSubsystem extends SubsystemBase {
     // Shooter Numbers
     SmartDashboard.putNumber("ShooterVelocityEncoder", ShooterVelocityActual);
     SmartDashboard.putNumber("ShooterVelocityTarget", ShooterVelocityTarget);
-    SmartDashboard.getNumber("ShooterLeftMotorVelocity", s_FlywheelMotorLeft.get());
-    SmartDashboard.putNumber("ShooterRightMotorVelocity", s_FlywheelMotorRight.get());
+    SmartDashboard.getNumber("ShooterLeftMotorVelocity", s_ShooterMotorLeft.get());
 
     /*
      * Publishes numbers to Advantage Scope that can be adjusted without the need for editing robot code.
@@ -181,8 +195,7 @@ public class TurretSubsystem extends SubsystemBase {
     SmartDashboard.putData(TurretHoodPID);
 
     // Shooter Tuning Values
-    SmartDashboard.putData(FlyWheelPID);
-    SmartDashboard.getNumber("ShooterEficiencey", Constants.TurretSubsystemConstants.ShooterVelcoityEfficiency);
-    SmartDashboard.getNumber("ShooterVelocityMultiplier", Constants.TurretSubsystemConstants.ShooterVelocityMultiplier);
+    SmartDashboard.putData(ShooterPID);
+    SmartDashboard.putNumber("DistanceToGoal", DistanceToGoal);
   }
 }
