@@ -10,5 +10,4 @@ Left Joystick (x and y axes): Translation of our robot
 Right Trigger: Launch, where the button is pressed more than 0.15, begin the launch sequence.
 Right Bumper: Jostle, at values specified in constants files
 Right Joystick (x axis): Rotate robot
-Up Arrow: Begin climbing Procedure
 Down Arrow: Toggle Jostle Type (Flat, Absolute Value, Sinusoidal)

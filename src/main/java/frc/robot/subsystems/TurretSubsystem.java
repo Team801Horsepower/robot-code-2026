@@ -38,7 +38,7 @@ public class TurretSubsystem extends SubsystemBase {
   PIDController ShooterPID = new PIDController(0.005, 0.001, 0);
   SimpleMotorFeedforward ShooterFeedForward = new SimpleMotorFeedforward(0, 0.0023, 0.0);
   
-  QuestSubsystem questNav = new QuestSubsystem();
+  private final QuestSubsystem questNav;
 
   Transform3d RobotToTurret = new Transform3d(
     Constants.TurretSubsystemConstants.RobotToTurretX, 
@@ -77,7 +77,10 @@ public class TurretSubsystem extends SubsystemBase {
   public double ShooterVelocityTarget;
   public double ShooterVelocityActual;
 
-  public TurretSubsystem() {
+  private boolean m_testMode = false;
+
+  public TurretSubsystem(QuestSubsystem questNav) {
+    this.questNav = questNav;
     s_HoodTiltMotor.getEncoder().setPosition(0);
 
     SparkFlexConfig GlobalConfig = new SparkFlexConfig();
@@ -90,8 +93,16 @@ public class TurretSubsystem extends SubsystemBase {
     ShooterPID.setIZone(50.0);
   }
 
+  public void setTestMode(boolean enabled) { m_testMode = enabled; }
+  public void testRunLaunch(double power) { s_ShooterMotorLeft.set(power); }
+  public void testRunHood(double power) { s_HoodTiltMotor.set(power); }
+  public void testRunRotate(double power) { s_TurretRotateMotor.set(power); }
+
   @Override
   public void periodic() {
+    if (m_testMode) {
+      return;
+    }
     /*
      * Takes robot pose2d published by QuestNav (Position of Quest, NOT position of center of robot)
      * and offsets it to the center of the turret.

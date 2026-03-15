@@ -12,7 +12,7 @@ Our robot uses a ROBORIO 2.0 computer, and a fault-tolerant CAN bus architecture
 
 
 
-Our advanced design uses an extendable hopper with a gatherer (roller) at the end, allowing for high capacity and intake efficiency. The gatherer itself uses a motor to spin the roller. The hopper also uses a motor to expand and retract the hopper. The robot cannot intake with the gatherer unless the hopper is extended. The hopper uses a rail system with a buffer, though ideally the system is tuned as to not cause damage to the bugger. This rail system only requires one motor. The rail system uses a REV Through Bore Encoder (connected to roboRIO DIO ports 0 and 1) configured in relative/quadrature mode for closed-loop position control, allowing travel beyond 360° of motor rotation. One rotation = 2.1 linear inches; full extension = 12 inches.
+Our advanced design uses an extendable hopper with a gatherer (roller) at the end, allowing for high capacity and intake efficiency. The gatherer itself uses a motor to spin the roller. The hopper also uses a motor to expand and retract the hopper. The robot cannot intake with the gatherer unless the hopper is extended. The hopper uses a rail system with a buffer, though ideally the system is tuned as to not cause damage to the bugger. This rail system only requires one motor. The rail system uses a REV Through Bore Encoder (connected to roboRIO DIO ports 1 and 3) configured in relative/quadrature mode for closed-loop position control, allowing travel beyond 360° of motor rotation. One rotation = 2.1 linear inches; full extension = 12 inches.
 
 
 
@@ -20,11 +20,8 @@ The centerpiece of our robot is a spindexer which stores and deposits game piece
 
 
 
-Our scoring mechanism consists of a feeder, one motor that powers a series of spinners on a horizontal-to-vertical ramp into the turret. The turret has a few motors. The first is connected to a REV Through Bore Encoder (connected to roboRIO DIO port 3) configured in absolute mode, allowing 420° of total turret travel (configured so 420° = 1 full encoder revolution). The turret has a final launching wheel that is powered by two motors that face each other (i.e. they must be configured so that one of them is reversed to work in tandem). For the launching system, it is likely that we'll be targeting a specific velocity, not a positional value. Finally, the turret has an angle manipulator, called a hood, that is designed to be able to change the trajectory of a piece anywhere from 15 to 30 degrees. On the turret, there is a camera powered by PhotonVision.
+Our scoring mechanism consists of a feeder, one motor that powers a series of spinners on a horizontal-to-vertical ramp into the turret. The turret has a few motors. The first is connected to a REV Through Bore Encoder (connected to roboRIO DIO port 0) configured in absolute mode, allowing 420° of total turret travel (configured so 420° = 1 full encoder revolution). The turret has a final launching wheel that is powered by two motors that face each other (i.e. they must be configured so that one of them is reversed to work in tandem). For the launching system, it is likely that we'll be targeting a specific velocity, not a positional value. Finally, the turret has an angle manipulator, called a hood, that is designed to be able to change the trajectory of a piece anywhere from 15 to 30 degrees.
 
-
-
-The climber is a one-motor two-stage slide. It will need to be tuned to move from one position to the next, and not overshoot.
 
 
 
@@ -93,43 +90,6 @@ getDrivetrain(): DrivetrainSubsystem
 
 
 
-**vision.java (class Vision)**
-
-report(): Pose2d
-
-* Runs functions found in the child questnav and photon subsystems to report as much positional data as possible
-* Returns the latest robot pose from the drivetrain's pose estimator
-
-isQuestNavTracking(): boolean
-
-* Returns whether QuestNav is currently tracking
-
-
-
-**ascension.java (class Ascension)**
-
-levelOne()
-
-* Calls Level1.ascend()
-* Sets a position variable to 1, denoting that the robot is currently at a level 1 climb
-
-levelThree()
-
-* Void function for now
-
-descend()
-
-* Calls Level1.descend() if the position variable is 1, then resets position to 0 once retracted
-
-isAtSetpoint(): boolean
-
-* Returns true when the Level 1 climber has physically reached its extended setpoint
-
-getPosition(): int
-
-* Returns the current climb level (0 = grounded, 1 = L1)
-
-
 
 **possession.java (class Possession)**
 
@@ -149,33 +109,12 @@ launch()
 
 * Runs Spindex.spin()
 * Runs Feeder.spin() at target velocity
-* Runs Turret.spin() to keep launch wheels at velocity
 * Runs Gather.gather() at negative half of kDefaultPower (reverse direction, to clear the gather path)
 
 stop()
 
-* Stops feeder and spindexer (turret wheels keep spinning intentionally)
+* Stops spindexer and feeder
 
-
-
-**level1.java (class Level1)**
-
-ascend()
-
-* Runs the climber motor at kMotorPower until the encoder reaches kExtendedSetpoint
-* Once at setpoint, applies elevator feedforward voltage to hold against gravity
-
-descend()
-
-* Runs the climber motor in reverse until the encoder reaches roughly 0
-
-isAtSetpoint(): boolean
-
-* Returns true when the encoder is within tolerance of kExtendedSetpoint
-
-isRetracted(): boolean
-
-* Returns true when the encoder is at or below tolerance (fully retracted)
 
 
 
@@ -245,30 +184,13 @@ rest()
 
 
 
-**turret.java (class Turret)**
+**TurretSubsystem.java (class TurretSubsystem)**
 
-spin()
-
-* Uses closed-loop velocity control to run both launch motors at kTargetVelocityRPM
-* Motors are inverted relative to each other to spin in tandem; no rest() — turret spins all match
-
-aim(angleDegrees: double)
-
-* Sets the hood angle to angleDegrees, clamped to \[kHoodMinDeg, kHoodMaxDeg\] (15–30°)
-* Uses built-in relative encoder to drive the hood motor at kAimPower in the correct direction
-
-rotate(angleDegrees: double)
-
-* Rotates the turret to angleDegrees relative to robot forward, clamped to ±210°
-* Uses REV Through Bore Encoder in absolute mode (1 revolution = 420° of turret travel); drives at kRotatePower
-
-getRotationDeg(): double
-
-* Returns the current turret rotation angle relative to robot forward (degrees)
-
-getHoodEncoderPos(): double
-
-* Returns the current hood encoder position (rotations from minimum angle)
+* Self-contained auto-aiming subsystem that runs in periodic()
+* Accepts QuestSubsystem via constructor for robot pose data
+* Automatically calculates turret rotation, hood angle, and flywheel velocity based on distance to goal
+* Uses PID + feedforward control for turret rotate, hood tilt, and shooter motors
+* Supports test mode (setTestMode/testRunLaunch/testRunHood/testRunRotate) for manual control
 
 
 
@@ -281,18 +203,6 @@ DriveToPose(drive: Drive, targetPose: Pose2d)
 * Drives to a field-relative target pose using three profiled PID controllers (X, Y, rotation)
 * Finishes when within 5 cm and 2° of target
 
-
-
-RunLaunchWheel(turret: Turret)
-
-* Runs Turret.spin() each loop; used as the Turret subsystem's default command
-
-
-
-ClimbL1(hopper: Hopper, ascension: Ascension)
-
-* Runs Hopper.retract() and Ascension.levelOne() each loop
-* Finishes when Ascension.isAtSetpoint() returns true
 
 
 
@@ -312,13 +222,6 @@ Jostling(spindex: Spindex)
 
 * Runs Spindex.agitate() each loop (hopper jostling removed)
 
-
-
-Aim(vision: Vision, turret: Turret)
-
-* Gets Vision.report() for current robot pose
-* Computes bearing from robot to target field position and hood angle from distance
-* Runs Turret.spin(), Turret.rotate(), and Turret.aim() each loop
 
 
 

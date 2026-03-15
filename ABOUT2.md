@@ -44,10 +44,8 @@
 
 27: Hopper NEO Vortex (extension)
 
-Hopper REV Through Bore Encoder (no CAN ID – connected to roboRIO DIO ports 0 and 1)
+Hopper REV Through Bore Encoder (no CAN ID – connected to roboRIO DIO ports 1 and 3)
 
 28: Turret NEO Vortex (spin turret)
 
-31: Climb NEO Vortex (level 1)
-
-Turret REV Through Bore Encoder (no CAN ID – connected to roboRIO DIO port 3)
+Turret REV Through Bore Encoder (no CAN ID – connected to roboRIO DIO port 0)

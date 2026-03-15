@@ -33,7 +33,6 @@ import frc.robot.subsystems.*;
  *   <li><b>Left bumper (held)</b> – Reverse intake (full configurable power)
  *   <li><b>Right trigger (&gt;0.15, held)</b> – Shoot (run launch sequence)
  *   <li><b>Right bumper (held)</b> – Jostle (unjam spindexer + hopper)
- *   <li><b>D-pad Up</b> – Climb to Level 1
  *   <li><b>D-pad Down</b> – Toggle jostle type (cycles FLAT → SINUSOIDAL → ABSOLUTE_VALUE)
  * </ul>
  */
@@ -43,7 +42,7 @@ public class RobotContainer {
 
   private final DrivetrainSubsystem m_drivetrain = TunerConstants.createDrivetrain();
   private final QuestSubsystem m_QuestSubsystem = new QuestSubsystem();
-  private final TurretSubsystem m_TurretSubsystem = new TurretSubsystem();
+  private final TurretSubsystem m_TurretSubsystem = new TurretSubsystem(m_QuestSubsystem);
 
   private final Gather   m_gather  = new Gather();
   private final Hopper   m_hopper  = new Hopper();
@@ -54,10 +53,8 @@ public class RobotContainer {
 
   private final Drive       m_drive      = new Drive(m_drivetrain);
   private final Possession  m_possession = new Possession(m_hopper, m_gather);
-  private final Launch      m_launch     = new Launch(m_spindex, m_feeder, m_turret, m_gather);
-  private final Ascension   m_ascension  = new Ascension(m_level1);
+  private final Launch      m_launch     = new Launch(m_spindex, m_feeder, m_gather);
   private final Manipulator m_manipulator = new Manipulator(m_possession, m_launch);
-  private final Vision      m_vision     = new Vision(m_questNav, m_drivetrain);
 
   // ─── Controllers ───────────────────────────────────────────────────────────
 
@@ -88,7 +85,6 @@ public class RobotContainer {
   private void configureDefaultCommands() {
     m_drive.setDefaultCommand(
         m_drive.applyRequest(() -> buildFieldCentricRequest()));
-    m_turret.setDefaultCommand(new RunLaunchWheel(m_turret));
   }
 
   private SwerveRequest.FieldCentric buildFieldCentricRequest() {
@@ -133,11 +129,6 @@ public class RobotContainer {
         .rightBumper()
         .whileTrue(new Jostling(m_spindex));
 
-    // D-pad Up → climb to Level 1
-    m_driverController
-        .povUp()
-        .onTrue(new ClimbL1(m_hopper, m_ascension));
-
     // D-pad Down → cycle jostle type
     m_driverController
         .povDown()
@@ -175,14 +166,6 @@ public class RobotContainer {
     m_driverController.pov(0, 0, m_testLoop)
         .whileTrue(Commands.run(() -> m_hopper.testRun(-0.3), m_hopper));
 
-    // Start (held) → Level1 up (+0.1)
-    m_driverController.button(XboxController.Button.kStart.value, m_testLoop)
-        .whileTrue(Commands.run(() -> m_level1.testRun(0.1), m_level1));
-
-    // Back (held) → Level1 down (-0.1)
-    m_driverController.button(XboxController.Button.kBack.value, m_testLoop)
-        .whileTrue(Commands.run(() -> m_level1.testRun(-0.1), m_level1));
-
     // NOTE: Turret (A, B, X, D-pad Left, D-pad Right) handled via polling default command
   }
 
@@ -196,8 +179,7 @@ public class RobotContainer {
     m_hopper.setTestMode(true);
     m_spindex.setTestMode(true);
     m_feeder.setTestMode(true);
-    m_turret.setTestMode(true);
-    m_level1.setTestMode(true);
+    m_TurretSubsystem.setTestMode(true);
 
     // Drive: same field-centric controls as teleop
     m_drive.setDefaultCommand(
@@ -208,20 +190,18 @@ public class RobotContainer {
     m_hopper.setDefaultCommand(Commands.run(() -> m_hopper.testRun(0), m_hopper));
     m_spindex.setDefaultCommand(Commands.run(() -> m_spindex.testRun(0), m_spindex));
     m_feeder.setDefaultCommand(Commands.run(() -> m_feeder.testRun(0), m_feeder));
-    m_level1.setDefaultCommand(Commands.run(() -> m_level1.testRun(0), m_level1));
-
     // Turret: polling default command (reads HID directly for 3 motor groups)
-    m_turret.setDefaultCommand(Commands.run(() -> {
+    m_TurretSubsystem.setDefaultCommand(Commands.run(() -> {
       var hid = m_driverController.getHID();
 
       double launchPower = hid.getAButton() ? 0.5 : 0;
       double hoodPower   = hid.getBButton() ? 0.05 : (hid.getPOV() == 90 ? -0.05 : 0);
       double rotatePower = hid.getXButton() ? 0.1 : (hid.getPOV() == 270 ? -0.1 : 0);
 
-      m_turret.testRunLaunch(launchPower);
-      m_turret.testRunHood(hoodPower);
-      m_turret.testRunRotate(rotatePower);
-    }, m_turret));
+      m_TurretSubsystem.testRunLaunch(launchPower);
+      m_TurretSubsystem.testRunHood(hoodPower);
+      m_TurretSubsystem.testRunRotate(rotatePower);
+    }, m_TurretSubsystem));
   }
 
   public void configureNormalMode() {
@@ -233,8 +213,7 @@ public class RobotContainer {
     m_hopper.setTestMode(false);
     m_spindex.setTestMode(false);
     m_feeder.setTestMode(false);
-    m_turret.setTestMode(false);
-    m_level1.setTestMode(false);
+    m_TurretSubsystem.setTestMode(false);
 
     configureDefaultCommands();
   }
