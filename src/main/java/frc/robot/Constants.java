@@ -68,8 +68,8 @@ public final class Constants {
     /** Closed-loop position tolerance (motor rotations). */
     public static final double kTolerance = 0.1;
     // PID gains for hopper position control. TODO: tune.
-    public static final double kP = 0.0;
-    public static final double kI = 0.0;
+    public static final double kP = 0.6;
+    public static final double kI = 0.003;
     public static final double kD = 0.0;
 
     // ─── Hopper jostle (independent from spindexer agitation) ─────────────────

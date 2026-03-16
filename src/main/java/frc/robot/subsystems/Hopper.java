@@ -45,9 +45,9 @@ public class Hopper extends SubsystemBase {
   private final DoublePublisher m_testVelocityPub;
   private final DoublePublisher m_testSetpointPub;
   private final DoublePublisher m_testErrorPub;
-  // private final DoublePublisher m_testPPub;
-  // private final DoublePublisher m_testIPub;
-  // private final DoublePublisher m_testDPub;
+  private final DoublePublisher m_testPPub;
+  private final DoublePublisher m_testIPub;
+  private final DoublePublisher m_testDPub;
 
   public Hopper() {
     m_motor = new SparkFlex(HopperConstants.kMotorId, MotorType.kBrushless);
@@ -74,10 +74,9 @@ public class Hopper extends SubsystemBase {
     m_testVelocityPub = table.getDoubleTopic("VelocityRPM").publish();
     m_testSetpointPub = table.getDoubleTopic("Setpoint").publish();
     m_testErrorPub = table.getDoubleTopic("Error").publish();
-    // m_testPPub = table.getDoubleTopic("kP").publish();
-    // m_testIPub = table.getDoubleTopic("kI").publish();
-    // m_testDPub = table.getDoubleTopic("kD").publish();
-    SmartDashboard.putData(m_pid);
+    m_testPPub = table.getDoubleTopic("kP").publish();
+    m_testIPub = table.getDoubleTopic("kI").publish();
+    m_testDPub = table.getDoubleTopic("kD").publish();
 
   }
 
@@ -162,9 +161,9 @@ public class Hopper extends SubsystemBase {
       m_testVelocityPub.set(m_encoder.getVelocity());
       m_testSetpointPub.set(m_setpoint);
       m_testErrorPub.set(m_setpoint - m_encoder.getPosition());
-      //m_testPPub.set(m_pid.getP());
-      //m_testIPub.set(m_pid.getI());
-      //m_testDPub.set(m_pid.getD());
+      m_testPPub.set(m_pid.getP());
+      m_testIPub.set(m_pid.getI());
+      m_testDPub.set(m_pid.getD());
     }
   }
 }
