@@ -14,6 +14,7 @@ import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.FeederConstants;
 
@@ -51,6 +52,8 @@ public class Feeder extends SubsystemBase {
     config.smartCurrentLimit(60);
     config.closedLoop
         .p(FeederConstants.kVelocityP)
+        .i(FeederConstants.kVelocityI)
+        .d(FeederConstants.kVelocityD)
         .velocityFF(FeederConstants.kVelocityFF);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -121,6 +124,11 @@ public class Feeder extends SubsystemBase {
 
   @Override
   public void periodic() {
+    SmartDashboard.putNumber("Feeder/P", FeederConstants.kVelocityP);
+    SmartDashboard.putNumber("Feeder/I", FeederConstants.kVelocityI);
+    SmartDashboard.putNumber("Feeder/D", FeederConstants.kVelocityD);
+    SmartDashboard.putNumber("Feeder/FF", FeederConstants.kVelocityFF);
+
     if (m_testMode) {
       m_testPowerPub.set(m_motor.get());
       m_testVelocityPub.set(m_encoder.getVelocity());

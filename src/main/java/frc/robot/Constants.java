@@ -85,9 +85,13 @@ public final class Constants {
     /** Target spindexer velocity (RPM). TODO: tune. */
     public static final double kTargetVelocityRPM = 2000.0;
     /** Velocity PID P gain. TODO: tune. */
-    public static final double kVelocityP = 0.001;
+    public static final double kVelocityP = 0.0;
+    /** Velocity PID I gain. TODO: tune. */
+    public static final double kVelocityI = 0.0;
+    /** Velocity PID D gain. TODO: tune. */
+    public static final double kVelocityD = 0.0;
     /** Velocity feedforward (fraction per RPM). TODO: tune. */
-    public static final double kVelocityFF = 0.00022;
+    public static final double kVelocityFF = 0.0;
     /** Waveform shape for agitate(). */
     public static final AgitationType kAgitationType = AgitationType.SINUSOIDAL;
     /**
@@ -126,9 +130,13 @@ public final class Constants {
     /** Target feeder velocity (RPM). TODO: tune. */
     public static final double kTargetVelocityRPM = 2.067 * SpindexConstants.kTargetVelocityRPM;
     /** Velocity PID P gain. TODO: tune. */
-    public static final double kVelocityP = 0.001;
+    public static final double kVelocityP = 0.0;
+    /** Velocity PID I gain. TODO: tune. */
+    public static final double kVelocityI = 0.0;
+    /** Velocity PID D gain. TODO: tune. */
+    public static final double kVelocityD = 0.0;
     /** Velocity feedforward (fraction per RPM). TODO: tune. */
-    public static final double kVelocityFF = 0.00022;
+    public static final double kVelocityFF = 0.0;
 
     // --- Jam detection (mirrors SpindexConstants) ---
     /** Velocity below which the feeder is considered jammed (RPM). */

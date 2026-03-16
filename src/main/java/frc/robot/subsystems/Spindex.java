@@ -14,6 +14,7 @@ import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.AgitationType;
 import frc.robot.Constants.SpindexConstants;
@@ -69,6 +70,8 @@ public class Spindex extends SubsystemBase {
     config.inverted(true);
     config.closedLoop
         .p(SpindexConstants.kVelocityP)
+        .i(SpindexConstants.kVelocityI)
+        .d(SpindexConstants.kVelocityD)
         .velocityFF(SpindexConstants.kVelocityFF);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -184,6 +187,11 @@ public class Spindex extends SubsystemBase {
 
   @Override
   public void periodic() {
+    SmartDashboard.putNumber("Spindex/P", SpindexConstants.kVelocityP);
+    SmartDashboard.putNumber("Spindex/I", SpindexConstants.kVelocityI);
+    SmartDashboard.putNumber("Spindex/D", SpindexConstants.kVelocityD);
+    SmartDashboard.putNumber("Spindex/FF", SpindexConstants.kVelocityFF);
+
     if (m_testMode) {
       m_testPowerPub.set(m_motor.get());
       m_testVelocityPub.set(m_encoder.getVelocity());
