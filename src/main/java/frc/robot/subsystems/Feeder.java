@@ -43,6 +43,12 @@ public class Feeder extends SubsystemBase {
   private double    m_spinStartTime   = -1.0; // -1 = not currently spinning
   private double    m_jamReverseStart = 0.0;
 
+  // Live-tunable PIDF gains (read from SmartDashboard each cycle)
+  private double m_lastP  = FeederConstants.kVelocityP;
+  private double m_lastI  = FeederConstants.kVelocityI;
+  private double m_lastD  = FeederConstants.kVelocityD;
+  private double m_lastFF = FeederConstants.kVelocityFF;
+
   public Feeder() {
     m_motor = new SparkFlex(FeederConstants.kMotorId, MotorType.kBrushless);
     m_encoder = (SparkRelativeEncoder) m_motor.getEncoder();
@@ -63,6 +69,12 @@ public class Feeder extends SubsystemBase {
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Feeder");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
     m_testVelocityPub = table.getDoubleTopic("VelocityRPM").publish();
+
+    // Publish initial PIDF values (editable in SmartDashboard/Shuffleboard)
+    SmartDashboard.putNumber("Feeder/P", m_lastP);
+    SmartDashboard.putNumber("Feeder/I", m_lastI);
+    SmartDashboard.putNumber("Feeder/D", m_lastD);
+    SmartDashboard.putNumber("Feeder/FF", m_lastFF);
   }
 
   /**
@@ -124,10 +136,22 @@ public class Feeder extends SubsystemBase {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Feeder/P", FeederConstants.kVelocityP);
-    SmartDashboard.putNumber("Feeder/I", FeederConstants.kVelocityI);
-    SmartDashboard.putNumber("Feeder/D", FeederConstants.kVelocityD);
-    SmartDashboard.putNumber("Feeder/FF", FeederConstants.kVelocityFF);
+    // Read PIDF values from SmartDashboard (editable at runtime)
+    double p  = SmartDashboard.getNumber("Feeder/P", m_lastP);
+    double i  = SmartDashboard.getNumber("Feeder/I", m_lastI);
+    double d  = SmartDashboard.getNumber("Feeder/D", m_lastD);
+    double ff = SmartDashboard.getNumber("Feeder/FF", m_lastFF);
+
+    // Reconfigure PID only when values change
+    if (p != m_lastP || i != m_lastI || d != m_lastD || ff != m_lastFF) {
+      SparkFlexConfig config = new SparkFlexConfig();
+      config.closedLoop.p(p).i(i).d(d).velocityFF(ff);
+      m_motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+      m_lastP = p;
+      m_lastI = i;
+      m_lastD = d;
+      m_lastFF = ff;
+    }
 
     if (m_testMode) {
       m_testPowerPub.set(m_motor.get());

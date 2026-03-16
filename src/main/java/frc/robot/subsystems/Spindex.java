@@ -60,6 +60,12 @@ public class Spindex extends SubsystemBase {
   private double    m_spinStartTime   = -1.0; // -1 = not currently spinning
   private double    m_jamReverseStart = 0.0;
 
+  // Live-tunable PIDF gains (read from SmartDashboard each cycle)
+  private double m_lastP  = SpindexConstants.kVelocityP;
+  private double m_lastI  = SpindexConstants.kVelocityI;
+  private double m_lastD  = SpindexConstants.kVelocityD;
+  private double m_lastFF = SpindexConstants.kVelocityFF;
+
   public Spindex() {
     m_motor = new SparkFlex(SpindexConstants.kMotorId, MotorType.kBrushless);
     m_encoder = (SparkRelativeEncoder) m_motor.getEncoder();
@@ -81,6 +87,12 @@ public class Spindex extends SubsystemBase {
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Spindex");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
     m_testVelocityPub = table.getDoubleTopic("VelocityRPM").publish();
+
+    // Publish initial PIDF values (editable in SmartDashboard/Shuffleboard)
+    SmartDashboard.putNumber("Spindex/P", m_lastP);
+    SmartDashboard.putNumber("Spindex/I", m_lastI);
+    SmartDashboard.putNumber("Spindex/D", m_lastD);
+    SmartDashboard.putNumber("Spindex/FF", m_lastFF);
   }
 
   /** Spins the spindexer at launch power (negative = toward feeder). */
@@ -187,10 +199,22 @@ public class Spindex extends SubsystemBase {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Spindex/P", SpindexConstants.kVelocityP);
-    SmartDashboard.putNumber("Spindex/I", SpindexConstants.kVelocityI);
-    SmartDashboard.putNumber("Spindex/D", SpindexConstants.kVelocityD);
-    SmartDashboard.putNumber("Spindex/FF", SpindexConstants.kVelocityFF);
+    // Read PIDF values from SmartDashboard (editable at runtime)
+    double p  = SmartDashboard.getNumber("Spindex/P", m_lastP);
+    double i  = SmartDashboard.getNumber("Spindex/I", m_lastI);
+    double d  = SmartDashboard.getNumber("Spindex/D", m_lastD);
+    double ff = SmartDashboard.getNumber("Spindex/FF", m_lastFF);
+
+    // Reconfigure PID only when values change
+    if (p != m_lastP || i != m_lastI || d != m_lastD || ff != m_lastFF) {
+      SparkFlexConfig config = new SparkFlexConfig();
+      config.closedLoop.p(p).i(i).d(d).velocityFF(ff);
+      m_motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+      m_lastP = p;
+      m_lastI = i;
+      m_lastD = d;
+      m_lastFF = ff;
+    }
 
     if (m_testMode) {
       m_testPowerPub.set(m_motor.get());
