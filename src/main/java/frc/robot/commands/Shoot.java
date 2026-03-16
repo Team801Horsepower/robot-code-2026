@@ -28,8 +28,9 @@ public class Shoot extends Command {
 
   @Override
   public void execute() {
-    m_launch.launch();
-    if (m_complexMode.getAsBoolean()) {
+    boolean complex = m_complexMode.getAsBoolean();
+    m_launch.launch(complex);
+    if (complex) {
       m_hopper.jostle();
     }
   }

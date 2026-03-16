@@ -88,6 +88,7 @@ public class RobotContainer {
     configureButtonBindings();
     configureTestBindings();
     configureAutoChooser();
+    SmartDashboard.putBoolean("Complex Mode", m_complexMode);
   }
 
   // ─── Default Commands ──────────────────────────────────────────────────────
@@ -142,7 +143,10 @@ public class RobotContainer {
     // A button → toggle complex launch mode
     m_driverController
         .a()
-        .onTrue(Commands.runOnce(() -> m_complexMode = !m_complexMode));
+        .onTrue(Commands.runOnce(() -> {
+            m_complexMode = !m_complexMode;
+            SmartDashboard.putBoolean("Complex Mode", m_complexMode);
+        }));
 
     // X button → retract hopper
     m_driverController

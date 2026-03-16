@@ -85,6 +85,11 @@ public class Feeder extends SubsystemBase {
    * clear the jam, then resumes normal spinning.
    */
   public void spin() {
+    spin(false);
+  }
+
+  /** Spins the feeder at target velocity. When complexMode is true, jam detection is active. */
+  public void spin(boolean complexMode) {
     double now = Timer.getFPGATimestamp();
 
     // Record when spin() was first called after a rest()
@@ -92,26 +97,31 @@ public class Feeder extends SubsystemBase {
       m_spinStartTime = now;
     }
 
-    // If currently reversing to clear a jam, keep reversing until time is up
-    if (m_spinState == SpinState.JAM_REVERSING) {
-      if (now - m_jamReverseStart < FeederConstants.kJamReverseTime) {
+    if (complexMode) {
+      // If currently reversing to clear a jam, keep reversing until time is up
+      if (m_spinState == SpinState.JAM_REVERSING) {
+        if (now - m_jamReverseStart < FeederConstants.kJamReverseTime) {
+          m_motor.set(-FeederConstants.kJamReversePower);
+          return;
+        }
+        // Reverse complete — resume spinning
+        m_spinState = SpinState.SPINNING;
+      }
+
+      // Check for a jam (only after debounce window to allow motor spin-up)
+      double velocityRPM = m_encoder.getVelocity();
+      if (now - m_spinStartTime > FeederConstants.kJamDetectDebounce
+          && Math.abs(velocityRPM) < FeederConstants.kJamVelocityThresholdRPM) {
+        m_spinState       = SpinState.JAM_REVERSING;
+        m_jamReverseStart = now;
+        DriverStation.reportWarning(
+            "Feeder jam detected (velocity=" + velocityRPM + " RPM)", false);
         m_motor.set(-FeederConstants.kJamReversePower);
         return;
       }
-      // Reverse complete — resume spinning
+    } else {
+      // No jam detection — reset state in case we just left complex mode
       m_spinState = SpinState.SPINNING;
-    }
-
-    // Check for a jam (only after debounce window to allow motor spin-up)
-    double velocityRPM = m_encoder.getVelocity();
-    if (now - m_spinStartTime > FeederConstants.kJamDetectDebounce
-        && Math.abs(velocityRPM) < FeederConstants.kJamVelocityThresholdRPM) {
-      m_spinState       = SpinState.JAM_REVERSING;
-      m_jamReverseStart = now;
-      DriverStation.reportWarning(
-          "Feeder jam detected (velocity=" + velocityRPM + " RPM)", false);
-      m_motor.set(-FeederConstants.kJamReversePower);
-      return;
     }
 
     m_pid.setReference(FeederConstants.kTargetVelocityRPM, ControlType.kVelocity);

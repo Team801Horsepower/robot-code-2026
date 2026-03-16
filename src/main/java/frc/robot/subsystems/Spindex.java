@@ -97,6 +97,11 @@ public class Spindex extends SubsystemBase {
 
   /** Spins the spindexer at launch power (negative = toward feeder). */
   public void spin() {
+    spin(false);
+  }
+
+  /** Spins the spindexer at launch power. When complexMode is true, jam detection is active. */
+  public void spin(boolean complexMode) {
     double now = Timer.getFPGATimestamp();
 
     // Record when spin() was first called after a rest()
@@ -104,26 +109,31 @@ public class Spindex extends SubsystemBase {
       m_spinStartTime = now;
     }
 
-    // If currently reversing to clear a jam, keep reversing until time is up
-    if (m_spinState == SpinState.JAM_REVERSING) {
-      if (now - m_jamReverseStart < SpindexConstants.kJamReverseTime) {
+    if (complexMode) {
+      // If currently reversing to clear a jam, keep reversing until time is up
+      if (m_spinState == SpinState.JAM_REVERSING) {
+        if (now - m_jamReverseStart < SpindexConstants.kJamReverseTime) {
+          m_motor.set(SpindexConstants.kJamReversePower);
+          return;
+        }
+        // Reverse complete — resume spinning
+        m_spinState = SpinState.SPINNING;
+      }
+
+      // Check for a jam (only after debounce window to allow motor spin-up)
+      double velocityRPM = m_encoder.getVelocity();
+      if (now - m_spinStartTime > SpindexConstants.kJamDetectDebounce
+          && Math.abs(velocityRPM) < SpindexConstants.kJamVelocityThresholdRPM) {
+        m_spinState       = SpinState.JAM_REVERSING;
+        m_jamReverseStart = now;
+        DriverStation.reportWarning(
+            "Spindex jam detected (velocity=" + velocityRPM + " RPM)", false);
         m_motor.set(SpindexConstants.kJamReversePower);
         return;
       }
-      // Reverse complete — resume spinning
+    } else {
+      // No jam detection — reset state in case we just left complex mode
       m_spinState = SpinState.SPINNING;
-    }
-
-    // Check for a jam (only after debounce window to allow motor spin-up)
-    double velocityRPM = m_encoder.getVelocity();
-    if (now - m_spinStartTime > SpindexConstants.kJamDetectDebounce
-        && Math.abs(velocityRPM) < SpindexConstants.kJamVelocityThresholdRPM) {
-      m_spinState       = SpinState.JAM_REVERSING;
-      m_jamReverseStart = now;
-      DriverStation.reportWarning(
-          "Spindex jam detected (velocity=" + velocityRPM + " RPM)", false);
-      m_motor.set(SpindexConstants.kJamReversePower);
-      return;
     }
 
     m_pid.setReference(-SpindexConstants.kTargetVelocityRPM, ControlType.kVelocity);
