@@ -144,6 +144,11 @@ public class RobotContainer {
         .a()
         .onTrue(Commands.runOnce(() -> m_complexMode = !m_complexMode));
 
+    // X button → retract hopper
+    m_driverController
+        .x()
+        .onTrue(Commands.runOnce(() -> m_hopper.retract(), m_hopper));
+
     // D-pad Down → cycle jostle type
     m_driverController
         .povDown()

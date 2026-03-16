@@ -109,7 +109,7 @@ launch()
 
 * Runs Spindex.spin()
 * Runs Feeder.spin() at target velocity
-* Runs Gather.gather() at negative half of kDefaultPower (reverse direction, to clear the gather path)
+* Runs Gather.gather() at positive half of kDefaultPower (forward direction, same as intake)
 
 stop()
 
@@ -212,9 +212,9 @@ Gathering(possession: Possession)
 
 
 
-Shoot(launch: Launch, hopper: Hopper)
+Shoot(launch: Launch, hopper: Hopper, complexMode: BooleanSupplier)
 
-* Runs Launch.launch() and Hopper.jostle() each loop; stops on end
+* Runs Launch.launch() each loop; only runs Hopper.jostle() when complexMode returns true; stops on end
 
 
 
