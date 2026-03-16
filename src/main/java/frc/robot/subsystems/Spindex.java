@@ -136,7 +136,7 @@ public class Spindex extends SubsystemBase {
       m_spinState = SpinState.SPINNING;
     }
 
-    m_pid.setReference(-SpindexConstants.kTargetVelocityRPM, ControlType.kVelocity);
+    m_pid.setReference(SpindexConstants.kTargetVelocityRPM, ControlType.kVelocity);
   }
 
   /** Stops the spindexer. */
