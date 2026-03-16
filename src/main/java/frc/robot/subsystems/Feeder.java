@@ -12,24 +12,14 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.FeederConstants;
 
 /**
  * Feeder – drives the series of spinners on the horizontal-to-vertical ramp
  * that carries game pieces from the spindexer into the turret.
- *
- * <p>Includes velocity-based jam detection that mirrors the spindexer's
- * implementation: when encoder RPM drops below a threshold after a debounce
- * window, the motor auto-reverses to clear the jam.
  */
 public class Feeder extends SubsystemBase {
-
-  /** Tracks the current phase of spin() operation. */
-  private enum SpinState { SPINNING, JAM_REVERSING }
 
   private final SparkFlex m_motor;
   private final SparkRelativeEncoder m_encoder;
@@ -38,16 +28,6 @@ public class Feeder extends SubsystemBase {
   private boolean m_testMode = false;
   private final DoublePublisher m_testPowerPub;
   private final DoublePublisher m_testVelocityPub;
-
-  private SpinState m_spinState       = SpinState.SPINNING;
-  private double    m_spinStartTime   = -1.0; // -1 = not currently spinning
-  private double    m_jamReverseStart = 0.0;
-
-  // Live-tunable PIDF gains (read from SmartDashboard each cycle)
-  private double m_lastP  = FeederConstants.kVelocityP;
-  private double m_lastI  = FeederConstants.kVelocityI;
-  private double m_lastD  = FeederConstants.kVelocityD;
-  private double m_lastFF = FeederConstants.kVelocityFF;
 
   public Feeder() {
     m_motor = new SparkFlex(FeederConstants.kMotorId, MotorType.kBrushless);
@@ -69,68 +49,15 @@ public class Feeder extends SubsystemBase {
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Feeder");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
     m_testVelocityPub = table.getDoubleTopic("VelocityRPM").publish();
-
-    // Publish initial PIDF values (editable in SmartDashboard/Shuffleboard)
-    SmartDashboard.putNumber("Feeder/P", m_lastP);
-    SmartDashboard.putNumber("Feeder/I", m_lastI);
-    SmartDashboard.putNumber("Feeder/D", m_lastD);
-    SmartDashboard.putNumber("Feeder/FF", m_lastFF);
   }
 
-  /**
-   * Spins the feeder at the target velocity, with jam detection.
-   *
-   * <p>After a debounce window, if encoder velocity drops below the jam
-   * threshold the motor reverses automatically for a fixed duration to
-   * clear the jam, then resumes normal spinning.
-   */
+  /** Spins the feeder at the target velocity. */
   public void spin() {
-    spin(false);
-  }
-
-  /** Spins the feeder at target velocity. When complexMode is true, jam detection is active. */
-  public void spin(boolean complexMode) {
-    double now = Timer.getFPGATimestamp();
-
-    // Record when spin() was first called after a rest()
-    if (m_spinStartTime < 0.0) {
-      m_spinStartTime = now;
-    }
-
-    if (complexMode) {
-      // If currently reversing to clear a jam, keep reversing until time is up
-      if (m_spinState == SpinState.JAM_REVERSING) {
-        if (now - m_jamReverseStart < FeederConstants.kJamReverseTime) {
-          m_motor.set(-FeederConstants.kJamReversePower);
-          return;
-        }
-        // Reverse complete — resume spinning
-        m_spinState = SpinState.SPINNING;
-      }
-
-      // Check for a jam (only after debounce window to allow motor spin-up)
-      double velocityRPM = m_encoder.getVelocity();
-      if (now - m_spinStartTime > FeederConstants.kJamDetectDebounce
-          && Math.abs(velocityRPM) < FeederConstants.kJamVelocityThresholdRPM) {
-        m_spinState       = SpinState.JAM_REVERSING;
-        m_jamReverseStart = now;
-        DriverStation.reportWarning(
-            "Feeder jam detected (velocity=" + velocityRPM + " RPM)", false);
-        m_motor.set(-FeederConstants.kJamReversePower);
-        return;
-      }
-    } else {
-      // No jam detection — reset state in case we just left complex mode
-      m_spinState = SpinState.SPINNING;
-    }
-
     m_pid.setReference(FeederConstants.kTargetVelocityRPM, ControlType.kVelocity);
   }
 
-  /** Stops the feeder and resets jam detection state. */
+  /** Stops the feeder. */
   public void rest() {
-    m_spinState     = SpinState.SPINNING;
-    m_spinStartTime = -1.0;
     m_motor.set(0.0);
   }
 
@@ -146,23 +73,6 @@ public class Feeder extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // Read PIDF values from SmartDashboard (editable at runtime)
-    double p  = SmartDashboard.getNumber("Feeder/P", m_lastP);
-    double i  = SmartDashboard.getNumber("Feeder/I", m_lastI);
-    double d  = SmartDashboard.getNumber("Feeder/D", m_lastD);
-    double ff = SmartDashboard.getNumber("Feeder/FF", m_lastFF);
-
-    // Reconfigure PID only when values change
-    if (p != m_lastP || i != m_lastI || d != m_lastD || ff != m_lastFF) {
-      SparkFlexConfig config = new SparkFlexConfig();
-      config.closedLoop.p(p).i(i).d(d).velocityFF(ff);
-      m_motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-      m_lastP = p;
-      m_lastI = i;
-      m_lastD = d;
-      m_lastFF = ff;
-    }
-
     if (m_testMode) {
       m_testPowerPub.set(m_motor.get());
       m_testVelocityPub.set(m_encoder.getVelocity());

@@ -212,9 +212,9 @@ Gathering(possession: Possession)
 
 
 
-Shoot(launch: Launch, hopper: Hopper, complexMode: BooleanSupplier)
+Shoot(launch: Launch)
 
-* Runs Launch.launch() each loop; only runs Hopper.jostle() when complexMode returns true; stops on end
+* Runs Launch.launch() each loop; stops on end
 
 
 

@@ -15,15 +15,10 @@ public class Launch extends SubsystemBase {
     m_gather  = gather;
   }
 
-  /** Runs spindexer + feeder + gather to launch game pieces (no jam detection). */
+  /** Runs spindexer + feeder + gather to launch game pieces. */
   public void launch() {
-    launch(false);
-  }
-
-  /** Runs spindexer + feeder + gather to launch game pieces. Jam detection active when complexMode is true. */
-  public void launch(boolean complexMode) {
-    m_spindex.spin(complexMode);
-    m_feeder.spin(complexMode);
+    m_spindex.spin();
+    m_feeder.spin();
     m_gather.gather(GatherConstants.kDefaultPower * 0.5);
   }
 

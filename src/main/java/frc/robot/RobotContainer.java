@@ -64,8 +64,6 @@ public class RobotContainer {
   private final CommandXboxController m_driverController =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
 
-  private boolean m_complexMode = false;
-
   private final EventLoop m_testLoop = new EventLoop();
 
   // ─── Auto chooser ─────────────────────────────────────────────────────────
@@ -88,7 +86,6 @@ public class RobotContainer {
     configureButtonBindings();
     configureTestBindings();
     configureAutoChooser();
-    SmartDashboard.putBoolean("Complex Mode", m_complexMode);
   }
 
   // ─── Default Commands ──────────────────────────────────────────────────────
@@ -133,20 +130,12 @@ public class RobotContainer {
     // Right trigger (>0.15, held) → shoot
     m_driverController
         .rightTrigger(0.15)
-        .whileTrue(new Shoot(m_launch, m_hopper, () -> m_complexMode));
+        .whileTrue(new Shoot(m_launch));
 
     // Right bumper (held) → jostle to unjam
     m_driverController
         .rightBumper()
         .whileTrue(new Jostling(m_spindex));
-
-    // A button → toggle complex launch mode
-    m_driverController
-        .a()
-        .onTrue(Commands.runOnce(() -> {
-            m_complexMode = !m_complexMode;
-            SmartDashboard.putBoolean("Complex Mode", m_complexMode);
-        }));
 
     // X button → retract hopper
     m_driverController
