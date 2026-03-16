@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Team 801 Horsepower
 package frc.robot.commands;
 
+import java.util.function.BooleanSupplier;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Launch;
@@ -15,17 +17,21 @@ public class Shoot extends Command {
 
   private final Launch m_launch;
   private final Hopper m_hopper;
+  private final BooleanSupplier m_complexMode;
 
-  public Shoot(Launch launch, Hopper hopper) {
+  public Shoot(Launch launch, Hopper hopper, BooleanSupplier complexMode) {
     m_launch = launch;
     m_hopper = hopper;
+    m_complexMode = complexMode;
     addRequirements(launch, hopper);
   }
 
   @Override
   public void execute() {
     m_launch.launch();
-    m_hopper.jostle();
+    if (m_complexMode.getAsBoolean()) {
+      m_hopper.jostle();
+    }
   }
 
   @Override

@@ -73,13 +73,6 @@ public final class Constants {
     public static final double kD = 0.0;
 
     // ─── Hopper jostle (independent from spindexer agitation) ─────────────────
-    /** Waveform shape for Hopper.jostle(). */
-    public static final AgitationType kJostleAgitationType = AgitationType.SINUSOIDAL;
-    /**
-     * Jostle amplitude as a fraction of kExtendedSetpoint.
-     * MUST be ≤ 0.5 (oscillates between (1−amp)·setpoint and (1−2·amp)·setpoint).
-     */
-    public static final double kJostleAmplitude = 0.1;
     /** Jostle period in seconds. */
     public static final double kJostlePeriod = 0.5;
   }
@@ -95,7 +88,7 @@ public final class Constants {
     public static final double kVelocityP = 0.001;
     /** Velocity feedforward (fraction per RPM). TODO: tune. */
     public static final double kVelocityFF = 0.00022;
-    /** Waveform shape for agitate() and Hopper.jostle(). */
+    /** Waveform shape for agitate(). */
     public static final AgitationType kAgitationType = AgitationType.SINUSOIDAL;
     /**
      * Agitation amplitude.

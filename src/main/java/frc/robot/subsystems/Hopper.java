@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.AgitationType;
 import frc.robot.Constants.HopperConstants;
 
 /**
@@ -116,37 +115,21 @@ public class Hopper extends SubsystemBase {
   }
 
   /**
-   * Oscillates the hopper between positions (1−amplitude)·setpoint and (1−2·amplitude)·setpoint
-   * using independent {@link HopperConstants} jostle constants.
+   * Oscillates the hopper between {@link HopperConstants#kPartialExtendSetpoint} and
+   * {@link HopperConstants#kExtendedSetpoint} using a sine wave.
    *
    * <p>Call repeatedly (e.g. from a command's execute() loop).
    */
   public void jostle() {
-    double amplitude = HopperConstants.kJostleAmplitude;
-    double period    = HopperConstants.kJostlePeriod;
+    double period = HopperConstants.kJostlePeriod;
     double t = Timer.getFPGATimestamp();
 
-    double maxPos = (1.0 - amplitude)        * HopperConstants.kExtendedSetpoint;
-    double minPos = (1.0 - 2.0 * amplitude)  * HopperConstants.kExtendedSetpoint;
-    double midPos = (maxPos + minPos) / 2.0;
-    double half   = (maxPos - minPos) / 2.0;
+    double min = HopperConstants.kPartialExtendSetpoint;
+    double max = HopperConstants.kExtendedSetpoint;
+    double mid = (min + max) / 2.0;
+    double half = (max - min) / 2.0;
 
-    double setpoint;
-    AgitationType type = HopperConstants.kJostleAgitationType;
-
-    if (type == AgitationType.FLAT) {
-      setpoint = maxPos;
-
-    } else if (type == AgitationType.SINUSOIDAL) {
-      setpoint = midPos + half * Math.sin(2.0 * Math.PI * t / period);
-
-    } else { // ABSOLUTE_VALUE – triangle wave
-      double phase = ((t % period) / period + 1.0) % 1.0;
-      double tri   = 4.0 * Math.abs(phase - 0.5) - 1.0; // [-1, 1]
-      setpoint = midPos + half * tri;
-    }
-
-    m_setpoint = setpoint;
+    m_setpoint = mid + half * Math.sin(2.0 * Math.PI * t / period);
     m_pidActive = true;
   }
 
