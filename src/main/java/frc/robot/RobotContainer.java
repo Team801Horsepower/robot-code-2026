@@ -143,9 +143,11 @@ public class RobotContainer {
         .whileTrue(Commands.run(
             () -> m_gather.gather(-GatherConstants.kReverseIntakePower), m_gather));
 
-    // Right trigger (>0.15, held) → shoot
+    // Right trigger (>0.15, held) → shoot with hood auto-aim
     m_driverController
         .rightTrigger(0.15)
+        .onTrue(Commands.runOnce(() -> m_TurretSubsystem.setHoodAutoAim(true)))
+        .onFalse(Commands.runOnce(() -> m_TurretSubsystem.setHoodAutoAim(false)))
         .whileTrue(new Shoot(m_launch));
 
     // X button → retract hopper
@@ -276,7 +278,12 @@ public class RobotContainer {
     );
 
     // Register named commands BEFORE building autos
-    NamedCommands.registerCommand("shoot", new Score(m_manipulator).withTimeout(3.0));
+    NamedCommands.registerCommand("shoot",
+        Commands.sequence(
+            Commands.runOnce(() -> m_TurretSubsystem.setHoodAutoAim(true)),
+            new Score(m_manipulator)
+        ).finallyDo(() -> m_TurretSubsystem.setHoodAutoAim(false))
+         .withTimeout(3.0));
   }
 
   // ─── Auto Chooser ─────────────────────────────────────────────────────────

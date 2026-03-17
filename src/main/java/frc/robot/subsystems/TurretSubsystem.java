@@ -78,6 +78,7 @@ public class TurretSubsystem extends SubsystemBase {
   public double ShooterVelocityActual;
 
   private boolean m_testMode = false;
+  private boolean m_hoodAutoAimEnabled = false;
 
   private edu.wpi.first.wpilibj.DriverStation.Alliance m_alliance =
       edu.wpi.first.wpilibj.DriverStation.Alliance.Blue;
@@ -105,6 +106,7 @@ public class TurretSubsystem extends SubsystemBase {
   }
 
   public void setTestMode(boolean enabled) { m_testMode = enabled; }
+  public void setHoodAutoAim(boolean enabled) { m_hoodAutoAimEnabled = enabled; }
   public void testRunLaunch(double power) { s_ShooterMotorLeft.set(power); }
   public void testRunHood(double power) { s_HoodTiltMotor.set(power); }
   public void testRunRotate(double power) { s_TurretRotateMotor.set(power); }
@@ -170,6 +172,7 @@ public class TurretSubsystem extends SubsystemBase {
     HoodEncoder = s_HoodTiltMotor.getEncoder();
     HoodThetaActual = (((HoodEncoder.getPosition()) / (Constants.TurretSubsystemConstants.HoodGearRatio)) * (2 * Math.PI)) + 0.261799;
 
+    if (m_hoodAutoAimEnabled) {
     Constants.FieldZone zone = Constants.FieldConstants.getFieldZone(
         questNav.RobotPose.getX(), m_alliance);
 
@@ -198,6 +201,9 @@ public class TurretSubsystem extends SubsystemBase {
       case FAR:
         // No hood control — future: alternate aiming behavior
         break;
+    }
+    } else {
+      s_HoodTiltMotor.set(0);
     }
     } // end isTracking guard
 
