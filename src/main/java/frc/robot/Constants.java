@@ -148,6 +148,12 @@ public final class Constants {
      * which is comfortable to drive.
      */
     public static final double kMaxAngularSpeedRadPerSec = Math.PI * 1.5; // rad/s (~1.5π rad/s)
+
+    /** Drive speed multiplier applied when right trigger > kShootSlowdownThreshold. */
+    public static final double kShootWhileMovingSpeedMultiplier = 0.3;
+
+    /** Right trigger axis value at which the speed multiplier activates. */
+    public static final double kShootSlowdownThreshold = 0.15;
   }
   public static final class QuestSubsystemConstants {
     // Starting Position 1 - Testing
@@ -205,6 +211,9 @@ public final class Constants {
     public static double ShooterVelcoityEfficiency = 0.5;
     public static double ShooterVelocityMultiplier = 1.0;
     public static double TurretRotateScoreOffset = 0.232;
+
+    /** Multiplier on turret lead offset. 0 = disabled, 1 = full compensation. */
+    public static final double kLeadFactor = 1.0;
   }
 
   // ─── Field ──────────────────────────────────────────────────────────────────

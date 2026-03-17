@@ -56,7 +56,8 @@ public class RobotContainer {
 
   private final DrivetrainSubsystem m_drivetrain = TunerConstants.createDrivetrain();
   private final QuestSubsystem m_QuestSubsystem = new QuestSubsystem();
-  private final TurretSubsystem m_TurretSubsystem = new TurretSubsystem(m_QuestSubsystem);
+  private final TurretSubsystem m_TurretSubsystem = new TurretSubsystem(
+      m_QuestSubsystem, () -> m_drivetrain.getState().Speeds);
 
   private final Gather   m_gather  = new Gather();
   private final Hopper   m_hopper  = new Hopper();
@@ -122,14 +123,19 @@ public class RobotContainer {
   }
 
   private SwerveRequest.FieldCentric buildFieldCentricRequest() {
+    double speedScale = 1.0;
+    if (m_driverController.getRightTriggerAxis() > DriveConstants.kShootSlowdownThreshold) {
+      speedScale = DriveConstants.kShootWhileMovingSpeedMultiplier;
+    }
+
     double translationX = applyDeadband(-m_driverController.getLeftY())
-        * DriveConstants.kMaxSpeedMetersPerSecond;
+        * DriveConstants.kMaxSpeedMetersPerSecond * speedScale;
 
     double translationY = applyDeadband(-m_driverController.getLeftX())
-        * DriveConstants.kMaxSpeedMetersPerSecond;
+        * DriveConstants.kMaxSpeedMetersPerSecond * speedScale;
 
     double rotation = applyDeadband(-m_driverController.getRightX())
-        * DriveConstants.kMaxAngularSpeedRadPerSec;
+        * DriveConstants.kMaxAngularSpeedRadPerSec * speedScale;
 
     return m_fieldCentricRequest
         .withVelocityX(translationX)
