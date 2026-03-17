@@ -24,8 +24,12 @@ public class GatherSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
   }
   
-  public void Gather() {
-    GatherMotor.set(.5);
+  public void GatherForward() {
+    GatherMotor.set(1);
+  }
+
+  public void GatherReverse() {
+    GatherMotor.set(-1);
   }
 
   public void StopGather() {
