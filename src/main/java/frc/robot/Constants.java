@@ -59,7 +59,7 @@ public final class Constants {
      * Fully-extended motor encoder position (motor rotations from home).
      * Measured with motor encoder zeroed at full retraction.
      */
-    public static final double kExtendedSetpoint = 28.183872;
+    public static final double kExtendedSetpoint = 27.183872;
     /**
      * Partial extension motor encoder position (motor rotations from home).
      * Measured with motor encoder zeroed at full retraction.
@@ -68,9 +68,9 @@ public final class Constants {
     /** Closed-loop position tolerance (motor rotations). */
     public static final double kTolerance = 0.1;
     // PID gains for hopper position control. TODO: tune.
-    public static final double kP = 0.6;
-    public static final double kI = 0.003;
-    public static final double kD = 0.0;
+    public static final double kP = 0;
+    public static final double kI = 0;
+    public static final double kD = 0;
 
   }
 

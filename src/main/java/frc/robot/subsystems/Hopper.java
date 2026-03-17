@@ -67,6 +67,10 @@ public class Hopper extends SubsystemBase {
     m_encoder = m_motor.getEncoder();
     m_encoder.setPosition(0);
 
+    SmartDashboard.putNumber("Hopper PID/kP", HopperConstants.kP);
+    SmartDashboard.putNumber("Hopper PID/kI", HopperConstants.kI);
+    SmartDashboard.putNumber("Hopper PID/kD", HopperConstants.kD);
+
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Hopper");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
     m_testPositionPub = table.getDoubleTopic("Position").publish();
@@ -131,6 +135,10 @@ public class Hopper extends SubsystemBase {
 
   @Override
   public void periodic() {
+    m_pid.setP(SmartDashboard.getNumber("Hopper PID/kP", HopperConstants.kP));
+    m_pid.setI(SmartDashboard.getNumber("Hopper PID/kI", HopperConstants.kI));
+    m_pid.setD(SmartDashboard.getNumber("Hopper PID/kD", HopperConstants.kD));
+
     if (m_pidActive) {
       double output = m_pid.calculate(m_encoder.getPosition(), m_setpoint);
       m_motor.set(output);
