@@ -14,6 +14,17 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.wpilibj.DriverStation;
+
+import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.GatherConstants;
 import frc.robot.Constants.HopperConstants;
@@ -66,7 +77,7 @@ public class RobotContainer {
 
   // ─── Auto chooser ─────────────────────────────────────────────────────────
 
-  private final SendableChooser<Command> m_autoChooser = new SendableChooser<>();
+  private SendableChooser<Command> m_autoChooser;
 
   // ─── Swerve requests ───────────────────────────────────────────────────────
 
@@ -76,6 +87,12 @@ public class RobotContainer {
           .withRotationalDeadband(DriveConstants.kMaxAngularSpeedRadPerSec * 0.02)
           .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
+  private final SwerveRequest.ApplyRobotSpeeds m_robotSpeedsRequest =
+      new SwerveRequest.ApplyRobotSpeeds();
+
+  // ─── Alliance cache ─────────────────────────────────────────────────────────
+
+  private DriverStation.Alliance m_cachedAlliance = DriverStation.Alliance.Blue;
 
   // ─── Constructor ───────────────────────────────────────────────────────────
 
@@ -83,6 +100,7 @@ public class RobotContainer {
     configureDefaultCommands();
     configureButtonBindings();
     configureTestBindings();
+    configureAutoBuilder();
     configureAutoChooser();
   }
 
@@ -228,19 +246,43 @@ public class RobotContainer {
     configureDefaultCommands();
   }
 
+  // ─── AutoBuilder ──────────────────────────────────────────────────────────
+
+  private void configureAutoBuilder() {
+    RobotConfig config;
+    try {
+      config = RobotConfig.fromGUISettings();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return;
+    }
+
+    AutoBuilder.configure(
+        m_drive.getDrivetrain()::getPose2d,
+        m_drive.getDrivetrain()::seedPose,
+        m_drive.getDrivetrain()::getChassisSpeeds,
+        (speeds, feedforwards) -> m_drive.getDrivetrain().setControl(
+            m_robotSpeedsRequest.withSpeeds(speeds)),
+        new PPHolonomicDriveController(
+            new PIDConstants(5.0, 0.0, 0.0),  // Translation PID — TODO: tune
+            new PIDConstants(5.0, 0.0, 0.0)   // Rotation PID — TODO: tune
+        ),
+        config,
+        () -> {
+          var alliance = DriverStation.getAlliance();
+          return alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red;
+        },
+        m_drive
+    );
+
+    // Register named commands BEFORE building autos
+    NamedCommands.registerCommand("shoot", new Score(m_manipulator).withTimeout(3.0));
+  }
+
   // ─── Auto Chooser ─────────────────────────────────────────────────────────
 
   private void configureAutoChooser() {
-    m_autoChooser.setDefaultOption("None", Commands.none());
-
-    m_autoChooser.addOption("CH", Commands.none());
-    m_autoChooser.addOption("CH-Prime", Commands.none());
-    m_autoChooser.addOption("FLS", Commands.none());
-    m_autoChooser.addOption("FRS", Commands.none());
-    m_autoChooser.addOption("LS", Commands.none());
-    m_autoChooser.addOption("RS", Commands.none());
-    m_autoChooser.addOption("Dummy", Commands.none());
-
+    m_autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
   }
 
@@ -248,6 +290,64 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     return m_autoChooser.getSelected();
+  }
+
+  /**
+   * Seeds QuestNav with the starting pose for the selected autonomous routine.
+   * Also caches the alliance color for the turret subsystem.
+   * Call from Robot.autonomousInit() before scheduling the auto command.
+   */
+  public void seedAutoStartPose() {
+    // Cache alliance
+    var allianceOpt = DriverStation.getAlliance();
+    m_cachedAlliance = allianceOpt.orElse(DriverStation.Alliance.Blue);
+    m_TurretSubsystem.setAlliance(m_cachedAlliance);
+
+    // Determine starting pose from selected auto name
+    Command selected = m_autoChooser.getSelected();
+    String autoName = selected != null ? selected.getName() : "";
+
+    double startX, startY, startYaw;
+    if (autoName.startsWith("CH")) {
+      startX = AutoConstants.kCenterStartX;
+      startY = AutoConstants.kCenterStartY;
+      startYaw = AutoConstants.kCenterStartYaw;
+    } else if (autoName.startsWith("FL")) {
+      startX = AutoConstants.kFarLeftStartX;
+      startY = AutoConstants.kFarLeftStartY;
+      startYaw = AutoConstants.kFarLeftStartYaw;
+    } else if (autoName.startsWith("FR")) {
+      startX = AutoConstants.kFarRightStartX;
+      startY = AutoConstants.kFarRightStartY;
+      startYaw = AutoConstants.kFarRightStartYaw;
+    } else if (autoName.startsWith("L")) {
+      startX = AutoConstants.kLeftStartX;
+      startY = AutoConstants.kLeftStartY;
+      startYaw = AutoConstants.kLeftStartYaw;
+    } else if (autoName.startsWith("R")) {
+      startX = AutoConstants.kRightStartX;
+      startY = AutoConstants.kRightStartY;
+      startYaw = AutoConstants.kRightStartYaw;
+    } else {
+      // Default/Dummy — use center
+      startX = AutoConstants.kCenterStartX;
+      startY = AutoConstants.kCenterStartY;
+      startYaw = AutoConstants.kCenterStartYaw;
+    }
+
+    Pose3d startPose = new Pose3d(startX, startY, 0.0,
+        new Rotation3d(0.0, 0.0, startYaw));
+    m_QuestSubsystem.setPose(startPose);
+  }
+
+  /**
+   * Caches the alliance color and pushes it to the turret.
+   * Call from teleopInit() so zone logic works in teleop too.
+   */
+  public void cacheAlliance() {
+    var allianceOpt = DriverStation.getAlliance();
+    m_cachedAlliance = allianceOpt.orElse(DriverStation.Alliance.Blue);
+    m_TurretSubsystem.setAlliance(m_cachedAlliance);
   }
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
