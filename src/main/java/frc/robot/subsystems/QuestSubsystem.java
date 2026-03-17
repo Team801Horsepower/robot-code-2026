@@ -46,6 +46,21 @@ public class QuestSubsystem extends SubsystemBase {
     questNav.setPose(RobotStartingPosition);
   }
 
+  /**
+   * Seeds QuestNav with a known robot pose. Call at the start of autonomous
+   * to tell QuestNav where the robot has been placed on the field.
+   *
+   * @param pose The robot's known starting pose
+   */
+  public void setPose(Pose3d pose) {
+    questNav.setPose(pose);
+  }
+
+  /** Returns true if QuestNav is actively tracking the headset pose. */
+  public boolean isTracking() {
+    return questNav.isTracking();
+  }
+
   @Override
   public void periodic() {
     questNav.commandPeriodic();
