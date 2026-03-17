@@ -40,7 +40,7 @@ public class Feeder extends SubsystemBase {
         .p(FeederConstants.kVelocityP)
         .i(FeederConstants.kVelocityI)
         .d(FeederConstants.kVelocityD)
-        .velocityFF(FeederConstants.kVelocityFF);
+        .velocityFF(FeederConstants.kVelocityFFkV);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 

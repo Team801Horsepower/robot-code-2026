@@ -79,16 +79,18 @@ public final class Constants {
   public static final class SpindexConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) spinning the spindexer. */
     public static final int kMotorId = 25;
-    /** Target spindexer velocity (RPM). TODO: tune. */
-    public static final double kTargetVelocityRPM = 2000.0;
-    /** Velocity PID P gain. TODO: tune. */
-    public static final double kVelocityP = 0.0;
-    /** Velocity PID I gain. TODO: tune. */
+    /** Target spindexer velocity (RPM). */
+    public static final double kTargetVelocityRPM = 2500.0;
+    /** Velocity PID P gain. */
+    public static final double kVelocityP = 0.0002;
+    /** Velocity PID I gain. */
     public static final double kVelocityI = 0.0;
-    /** Velocity PID D gain. TODO: tune. */
-    public static final double kVelocityD = 0.0;
-    /** Velocity feedforward (fraction per RPM). TODO: tune. */
-    public static final double kVelocityFF = 0.0;
+    /** Velocity PID D gain. */
+    public static final double kVelocityD = 0.00001;
+    /** Velocity feedforward kS */
+    public static final double kVelocityFFkS = 0.0;
+    /** Velocity feedforward kV */
+    public static final double kVelocityFFkV = 0.00016;
   }
 
   // ─── Feeder ────────────────────────────────────────────────────────────────
@@ -96,16 +98,18 @@ public final class Constants {
   public static final class FeederConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) powering the feeder. */
     public static final int kMotorId = 24;
-    /** Target feeder velocity (RPM). TODO: tune. */
-    public static final double kTargetVelocityRPM = 2.067 * SpindexConstants.kTargetVelocityRPM;
-    /** Velocity PID P gain. TODO: tune. */
-    public static final double kVelocityP = 0.0;
-    /** Velocity PID I gain. TODO: tune. */
+    /** Target feeder velocity (RPM). */
+    public static final double kTargetVelocityRPM = 5167.5;
+    /** Velocity PID P gain. */
+    public static final double kVelocityP = 0.00017;
+    /** Velocity PID I gain. */
     public static final double kVelocityI = 0.0;
-    /** Velocity PID D gain. TODO: tune. */
-    public static final double kVelocityD = 0.0;
-    /** Velocity feedforward (fraction per RPM). TODO: tune. */
-    public static final double kVelocityFF = 0.0;
+    /** Velocity PID D gain. */
+    public static final double kVelocityD = 0.000004;
+    /** Velocity feedforward kS */
+    public static final double kVelocityFFkS = 0.0;
+    /** Velocity feedforward kV */
+    public static final double kVelocityFFkV = 0.00016;
 
   }
 

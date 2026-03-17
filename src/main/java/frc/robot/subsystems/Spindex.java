@@ -46,7 +46,7 @@ public class Spindex extends SubsystemBase {
         .p(SpindexConstants.kVelocityP)
         .i(SpindexConstants.kVelocityI)
         .d(SpindexConstants.kVelocityD)
-        .velocityFF(SpindexConstants.kVelocityFF);
+        .velocityFF(SpindexConstants.kVelocityFFkV);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 

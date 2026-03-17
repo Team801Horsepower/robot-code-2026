@@ -36,7 +36,7 @@ public class TurretSubsystem extends SubsystemBase {
   PIDController TurretHoodPID = new PIDController(0.9, 0.003, 0);
   SimpleMotorFeedforward TurretHoodFeedForward = new SimpleMotorFeedforward(0, 0, 0);
   PIDController ShooterPID = new PIDController(0.005, 0.001, 0);
-  SimpleMotorFeedforward ShooterFeedForward = new SimpleMotorFeedforward(0, 0.0023, 0.0);
+  SimpleMotorFeedforward ShooterFeedForward = new SimpleMotorFeedforward(0, 0.0022, 0.0);
   
   private final QuestSubsystem questNav;
 
