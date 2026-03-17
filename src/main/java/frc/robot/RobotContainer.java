@@ -239,6 +239,7 @@ public class RobotContainer {
     m_autoChooser.addOption("FRS", Commands.none());
     m_autoChooser.addOption("LS", Commands.none());
     m_autoChooser.addOption("RS", Commands.none());
+    m_autoChooser.addOption("Dummy", Commands.none());
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
   }
