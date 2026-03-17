@@ -199,6 +199,17 @@ public class DrivetrainSubsystem
   }
 
   /**
+   * Returns the current robot-relative chassis speeds.
+   *
+   * <p>Required by PathPlanner's AutoBuilder for path following.
+   *
+   * @return Robot-relative ChassisSpeeds (vx forward, vy left, omega CCW)
+   */
+  public edu.wpi.first.math.kinematics.ChassisSpeeds getChassisSpeeds() {
+    return getState().Speeds;
+  }
+
+  /**
    * Seeds the pose estimator with a known pose.
    *
    * <p>Call at the start of autonomous or whenever the robot's true field-relative position is
