@@ -79,6 +79,17 @@ public class TurretSubsystem extends SubsystemBase {
 
   private boolean m_testMode = false;
 
+  private edu.wpi.first.wpilibj.DriverStation.Alliance m_alliance =
+      edu.wpi.first.wpilibj.DriverStation.Alliance.Blue;
+
+  /**
+   * Caches the current alliance color. Call from autonomousInit/teleopInit.
+   * Defaults to Blue if not set.
+   */
+  public void setAlliance(edu.wpi.first.wpilibj.DriverStation.Alliance alliance) {
+    m_alliance = alliance;
+  }
+
   public TurretSubsystem(QuestSubsystem questNav) {
     this.questNav = questNav;
     s_HoodTiltMotor.getEncoder().setPosition(0);
@@ -103,6 +114,9 @@ public class TurretSubsystem extends SubsystemBase {
     if (m_testMode) {
       return;
     }
+
+    // Only run pose-dependent aiming if QuestNav has valid tracking data
+    if (questNav.isTracking()) {
     /*
      * Takes robot pose2d published by QuestNav (Position of Quest, NOT position of center of robot)
      * and offsets it to the center of the turret.
@@ -117,8 +131,16 @@ public class TurretSubsystem extends SubsystemBase {
      * Creates a 2D unit vector from the robot to the goal.
      * Calculates distance to goal.
      */
-    vX = Constants.TurretSubsystemConstants.BlueGoalX - TurretX;
-    vY = Constants.TurretSubsystemConstants.BlueGoalY - TurretY;
+    double goalX, goalY;
+    if (m_alliance == edu.wpi.first.wpilibj.DriverStation.Alliance.Red) {
+      goalX = Constants.TurretSubsystemConstants.RedGoalX;
+      goalY = Constants.TurretSubsystemConstants.RedGoalY;
+    } else {
+      goalX = Constants.TurretSubsystemConstants.BlueGoalX;
+      goalY = Constants.TurretSubsystemConstants.BlueGoalY;
+    }
+    vX = goalX - TurretX;
+    vY = goalY - TurretY;
     
     DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
 
@@ -140,23 +162,44 @@ public class TurretSubsystem extends SubsystemBase {
     );
     
     /*
-     * TURRET HOOD
-     * Takes the encoder value from the Spark Flex built in relative encoder and converts it to hood position in radians.
-     * Calculates the hood theta target using the line of best fit from an analysis of several physics equations.
-     * Feedforward helps to overcome system resistance.
-     * Feedback drives turret hood motor to target hood theta.
+     * TURRET HOOD — zone-aware
+     * Launch zone: auto-aim hood based on distance-to-goal polynomial.
+     * Trench zone: retract hood to clear the trench (drive to minimum angle).
+     * Far zone: skip hood control entirely (future: alternate aiming).
      */
     HoodEncoder = s_HoodTiltMotor.getEncoder();
     HoodThetaActual = (((HoodEncoder.getPosition()) / (Constants.TurretSubsystemConstants.HoodGearRatio)) * (2 * Math.PI)) + 0.261799;
-    HoodThetaTarget = MathUtil.clamp(
-      (0.0136 + 0.234 * DistanceToGoal + -0.0205 * Math.pow(DistanceToGoal, 2)),
-      0.261799, 0.785398
-    );
 
-    s_HoodTiltMotor.set(
-      (TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)) +
-      (TurretHoodFeedForward.calculate(0))
-    );
+    Constants.FieldZone zone = Constants.FieldConstants.getFieldZone(
+        questNav.RobotPose.getX(), m_alliance);
+
+    switch (zone) {
+      case LAUNCH:
+        // Normal auto-aim: polynomial fit from physics analysis
+        HoodThetaTarget = MathUtil.clamp(
+          (0.0136 + 0.234 * DistanceToGoal + -0.0205 * Math.pow(DistanceToGoal, 2)),
+          0.261799, 0.785398
+        );
+        s_HoodTiltMotor.set(
+          (TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)) +
+          (TurretHoodFeedForward.calculate(0))
+        );
+        break;
+
+      case TRENCH:
+        // Retract hood to minimum angle to clear the trench
+        HoodThetaTarget = 0.261799;
+        s_HoodTiltMotor.set(
+          (TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)) +
+          (TurretHoodFeedForward.calculate(0))
+        );
+        break;
+
+      case FAR:
+        // No hood control — future: alternate aiming behavior
+        break;
+    }
+    } // end isTracking guard
 
     /*
      * TURRET SHOOTER
