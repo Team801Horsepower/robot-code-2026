@@ -177,6 +177,7 @@ rest()
 * Self-contained auto-aiming subsystem that runs in periodic()
 * Accepts QuestSubsystem via constructor for robot pose data
 * Automatically calculates turret rotation, hood angle, and flywheel velocity based on distance to goal
+* Goal coordinates are alliance-aware: blue goal at (4.635, 4.034), red goal at (11.9068, 4.034). Red is X-mirrored from blue; Y is preserved per standard FRC field mirroring.
 * Uses PID + feedforward control for turret rotate, hood tilt, and shooter motors
 * Supports test mode (setTestMode/testRunLaunch/testRunHood/testRunRotate) for manual control
 
