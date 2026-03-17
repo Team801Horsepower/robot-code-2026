@@ -8,7 +8,5 @@ Left Trigger: Intake. Where the button is pressed more than 0.08, scale the powe
 Left Bumper: Reverse intake. Full power, but make the power configurable
 Left Joystick (x and y axes): Translation of our robot
 Right Trigger: Launch, where the button is pressed more than 0.15, begin the launch sequence.
-Right Bumper: Jostle, at values specified in constants files
 Right Joystick (x axis): Rotate robot
 X Button: Retract hopper to home position
-Down Arrow: Toggle Jostle Type (Flat, Absolute Value, Sinusoidal)

@@ -12,13 +12,12 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.HopperConstants;
 
 /**
- * Hopper – extends and retracts the hopper rail system, and can jostle in place.
+ * Hopper – extends and retracts the hopper rail system.
  *
  * <p>Uses the SparkFlex built-in motor encoder with a WPILib software PID controller for
  * closed-loop position control. Units are motor rotations (zeroed on startup).
@@ -111,25 +110,6 @@ public class Hopper extends SubsystemBase {
    */
   public boolean check() {
     return m_extended;
-  }
-
-  /**
-   * Oscillates the hopper between {@link HopperConstants#kPartialExtendSetpoint} and
-   * {@link HopperConstants#kExtendedSetpoint} using a sine wave.
-   *
-   * <p>Call repeatedly (e.g. from a command's execute() loop).
-   */
-  public void jostle() {
-    double period = HopperConstants.kJostlePeriod;
-    double t = Timer.getFPGATimestamp();
-
-    double min = HopperConstants.kPartialExtendSetpoint;
-    double max = HopperConstants.kExtendedSetpoint;
-    double mid = (min + max) / 2.0;
-    double half = (max - min) / 2.0;
-
-    m_setpoint = mid + half * Math.sin(2.0 * Math.PI * t / period);
-    m_pidActive = true;
   }
 
   /** Drives the motor at raw power, bypassing PID control. */

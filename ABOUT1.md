@@ -16,7 +16,7 @@ Our advanced design uses an extendable hopper with a gatherer (roller) at the en
 
 
 
-The centerpiece of our robot is a spindexer which stores and deposits game pieces to be later sent to the feeder. Its job is twofold: it must quickly launch game pieces towards the feeder, but before that it must also move ever so slightly back and forth as an agitator. For agitation, a sinusoidal function could be used to (not too abruptly) sway the spindexer back and forth. A configuration option could be used to set the agitation type (flat, sinusoidal, absolute value \[repeating the absolute value equation every 2x using an interval from (-x, x) where f(-x) = f(x))
+The centerpiece of our robot is a spindexer which stores and deposits game pieces to be later sent to the feeder. Its job is to quickly launch game pieces towards the feeder.
 
 
 
@@ -140,11 +140,6 @@ extendTo(pct: double)
 
 * Extends the hopper to a percentage of full travel (0 = retracted, 100 = fully extended)
 
-jostle()
-
-* Oscillates the hopper between (1−amplitude)·setpoint and (1−2·amplitude)·setpoint
-* Uses independent HopperConstants jostle constants (kJostleAgitationType, kJostleAmplitude, kJostlePeriod)
-
 retract()
 
 * Retracts the hopper to its starting point (encoder = 0)
@@ -164,13 +159,6 @@ spin()
 rest()
 
 * Sets the spindexer motor power to 0
-
-agitate()
-
-* Applies a time-varying waveform (flat, sinusoidal, or absolute value/triangle) to prevent jams
-* Waveform shape, amplitude, period, and center point (reversed flag) are set via constants
-
-
 
 **feeder.java (class Feeder)**
 
@@ -216,11 +204,6 @@ Shoot(launch: Launch)
 
 * Runs Launch.launch() each loop; stops on end
 
-
-
-Jostling(spindex: Spindex)
-
-* Runs Spindex.agitate() each loop (hopper jostling removed)
 
 
 

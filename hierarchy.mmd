@@ -6,9 +6,7 @@ graph TD
     LT["Left Trigger\n(>0.08, held)"]
     LB["Left Bumper\n(held)"]
     RT["Right Trigger\n(>0.15, held)"]
-    RB["Right Bumper\n(held)"]
     DPU["D-Pad Up"]
-    DPD["D-Pad Down"]
   end
 
   %% ── Leaf Subsystems ───────────────────────────────────────────
@@ -35,19 +33,15 @@ graph TD
   ClimbL1Cmd([ClimbL1])
   Gathering([Gathering])
   Shoot([Shoot])
-  Jostling([Jostling])
   AimCmd([Aim])
   Score([Score])
   ReverseIntake([Reverse Intake])
-  CycleJostle([Cycle Jostle Type])
 
   %% ── Button → Command ──────────────────────────────────────────
   LT --> Gathering
   LB --> ReverseIntake
   RT --> Shoot
-  RB --> Jostling
   DPU --> ClimbL1Cmd
-  DPD --> CycleJostle
 
   %% ── Composite → Leaf composition ─────────────────────────────
   Drive --> DT
@@ -71,12 +65,10 @@ graph TD
   Gathering --> Possession
   Shoot --> Launch
   Shoot --> Hopper
-  Jostling --> Spindex
   AimCmd --> Vision
   AimCmd --> Turret
   Score --> Manipulator
   ReverseIntake --> Gather
-  CycleJostle --> Spindex
 
   %% ── Styling ───────────────────────────────────────────────────
   classDef leaf      fill:#dce8f5,stroke:#4a90d9,color:#000;
@@ -86,5 +78,5 @@ graph TD
 
   class DT,QN,Gather,Hopper,Spindex,Feeder,Turret,Level1 leaf;
   class Drive,Possession,Launch,Ascension,Manipulator,Vision composite;
-  class DriveToPose,RunLaunchWheel,ClimbL1Cmd,Gathering,Shoot,Jostling,AimCmd,Score,ReverseIntake,CycleJostle command;
-  class LT,LB,RT,RB,DPU,DPD button;
+  class DriveToPose,RunLaunchWheel,ClimbL1Cmd,Gathering,Shoot,AimCmd,Score,ReverseIntake command;
+  class LT,LB,RT,DPU button;

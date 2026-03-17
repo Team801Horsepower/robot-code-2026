@@ -35,8 +35,6 @@ import frc.robot.subsystems.*;
  *   <li><b>Left trigger (&gt;0.08, held)</b> – Scaled intake (trigger axis = gather power)
  *   <li><b>Left bumper (held)</b> – Reverse intake (full configurable power)
  *   <li><b>Right trigger (&gt;0.15, held)</b> – Shoot (run launch sequence)
- *   <li><b>Right bumper (held)</b> – Jostle (unjam spindexer + hopper)
- *   <li><b>D-pad Down</b> – Toggle jostle type (cycles FLAT → SINUSOIDAL → ABSOLUTE_VALUE)
  * </ul>
  */
 public class RobotContainer {
@@ -132,20 +130,10 @@ public class RobotContainer {
         .rightTrigger(0.15)
         .whileTrue(new Shoot(m_launch));
 
-    // Right bumper (held) → jostle to unjam
-    m_driverController
-        .rightBumper()
-        .whileTrue(new Jostling(m_spindex));
-
     // X button → retract hopper
     m_driverController
         .x()
         .onTrue(Commands.runOnce(() -> m_hopper.retract(), m_hopper));
-
-    // D-pad Down → cycle jostle type
-    m_driverController
-        .povDown()
-        .onTrue(Commands.runOnce(() -> m_spindex.cycleAgitationType()));
   }
 
   // ─── Test Mode Bindings ─────────────────────────────────────────────────────

@@ -72,9 +72,6 @@ public final class Constants {
     public static final double kI = 0.003;
     public static final double kD = 0.0;
 
-    // ─── Hopper jostle (independent from spindexer agitation) ─────────────────
-    /** Jostle period in seconds. */
-    public static final double kJostlePeriod = 0.5;
   }
 
   // ─── Spindex ───────────────────────────────────────────────────────────────
@@ -92,23 +89,6 @@ public final class Constants {
     public static final double kVelocityD = 0.0;
     /** Velocity feedforward (fraction per RPM). TODO: tune. */
     public static final double kVelocityFF = 0.0;
-    /** Waveform shape for agitate(). */
-    public static final AgitationType kAgitationType = AgitationType.SINUSOIDAL;
-    /**
-     * Agitation amplitude.
-     * - For Spindex: maps directly to motor speed (0–1).
-     * - For Hopper jostle: MUST be ≤ 0.5 (positions 1−amplitude to 1−2·amplitude).
-     */
-    public static final double kAmplitude = 0.3;
-    /** Agitation period in seconds. */
-    public static final double kPeriod = 1.0;
-    /**
-     * Reversed flag.
-     * false → zero is the minimum power (center at +amplitude).
-     * true  → zero is the center (oscillates ±amplitude around zero).
-     */
-    public static final boolean kAgitationReversed = true;
-
   }
 
   // ─── Feeder ────────────────────────────────────────────────────────────────
