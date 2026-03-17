@@ -4,6 +4,10 @@
 **Team:** 801 Horsepower
 **Status:** Approved
 
+## Prerequisites
+
+**Install PathPlanner vendordep.** The `pathplannerlib` vendordep is not currently installed. It must be added to the `vendordeps/` directory before any implementation begins. Install via WPILib's "Manage Vendor Libraries" > "Install new library (online)" with the PathPlanner 2026 JSON URL, or download the JSON manually. Without this, none of the AutoBuilder code will compile.
+
 ## Overview
 
 The robot has 14 PathPlanner paths and 7 auto routines (CH, CH-Prime, FLS, FRS, LS, RS, Dummy) that are fully designed in PathPlanner but not yet wired into the robot code. The auto chooser currently maps every option to `Commands.none()`.
@@ -21,10 +25,10 @@ This design covers:
 
 Configure `AutoBuilder` in `RobotContainer`'s constructor, before the auto chooser is built. AutoBuilder needs:
 
-- **Get current pose:** `m_drive.getPose2d()`
-- **Reset pose:** `m_drive.seedPose()`
-- **Get robot-relative chassis speeds:** from `DrivetrainSubsystem`
-- **Drive with chassis speeds:** apply a `SwerveRequest.ApplyRobotSpeeds` to the drivetrain
+- **Get current pose:** `m_drive.getDrivetrain().getPose2d()` (via `DrivetrainSubsystem`)
+- **Reset pose:** `m_drive.getDrivetrain().seedPose()` (via `DrivetrainSubsystem`)
+- **Get robot-relative chassis speeds:** Add a new `getChassisSpeeds()` method to `DrivetrainSubsystem` that wraps `getState().Speeds` or uses the kinematics to convert module states
+- **Drive with chassis speeds:** Create a `SwerveRequest.ApplyRobotSpeeds` instance in `RobotContainer` and apply it to `m_drive.getDrivetrain()` via `setControl()`
 - **Path-following controller:** `PPHolonomicDriveController` with tuned PID gains
 - **Robot config:** from PathPlanner `settings.json` (mass, MOI, module positions, etc.)
 - **Alliance flipping:** `DriverStation.getAlliance()` for automatic blue-to-red path mirroring
@@ -36,7 +40,7 @@ Replace the manual `SendableChooser` with `AutoBuilder.buildAutoChooser()`. This
 ### NamedCommands
 
 Register named commands before building autos:
-- `"shoot"` -> `new Score(m_manipulator)` (or equivalent scoring command)
+- `"shoot"` -> `new Score(m_manipulator).withTimeout(3.0)` — the `Score` command never self-terminates (`isFinished()` returns false), so a timeout is required to prevent it from stalling the auto sequence. Tune the timeout to match actual scoring duration.
 
 The 5-second waits in the `.auto` files should be replaced with named command references. This requires editing the `.auto` JSON files or re-doing it in the PathPlanner GUI. If waits are kept temporarily, scoring still works via the named commands.
 
@@ -79,7 +83,7 @@ Constants in a new `FieldConstants` inner class in `Constants.java`:
 - `kTrenchZoneEndMeters = 5.106`
 - `kFieldLengthMeters = 16.5418`
 
-A static utility method:
+A static utility method in `Constants.FieldConstants`:
 ```java
 public static FieldZone getFieldZone(double robotX, Alliance alliance)
 ```
@@ -104,18 +108,20 @@ Blue goal (existing): `(4.635, 4.034, 1.0)`
 
 Red goal (field-mirrored, configurable placeholder):
 - `RedGoalX = 16.5418 - 4.635 = 11.9068`
-- `RedGoalY = 8.0518 - 4.034 = 4.0178`
+- `RedGoalY = 4.034` (Y is preserved in standard FRC field mirroring — alliance stations are on opposite X ends, so only X is mirrored)
 - `RedGoalZ = 1.0`
 
-These are standard FRC field mirror computations. The field is 16.5418m x 8.0518m. Values should be tuned with real field measurements.
+Standard FRC field mirroring flips X across the field centerline while keeping Y the same. The field is 16.5418m long. These are configurable placeholders — tune with real field measurements. If the game's goals are diagonally opposite rather than directly across, Y would also need mirroring.
 
 ## 4. QuestNav Integration in Autonomous
 
 ### At Auto Start (`autonomousInit`)
 
 1. Determine the selected auto's starting pose (from the auto's first path start waypoint, or from a map of auto-name to known starting pose)
-2. Call `QuestSubsystem.setPose()` to seed QuestNav with the starting pose
-3. Call `Drive.seedPose()` to seed drivetrain odometry with the same pose
+2. Call `QuestSubsystem.setPose()` to seed QuestNav with the starting pose — this method must be added to `QuestSubsystem` as: `public void setPose(Pose3d pose) { questNav.setPose(pose); }`
+3. Drivetrain odometry seeding is handled by PathPlanner's `resetOdom: true` in the `.auto` files, which calls AutoBuilder's resetPose callback automatically when the auto command starts. No manual `Drive.seedPose()` call is needed for the drivetrain — only QuestNav needs the explicit seed.
+
+**Note on initialization order:** The QuestNav seed must happen before the auto command is scheduled, so QuestNav has the correct pose from the first loop. Guard the zone logic in `TurretSubsystem.periodic()` with a `questNav.isTracking()` check to handle the brief period before QuestNav has valid data.
 
 ### During Auto
 
@@ -157,14 +163,15 @@ Add a note in the turret section clarifying that the red goal coordinates are fi
 | `RobotContainer.java` | AutoBuilder config, automatic chooser, NamedCommands registration |
 | `Constants.java` | FieldConstants (zones, field length), updated RedGoal values, starting pose constants |
 | `TurretSubsystem.java` | Alliance-aware aiming, field zone hood logic |
-| `QuestSubsystem.java` | Possibly expose a public `setPose()` if not already available |
-| `Robot.java` | Seed QuestNav + drivetrain pose in `autonomousInit()` |
+| `QuestSubsystem.java` | Add public `setPose(Pose3d)` method wrapping `questNav.setPose()` |
+| `DrivetrainSubsystem.java` | Add `getChassisSpeeds()` method for AutoBuilder |
+| `Robot.java` | Seed QuestNav pose in `autonomousInit()` (drivetrain seeded by PathPlanner's `resetOdom`) |
 | `ABOUT4.md` | New file describing autonomous paths |
 | `ABOUT1.md` | Minor note about red goal mirroring |
 
 ## Dependencies
 
-- PathPlanner library (`pathplannerlib`) must be in vendordeps (needs verification)
+- PathPlanner library (`pathplannerlib`) must be installed as a vendordep (see Prerequisites section)
 - CTRE Phoenix 6 swerve API compatibility with PathPlanner's `AutoBuilder`
 
 ## Out of Scope
