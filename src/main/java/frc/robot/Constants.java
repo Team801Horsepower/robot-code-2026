@@ -159,9 +159,9 @@ public final class Constants {
     public static final double BlueGoalY = 4.034;
     public static final double BlueGoalZ = 1.0;
 
-    // Red Alliance Goal Position
-    public static final double RedGoalX = 1.0;
-    public static final double RedGoalY = 1.0;
+    // Red Alliance Goal Position (field-mirrored from blue; only X flipped)
+    public static final double RedGoalX = 11.9068;
+    public static final double RedGoalY = 4.034;
     public static final double RedGoalZ = 1.0;
     
     // Robot To Turret
@@ -184,5 +184,77 @@ public final class Constants {
     public static double ShooterVelcoityEfficiency = 0.5;
     public static double ShooterVelocityMultiplier = 1.0;
     public static double TurretRotateScoreOffset = 0.232;
+  }
+
+  // ─── Field ──────────────────────────────────────────────────────────────────
+
+  public enum FieldZone { LAUNCH, TRENCH, FAR }
+
+  public static final class FieldConstants {
+    /** Field length in meters (54 ft 1 in). */
+    public static final double kFieldLengthMeters = 16.5418;
+    /** Field width in meters (26 ft 7.25 in). */
+    public static final double kFieldWidthMeters = 8.0518;
+
+    /** End of launch zone, measured from friendly wall (156.61 inches). */
+    public static final double kLaunchZoneEndMeters = 3.978;
+    /** End of trench zone, measured from friendly wall (201.01 inches). */
+    public static final double kTrenchZoneEndMeters = 5.106;
+
+    /**
+     * Returns the field zone the robot is currently in.
+     *
+     * @param robotX Robot X position in meters (WPILib field coordinates)
+     * @param alliance Current alliance color
+     * @return The field zone
+     */
+    public static FieldZone getFieldZone(double robotX, edu.wpi.first.wpilibj.DriverStation.Alliance alliance) {
+      double distFromFriendlyWall;
+      if (alliance == edu.wpi.first.wpilibj.DriverStation.Alliance.Red) {
+        distFromFriendlyWall = kFieldLengthMeters - robotX;
+      } else {
+        distFromFriendlyWall = robotX;
+      }
+
+      if (distFromFriendlyWall <= kLaunchZoneEndMeters) {
+        return FieldZone.LAUNCH;
+      } else if (distFromFriendlyWall <= kTrenchZoneEndMeters) {
+        return FieldZone.TRENCH;
+      } else {
+        return FieldZone.FAR;
+      }
+    }
+  }
+
+  // ─── Autonomous ─────────────────────────────────────────────────────────────
+
+  public static final class AutoConstants {
+    // Starting positions extracted from PathPlanner path first waypoint anchors.
+    // These are robot-center poses (PathPlanner uses robot-center coordinates).
+
+    // Center start (linked name "Center" in C-H1.path, C-D1.path)
+    public static final double kCenterStartX = 3.586;
+    public static final double kCenterStartY = 4.067;
+    public static final double kCenterStartYaw = Math.PI; // 180 degrees
+
+    // Right start (linked name "Right" in R-S1.path, R-C1.path)
+    public static final double kRightStartX = 3.648;
+    public static final double kRightStartY = 2.210;
+    public static final double kRightStartYaw = 0.0;
+
+    // Left start (linked name "Left" in L-S1.path)
+    public static final double kLeftStartX = 3.637;
+    public static final double kLeftStartY = 5.794;
+    public static final double kLeftStartYaw = Math.PI / 2.0; // 90 degrees
+
+    // Far Right start (linked name "Far Right" in FR-S1.path)
+    public static final double kFarRightStartX = 4.414;
+    public static final double kFarRightStartY = 0.432;
+    public static final double kFarRightStartYaw = 0.0;
+
+    // Far Left start (linked name "Far Left" in FL-S1.path)
+    public static final double kFarLeftStartX = 4.401;
+    public static final double kFarLeftStartY = 7.625;
+    public static final double kFarLeftStartYaw = 0.0;
   }
 }
