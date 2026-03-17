@@ -118,8 +118,12 @@ Standard FRC field mirroring flips X across the field centerline while keeping Y
 ### At Auto Start (`autonomousInit`)
 
 1. Determine the selected auto's starting pose (from the auto's first path start waypoint, or from a map of auto-name to known starting pose)
-2. Call `QuestSubsystem.setPose()` to seed QuestNav with the starting pose — this method must be added to `QuestSubsystem` as: `public void setPose(Pose3d pose) { questNav.setPose(pose); }`
+2. Seed QuestNav with the starting pose. Add a public method to `QuestSubsystem`: `public void setPose(Pose3d pose) { questNav.setPose(pose); }`
 3. Drivetrain odometry seeding is handled by PathPlanner's `resetOdom: true` in the `.auto` files, which calls AutoBuilder's resetPose callback automatically when the auto command starts. No manual `Drive.seedPose()` call is needed for the drivetrain — only QuestNav needs the explicit seed.
+
+**How Robot.java accesses QuestNav:** `Robot.java` only has a reference to `RobotContainer`, not to individual subsystems. Add a method `RobotContainer.seedAutoStartPose()` that determines the selected auto, looks up the corresponding starting pose, and calls `m_QuestSubsystem.setPose()`. Then `Robot.autonomousInit()` calls `m_robotContainer.seedAutoStartPose()` before scheduling the auto command.
+
+**Alliance caching:** Cache `DriverStation.getAlliance()` inside `seedAutoStartPose()` (or `autonomousInit` / `teleopInit`), not lazily in `periodic()`. `getAlliance()` returns `Optional<Alliance>` and may be empty before FMS connection — default to Blue if empty.
 
 **Note on initialization order:** The QuestNav seed must happen before the auto command is scheduled, so QuestNav has the correct pose from the first loop. Guard the zone logic in `TurretSubsystem.periodic()` with a `questNav.isTracking()` check to handle the brief period before QuestNav has valid data.
 
@@ -165,7 +169,7 @@ Add a note in the turret section clarifying that the red goal coordinates are fi
 | `TurretSubsystem.java` | Alliance-aware aiming, field zone hood logic |
 | `QuestSubsystem.java` | Add public `setPose(Pose3d)` method wrapping `questNav.setPose()` |
 | `DrivetrainSubsystem.java` | Add `getChassisSpeeds()` method for AutoBuilder |
-| `Robot.java` | Seed QuestNav pose in `autonomousInit()` (drivetrain seeded by PathPlanner's `resetOdom`) |
+| `Robot.java` | Call `m_robotContainer.seedAutoStartPose()` in `autonomousInit()` |
 | `ABOUT4.md` | New file describing autonomous paths |
 | `ABOUT1.md` | Minor note about red goal mirroring |
 
