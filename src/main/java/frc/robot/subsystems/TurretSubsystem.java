@@ -158,11 +158,11 @@ public class TurretSubsystem extends SubsystemBase {
     double TurretThetaTargetRaw1 = -Math.atan2(vY, vX)
       + TurretYaw
       + Constants.TurretSubsystemConstants.TurretRotateScoreOffset;
-    while (TurretThetaTargetRaw < -Math.PI) {
-      TurretThetaTargetRaw += 2.0 * Math.PI;
+    while (TurretThetaTargetRaw1 < -Math.PI) {
+      TurretThetaTargetRaw1 += 2.0 * Math.PI;
     }
-    while (TurretThetaTargetRaw > Math.PI) {
-      TurretThetaTargetRaw -= 2.0 * Math.PI;
+    while (TurretThetaTargetRaw1 > Math.PI) {
+      TurretThetaTargetRaw1 -= 2.0 * Math.PI;
     }
     double TurretThetaTargetRaw2 = TurretThetaTargetRaw1;
     double BestDist = 2.0 * Math.PI;
@@ -183,15 +183,8 @@ public class TurretSubsystem extends SubsystemBase {
     TurretThetaTarget = MathUtil.clamp(
       TurretThetaTargetRaw2,
       -3.49066,
-      3.49066,
+      3.49066
     );
-    // TurretThetaTarget = MathUtil.clamp(
-    //   -Math.atan2(vY, vX)
-    //     + TurretYaw
-    //     + Constants.TurretSubsystemConstants.TurretRotateScoreOffset,
-    //   -3.49066,
-    //   3.49066,
-    // );
 
     s_TurretRotateMotor.set(
     (TurretRotatePID.calculate(TurretThetaActual, TurretThetaTarget)) +
