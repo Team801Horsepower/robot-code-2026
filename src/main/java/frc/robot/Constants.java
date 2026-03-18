@@ -74,12 +74,12 @@ public final class Constants {
     public static final double kRetractMinPosition = 0.0;
     public static final double kRetractMaxPosition = 1.0;
 
-    // PID gains for hopper extension. TODO: tune.
-    public static final double kExtendP = 0;
+    // PID gains for hopper extension
+    public static final double kExtendP = 0.09;
     public static final double kExtendI = 0;
     public static final double kExtendD = 0;
-    // PID gains for hopper retraction. TODO: tune.
-    public static final double kRetractP = 0;
+    // PID gains for hopper retraction
+    public static final double kRetractP = 0.065;
     public static final double kRetractI = 0;
     public static final double kRetractD = 0;
 

@@ -72,13 +72,9 @@ public class Hopper extends SubsystemBase {
     m_encoder = m_motor.getEncoder();
     m_encoder.setPosition(0);
 
-    // Editable PID gains via SmartDashboard / AdvantageScope
-    SmartDashboard.putNumber("Hopper PID/Extend kP", HopperConstants.kExtendP);
-    SmartDashboard.putNumber("Hopper PID/Extend kI", HopperConstants.kExtendI);
-    SmartDashboard.putNumber("Hopper PID/Extend kD", HopperConstants.kExtendD);
-    SmartDashboard.putNumber("Hopper PID/Retract kP", HopperConstants.kRetractP);
-    SmartDashboard.putNumber("Hopper PID/Retract kI", HopperConstants.kRetractI);
-    SmartDashboard.putNumber("Hopper PID/Retract kD", HopperConstants.kRetractD);
+    // Publish PID controllers as Sendables for editing in Shuffleboard/AdvantageScope
+    SmartDashboard.putData("Hopper Extend PID", m_extendPid);
+    SmartDashboard.putData("Hopper Retract PID", m_retractPid);
 
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Hopper");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
@@ -174,14 +170,6 @@ public class Hopper extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // Read editable PID gains from SmartDashboard
-    m_extendPid.setP(SmartDashboard.getNumber("Hopper PID/Extend kP", HopperConstants.kExtendP));
-    m_extendPid.setI(SmartDashboard.getNumber("Hopper PID/Extend kI", HopperConstants.kExtendI));
-    m_extendPid.setD(SmartDashboard.getNumber("Hopper PID/Extend kD", HopperConstants.kExtendD));
-    m_retractPid.setP(SmartDashboard.getNumber("Hopper PID/Retract kP", HopperConstants.kRetractP));
-    m_retractPid.setI(SmartDashboard.getNumber("Hopper PID/Retract kI", HopperConstants.kRetractI));
-    m_retractPid.setD(SmartDashboard.getNumber("Hopper PID/Retract kD", HopperConstants.kRetractD));
-
     if (m_pidActive) {
       PIDController activePid = m_extending ? m_extendPid : m_retractPid;
       double output = activePid.calculate(m_encoder.getPosition(), m_setpoint);
