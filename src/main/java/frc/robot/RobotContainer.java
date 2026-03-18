@@ -109,6 +109,9 @@ public class RobotContainer {
   private void configureDefaultCommands() {
     m_drive.setDefaultCommand(
         m_drive.applyRequest(() -> buildFieldCentricRequest()));
+    m_gather.setDefaultCommand(Commands.run(() -> m_gather.rest(), m_gather));
+    m_spindex.setDefaultCommand(Commands.run(() -> m_spindex.rest(), m_spindex));
+    m_feeder.setDefaultCommand(Commands.run(() -> m_feeder.rest(), m_feeder));
   }
 
   private SwerveRequest.FieldCentric buildFieldCentricRequest() {
