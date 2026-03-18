@@ -17,7 +17,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "gathering"
+                  "name": "shoot"
                 }
               }
             ]
@@ -55,7 +55,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "gathering"
+                  "name": "shoot"
                 }
               }
             ]

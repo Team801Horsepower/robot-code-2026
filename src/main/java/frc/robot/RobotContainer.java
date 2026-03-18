@@ -137,7 +137,7 @@ public class RobotContainer {
     // Left trigger (>0.08, held) → scaled intake (trigger axis = gather power)
     m_driverController
         .leftTrigger(0.08)
-        .whileTrue(new Gathering(m_possession,
+        .whileTrue(new Gathering(m_possession, m_gather, m_hopper,
             () -> m_driverController.getLeftTriggerAxis()));
 
     // Left bumper (held) → reverse intake at configurable full power
@@ -151,7 +151,7 @@ public class RobotContainer {
         .rightTrigger(0.15)
         .onTrue(Commands.runOnce(() -> m_TurretSubsystem.setHoodAutoAim(true)))
         .onFalse(Commands.runOnce(() -> m_TurretSubsystem.setHoodAutoAim(false)))
-        .whileTrue(new Shoot(m_launch));
+        .whileTrue(new Shoot(m_launch, m_gather, m_spindex, m_feeder));
 
     // X button → retract hopper
     m_driverController
@@ -284,12 +284,11 @@ public class RobotContainer {
     NamedCommands.registerCommand("shoot",
         Commands.sequence(
             Commands.runOnce(() -> m_TurretSubsystem.setHoodAutoAim(true)),
-            new Score(m_manipulator)
-        ).finallyDo(() -> m_TurretSubsystem.setHoodAutoAim(false))
-         .withTimeout(3.0));
+            new Score(m_manipulator, m_gather, m_hopper, m_spindex, m_feeder)
+        ).finallyDo(() -> m_TurretSubsystem.setHoodAutoAim(false)));
 
     NamedCommands.registerCommand("gathering",
-        Commands.run(() -> m_possession.possess(), m_possession));
+        Commands.run(() -> m_possession.possess(), m_possession, m_gather, m_hopper));
   }
 
   // ─── Auto Chooser ─────────────────────────────────────────────────────────
