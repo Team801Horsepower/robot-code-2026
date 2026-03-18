@@ -7,13 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Drive Back and Shoot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Half Way"
+            "pathName": "SimplePath"
           }
         }
       ]

@@ -3,42 +3,56 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.623068431712963,
-        "y": 3.828064380787037
+        "x": 4.061722123444247,
+        "y": 5.039
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.8628488743250156,
-        "y": 3.751574285114193
+        "x": 4.267799739805012,
+        "y": 4.6820630981604685
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.996780164930556,
-        "y": 3.828064380787037
+        "x": 5.292790014151457,
+        "y": 4.494829275372837
       },
       "prevControl": {
-        "x": 2.2464130364898462,
-        "y": 3.8416079931952183
+        "x": 4.519661364176327,
+        "y": 4.494829275372837
+      },
+      "nextControl": {
+        "x": 5.980046769810262,
+        "y": 4.494829275372837
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 6.152,
+        "y": 5.296
+      },
+      "prevControl": {
+        "x": 6.066179328079686,
+        "y": 4.809286783590948
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
-  "constraintZones": [],
-  "pointTowardsZones": [],
-  "eventMarkers": [
+  "rotationTargets": [
     {
-      "name": "Half Way",
-      "waypointRelativePos": 0.5475868866822429,
-      "endWaypointRelativePos": null,
-      "command": null
+      "waypointRelativePos": 1.0,
+      "rotationDegrees": 90.0
     }
   ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 3.5,
     "maxAcceleration": 7.0,
@@ -49,7 +63,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -2.3412832135662596
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,

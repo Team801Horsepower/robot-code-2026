@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -16,16 +19,34 @@ public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
   }
+  public static final class FieldPositioningConstants {
+    /*
+     * STARTING POSITIONS FOR THE BLUE ALLIANCE
+     */
+    //Starting Position Blue Far Left
+    public static final Pose3d RobotStartBlueFarLeft = new Pose3d(0,0,0, new Rotation3d(0,0,0));
+    //Starting Position Blue Left
+    public static final Pose3d RobotStartBlueLeft = new Pose3d(0,0,0, new Rotation3d(0,0,0));
+    //Starting Position Blue Right
+    public static final Pose3d RobotStartBlueRight = new Pose3d(3.079152,4.015336,0, new Rotation3d(0,0,3.14159));
+    //Starting Position Blue Far Right
+    public static final Pose3d RobotStartBlueFarRight = new Pose3d(0,0,0, new Rotation3d(0,0,0));
+
+    /*
+     * STARTING POSITIONS FOR THE RED ALLIANCE
+     */
+    //Starting Position Red Far Left
+    public static final Pose3d RobotStartRedFarLeft = new Pose3d(0,0,0, new Rotation3d(0,0,0));
+    //Starting Position Red Left
+    public static final Pose3d RobotStartRedLeft = new Pose3d(0,0,0, new Rotation3d(0,0,0));
+    //Starting Position Red Right
+    public static final Pose3d RobotStartRedRight = new Pose3d(0,0,0, new Rotation3d(0,0,0));
+    //Starting Position Red Far Right
+    public static final Pose3d RobotStartRedFarRight = new Pose3d(0,0,0, new Rotation3d(0,0,0));
+  }
+
 
   public static final class QuestSubsystemConstants {
-    // Starting Position 1 - Testing
-    public static final double RobotStart1TestX = 3.079152;
-    public static final double RobotStart1TestY = 4.015336;
-    public static final double RobotStart1TestZ = 0.0;
-    public static final double RobotStart1TestRoll = 0.0;
-    public static final double RobotStart1TestPitch = 0.0;
-    public static final double RobotStart1TestYaw = 3.14159;
-
     // Quest to Robot Orientation
     public static final double QuestToRobotX = -0.296671;
     public static final double QuestToRobotY = 0.234704;
@@ -33,7 +54,6 @@ public final class Constants {
     public static final double QuestToRobotRoll = 0.0;
     public static final double QuestToRobotPitch = 0.0;
     public static final double QuestToRobotYaw = 3.14159;
-    
   }
 
   public static final class TurretSubsystemConstants{
@@ -44,15 +64,15 @@ public final class Constants {
     public static final int HoodTiltMotorCANID = 26;
     public static final int TurretRotateEncoderDIOID = 0;
 
-    // Blue Alliance Goal Position
-    public static final double BlueGoalX = 4.635;
-    public static final double BlueGoalY = 4.034;
-    public static final double BlueGoalZ = 1.0;
+    // Blue Alliance TargetPositions
+    public static final Pose3d BlueAllianceGoal = new Pose3d(4.635,4.034,0, new Rotation3d(0,0,0));
+    public static final Pose3d AimPointB1 = new Pose3d(0,0,0, new Rotation3d(0,0,0));
+    public static final Pose3d AimPointB2 = new Pose3d(0,0,0, new Rotation3d(0,0,0));
 
-    // Red Alliance Goal Position
-    public static final double RedGoalX = 1.0;
-    public static final double RedGoalY = 1.0;
-    public static final double RedGoalZ = 1.0;
+    // Red Alliance Goal TargetPositions
+    public static final Pose3d RedAllianceGoal = new Pose3d(0,0,0, new Rotation3d(0,0,0));
+    public static final Pose3d AimPointR1 = new Pose3d(0,0,0, new Rotation3d(0,0,0));
+    public static final Pose3d AimPointR2 = new Pose3d(0,0,0, new Rotation3d(0,0,0));
     
     // Robot To Turret
     public static final double RobotToTurretX = -0.103165;

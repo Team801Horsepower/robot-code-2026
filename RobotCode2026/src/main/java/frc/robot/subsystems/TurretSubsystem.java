@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import java.util.Optional;
+
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -13,7 +15,9 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import com.revrobotics.spark.config.SparkFlexConfig;
@@ -76,6 +80,11 @@ public class TurretSubsystem extends SubsystemBase {
   public double ShooterVelocityTarget;
   public double ShooterVelocityActual;
 
+  //Alliance
+  public Optional<Alliance> AllianceColor;
+  public double GoalX;
+  public double GoalY;
+
   public TurretSubsystem() {
     s_HoodTiltMotor.getEncoder().setPosition(0);
 
@@ -98,11 +107,39 @@ public class TurretSubsystem extends SubsystemBase {
     TurretYaw = TurretRotation.getZ();
 
     /*
-     * Creates a 2D unit vector from the robot to the goal.
-     * Calculates distance to goal.
+     * Creates a 2D unit vector from the robot to a specified target. 
+     * When in in alliance zone will aim at goal.
+     * When in the center of the fiel will aim to either side of the goal.
      */
-    vX = Constants.TurretSubsystemConstants.BlueGoalX - TurretX;
-    vY = Constants.TurretSubsystemConstants.BlueGoalY - TurretY;
+    AllianceColor = DriverStation.getAlliance();
+    if (AllianceColor.get() == Alliance.Red) {
+      if (TurretX < 11.915394 && TurretY < 4.034536) {
+        vX = Constants.TurretSubsystemConstants.AimPointR1.getX() - TurretX;
+        vY = Constants.TurretSubsystemConstants.AimPointR1.getY() - TurretY;
+      }
+      else if (TurretX < 11.915394 && TurretY > 4.034536) {
+        vX = Constants.TurretSubsystemConstants.AimPointR2.getX() - TurretX;
+        vY = Constants.TurretSubsystemConstants.AimPointR2.getY() - TurretY;
+      }
+      else {
+        vX = Constants.TurretSubsystemConstants.RedAllianceGoal.getX() - TurretX;
+        vY = Constants.TurretSubsystemConstants.RedAllianceGoal.getY() - TurretY;
+      }
+    }
+    else {
+      if (TurretX > 4.625594 && TurretY < 4.034536) {
+        vX = Constants.TurretSubsystemConstants.AimPointB2.getX() - TurretX;
+        vY = Constants.TurretSubsystemConstants.AimPointB2.getY() - TurretY;
+      }
+      else if (TurretX > 4.625594 && TurretY > 4.034536) {
+        vX = Constants.TurretSubsystemConstants.AimPointB1.getX() - TurretX;
+        vY = Constants.TurretSubsystemConstants.AimPointB1.getY() - TurretY;
+      }
+      else {
+        vX = Constants.TurretSubsystemConstants.BlueAllianceGoal.getX() - TurretX;
+        vY = Constants.TurretSubsystemConstants.BlueAllianceGoal.getY() - TurretY;
+      }
+    }
     
     DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
 

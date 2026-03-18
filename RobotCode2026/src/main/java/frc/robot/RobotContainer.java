@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.FeederSubsystem;
@@ -55,9 +56,6 @@ public class RobotContainer {
     private final QuestSubsystem questnav = new QuestSubsystem();
     private final SpindexerSubsystem spindexer = new SpindexerSubsystem();
     private final TurretSubsystem turret = new TurretSubsystem();
-
-    //private final ShootCommand shootcommand = new ShootCommand();
-    //private final GatherCommand gathercommand = new GatherCommand();
 
     /* Path follower */
     private final SendableChooser<Command> autoChooser;
@@ -114,9 +112,6 @@ public class RobotContainer {
         joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
         drivetrain.registerTelemetry(logger::telemeterize);
-
-        //joystick.rightTrigger(0.5).whileTrue(shootcommand);
-        //joystick.leftTrigger(0.5).whileTrue(gathercommand);
 
         joystick.y().onTrue(Commands
         .run(()-> hopper.HopperExtend(), hopper)

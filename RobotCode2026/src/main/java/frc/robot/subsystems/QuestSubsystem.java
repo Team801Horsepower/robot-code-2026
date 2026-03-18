@@ -10,6 +10,8 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import gg.questnav.questnav.PoseFrame;
@@ -21,15 +23,6 @@ public class QuestSubsystem extends SubsystemBase {
   public Pose3d RobotPose = new Pose3d();
   public Pose3d QuestPose = new Pose3d();
   
-  Pose3d RobotStartingPosition = new Pose3d(
-    Constants.QuestSubsystemConstants.RobotStart1TestX, 
-    Constants.QuestSubsystemConstants.RobotStart1TestY, 
-    Constants.QuestSubsystemConstants.RobotStart1TestZ, 
-    new Rotation3d(
-      Constants.QuestSubsystemConstants.RobotStart1TestRoll, 
-      Constants.QuestSubsystemConstants.RobotStart1TestPitch, 
-      Constants.QuestSubsystemConstants.RobotStart1TestYaw));
-
   Transform3d QuestToRobot = new Transform3d(
     Constants.QuestSubsystemConstants.QuestToRobotX, 
     Constants.QuestSubsystemConstants.QuestToRobotY, 
@@ -40,10 +33,23 @@ public class QuestSubsystem extends SubsystemBase {
       Constants.QuestSubsystemConstants.QuestToRobotYaw));
 
   StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
+  private final SendableChooser<Pose3d> RobotStartingPositionChooser = new SendableChooser<>();
 
   /** Creates a new QuestSubsystem. */
   public QuestSubsystem() {
-    questNav.setPose(RobotStartingPosition);
+    RobotStartingPositionChooser.addOption("BlueFarLeft", Constants.FieldPositioningConstants.RobotStartBlueFarLeft);
+    RobotStartingPositionChooser.addOption("BlueLeft", Constants.FieldPositioningConstants.RobotStartBlueLeft);
+    RobotStartingPositionChooser.addOption("BlueRight", Constants.FieldPositioningConstants.RobotStartBlueRight);
+    RobotStartingPositionChooser.addOption("BlueFarRight", Constants.FieldPositioningConstants.RobotStartBlueFarRight);
+    RobotStartingPositionChooser.addOption("RedFarLeft", Constants.FieldPositioningConstants.RobotStartRedFarLeft);
+    RobotStartingPositionChooser.addOption("RedLeft", Constants.FieldPositioningConstants.RobotStartRedLeft);
+    RobotStartingPositionChooser.addOption("RedRight", Constants.FieldPositioningConstants.RobotStartRedRight);
+    RobotStartingPositionChooser.addOption("RedFarRight", Constants.FieldPositioningConstants.RobotStartRedFarRight);
+    SmartDashboard.putData("RobotStartingPosition", RobotStartingPositionChooser);
+
+    RobotPose = RobotStartingPositionChooser.getSelected();
+    QuestPose = RobotPose.transformBy(QuestToRobot.inverse());
+    questNav.setPose(QuestPose);;
   }
 
   @Override
@@ -58,12 +64,12 @@ public class QuestSubsystem extends SubsystemBase {
                 // Get the pose of the Quest
                 QuestPose = questFrame.questPose3d();
                 RobotPose = QuestPose.transformBy(QuestToRobot);
-                
+
                 // Get timestamp for when the data was sent
                 double timestamp = questFrame.dataTimestamp();
             }
-
-    publisher.set(RobotPose.toPose2d());
     }
+
+  publisher.set(RobotPose.toPose2d());
   }
 }
