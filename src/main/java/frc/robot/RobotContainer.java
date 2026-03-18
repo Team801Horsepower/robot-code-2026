@@ -288,8 +288,8 @@ public class RobotContainer {
         ).finallyDo(() -> m_TurretSubsystem.setHoodAutoAim(false))
          .withTimeout(3.0));
 
-    NamedCommands.registerCommand("intake",
-        Commands.run(() -> m_gather.gather(GatherConstants.kDefaultPower), m_gather));
+    NamedCommands.registerCommand("gathering",
+        Commands.run(() -> m_possession.possess(), m_possession));
   }
 
   // ─── Auto Chooser ─────────────────────────────────────────────────────────
