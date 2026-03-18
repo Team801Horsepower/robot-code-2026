@@ -29,11 +29,11 @@ public class HopperSubsystem extends SubsystemBase {
   double HopperExtendMotorPower;
   double HopperRetractMotorPower;
 
-  double HopperExtendMinPosition = 0.0;
-  double HopperExtendMaxPosition = 0.0;
+  double HopperExtendMinPosition = 26;
+  double HopperExtendMaxPosition = 27.183872;
 
   double HopperRetractMinPosition = 0.0;
-  double HopperRetractMaxPosition = 0.0;
+  double HopperRetractMaxPosition = 1;
 
   public HopperSubsystem() {
     HopperMotor.getEncoder().setPosition(0);
@@ -41,19 +41,15 @@ public class HopperSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    HopperExtentionTarget = SmartDashboard.getNumber("HopperExtentionTarget", 0);
-    HopperRetractionTarget = SmartDashboard.getNumber("HopperRetractionTarget", 0);
-    SmartDashboard.putNumber("Hopper Etention Actual", HopperExtentionActual);
-
     HopperEncoder = HopperMotor.getEncoder();
     HopperExtentionActual = HopperEncoder.getPosition();
-
-    SmartDashboard.putData("HopperExtentionPID", HopperExtentionPID);
-    SmartDashboard.putData("HopperretractionPID", HopperRetractionPID);
 
     HopperExtendMotorPower = HopperExtentionPID.calculate(HopperExtentionActual, HopperExtentionTarget);
     HopperRetractMotorPower = HopperRetractionPID.calculate(HopperExtentionActual, HopperRetractionTarget);
     
+    SmartDashboard.putData("HopperExtentionPID", HopperExtentionPID);
+    SmartDashboard.putData("HopperretractionPID", HopperRetractionPID);
+    SmartDashboard.putNumber("Hopper Etention Actual", HopperExtentionActual);
   }
 
   public void HopperExtend() {
