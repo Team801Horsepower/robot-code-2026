@@ -153,10 +153,45 @@ public class TurretSubsystem extends SubsystemBase {
      * Feedforward helps to overcome system resistance.
      * Feedback drives turret motor to target turret rotate theta.
      */
-    TurretThetaActual = (s_TurretRotateEncoder.get()) - Constants.TurretSubsystemConstants.TurretRotateOffset;
-    TurretThetaTarget = MathUtil.clamp(((-Math.atan2(vY, vX) + (TurretYaw)) + 
-    Constants.TurretSubsystemConstants.TurretRotateScoreOffset), -3.49066, 3.49066
+    TurretThetaActual = s_TurretRotateEncoder.get() - Constants.TurretSubsystemConstants.TurretRotateOffset;
+    // Theta target without accounting for 360ing
+    double TurretThetaTargetRaw1 = -Math.atan2(vY, vX)
+      + TurretYaw
+      + Constants.TurretSubsystemConstants.TurretRotateScoreOffset;
+    while (TurretThetaTargetRaw < -Math.PI) {
+      TurretThetaTargetRaw += 2.0 * Math.PI;
+    }
+    while (TurretThetaTargetRaw > Math.PI) {
+      TurretThetaTargetRaw -= 2.0 * Math.PI;
+    }
+    double TurretThetaTargetRaw2 = TurretThetaTargetRaw1;
+    double BestDist = 2.0 * Math.PI;
+    for (int i = -1; i <= 1; i++) {
+      double PossibleTarget = TurretThetaTargetRaw1 + (double)i * 2.0 * Math.PI;
+      double Min = -3.49066;
+      double Max = 3.49066;
+      if (PossibleTarget <= Min || PossibleTarget >= Max) {
+        continue;
+      }
+      double Dist = Math.abs(PossibleTarget - TurretThetaActual);
+      if (Dist >= BestDist) {
+        continue;
+      }
+      BestDist = Dist;
+      TurretThetaTargetRaw2 = PossibleTarget;
+    }
+    TurretThetaTarget = MathUtil.clamp(
+      TurretThetaTargetRaw2,
+      -3.49066,
+      3.49066,
     );
+    // TurretThetaTarget = MathUtil.clamp(
+    //   -Math.atan2(vY, vX)
+    //     + TurretYaw
+    //     + Constants.TurretSubsystemConstants.TurretRotateScoreOffset,
+    //   -3.49066,
+    //   3.49066,
+    // );
 
     s_TurretRotateMotor.set(
     (TurretRotatePID.calculate(TurretThetaActual, TurretThetaTarget)) +
