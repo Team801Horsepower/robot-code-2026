@@ -35,7 +35,7 @@ public class TurretSubsystem extends SubsystemBase {
   SimpleMotorFeedforward TurretRotateFeedForward = new SimpleMotorFeedforward(0, 0);
   PIDController TurretHoodPID = new PIDController(0.9, 0.003, 0);
   SimpleMotorFeedforward TurretHoodFeedForward = new SimpleMotorFeedforward(0, 0, 0);
-  PIDController ShooterPID = new PIDController(0.005, 0.001, 0);
+  PIDController ShooterPID = new PIDController(0.005, 0.002, 0.002);
   SimpleMotorFeedforward ShooterFeedForward = new SimpleMotorFeedforward(0, 0.0022, 0.0);
   
   QuestSubsystem questNav = new QuestSubsystem();
@@ -88,7 +88,7 @@ public class TurretSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("ShooterVelocityEficiencey", Constants.TurretSubsystemConstants.ShooterVelcoityEfficiency);
     SmartDashboard.putNumber("TurretRotateScoreOffset", Constants.TurretSubsystemConstants.TurretRotateScoreOffset);
     SmartDashboard.putNumber("BallVelocityTarget", 0);
-    ShooterPID.setIZone(50.0);
+    ShooterPID.setIZone(750);
   }
 
   @Override
@@ -151,8 +151,8 @@ public class TurretSubsystem extends SubsystemBase {
      * Feedforward drives flywheel to target velocity.
      * Feedback drives flywheel to target velocity. 
      */
-    //BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + 0.0394 * Math.pow(DistanceToGoal, 2);
-    BallVelocityTarget = SmartDashboard.getNumber("BallVelocityTarget", 0);
+    BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + 0.0394 * Math.pow(DistanceToGoal, 2);
+    //BallVelocityTarget = SmartDashboard.getNumber("BallVelocityTarget", 0);
     ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterWheelCircumference);
     ShooterEncoder = s_ShooterMotorLeft.getEncoder();
     ShooterVelocityActual = ShooterEncoder.getVelocity();
@@ -166,20 +166,10 @@ public class TurretSubsystem extends SubsystemBase {
      * Publishes several values to Smart Dashboard which can be accessed in advantagescope under the Smart Dashboard topic.
      */
     // Turret Numbers
-    SmartDashboard.putNumber("TurretRotateEncoder", TurretThetaActual);
-    SmartDashboard.putNumber("TurretThetaTarget", TurretThetaTarget);
-    SmartDashboard.putNumber("TurretRotateMotorPower", s_TurretRotateMotor.get());
 
     // Hood Numbers
-    SmartDashboard.putNumber("TurretHoodEncoder", HoodThetaActual);
-    SmartDashboard.putNumber("HoodThetaTarget", HoodThetaTarget);
-    SmartDashboard.putNumber("TurretHoodMotorPower", s_HoodTiltMotor.get());
 
     // Shooter Numbers
-    SmartDashboard.putNumber("ShooterVelocityEncoder", ShooterVelocityActual);
-    SmartDashboard.putNumber("ShooterVelocityTarget", ShooterVelocityTarget);
-    SmartDashboard.putNumber("DistanceToGoal", DistanceToGoal);
-    SmartDashboard.putData("ShooterPID", ShooterPID);
   }
 
   public void HoodAim() {

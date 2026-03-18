@@ -85,6 +85,6 @@ public final class Constants {
     public static final int GatherCANID = 23;
   }
   public static final class HopperSubsystemConstants {
-    public static final int HopperCANID = 0;
+    public static final int HopperCANID = 27;
   }
 }
