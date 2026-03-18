@@ -25,9 +25,9 @@ public class Possession extends SubsystemBase {
    * <p>Call repeatedly from a command's execute() loop.
    */
   public void possess() {
-    // if (!m_hopper.check()) {
-    //   m_hopper.extend();
-    // }
+    if (!m_hopper.isExtended()) {
+      m_hopper.extend();
+    }
     m_gather.gather(GatherConstants.kDefaultPower);
   }
 
@@ -37,7 +37,9 @@ public class Possession extends SubsystemBase {
    * <p>Call repeatedly from a command's execute() loop.
    */
   public void possessWithPower(double power) {
-    // m_hopper.extend();
+    if (!m_hopper.isExtended()) {
+      m_hopper.extend();
+    }
     m_gather.gather(power);
   }
 
