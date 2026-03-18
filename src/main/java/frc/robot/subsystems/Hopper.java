@@ -19,8 +19,8 @@ import frc.robot.Constants.HopperConstants;
 /**
  * Hopper – extends and retracts the hopper rail system.
  *
- * <p>Uses the SparkFlex built-in motor encoder with a WPILib software PID controller for
- * closed-loop position control. Units are motor rotations (zeroed on startup).
+ * <p>Uses the SparkFlex built-in motor encoder with separate WPILib software PID controllers
+ * for extension and retraction. Units are motor rotations (zeroed on startup).
  * The DIO Through Bore Encoder is kept initialized but unused.
  */
 public class Hopper extends SubsystemBase {
@@ -28,15 +28,15 @@ public class Hopper extends SubsystemBase {
   private final SparkFlex m_motor;
   private final Encoder m_throughBoreEncoder;
   private final RelativeEncoder m_encoder;
-  private final PIDController m_pid;
+  private final PIDController m_extendPid;
+  private final PIDController m_retractPid;
 
   /** Current PID target (motor rotations). */
   private double m_setpoint = 0.0;
-  /** Whether the software PID loop is active (disabled during testRun). */
+  /** Whether the software PID loop is active (disabled during testRun/stop). */
   private boolean m_pidActive = false;
-
-  /** Tracks whether the hopper is currently considered extended (for {@link #check()}). */
-  private boolean m_extended = false;
+  /** True when the active setpoint is an extension target, false for retraction. */
+  private boolean m_extending = false;
 
   private boolean m_testMode = false;
   private final DoublePublisher m_testPowerPub;
@@ -44,9 +44,12 @@ public class Hopper extends SubsystemBase {
   private final DoublePublisher m_testVelocityPub;
   private final DoublePublisher m_testSetpointPub;
   private final DoublePublisher m_testErrorPub;
-  private final DoublePublisher m_testPPub;
-  private final DoublePublisher m_testIPub;
-  private final DoublePublisher m_testDPub;
+  private final DoublePublisher m_testExtendPPub;
+  private final DoublePublisher m_testExtendIPub;
+  private final DoublePublisher m_testExtendDPub;
+  private final DoublePublisher m_testRetractPPub;
+  private final DoublePublisher m_testRetractIPub;
+  private final DoublePublisher m_testRetractDPub;
 
   public Hopper() {
     m_motor = new SparkFlex(HopperConstants.kMotorId, MotorType.kBrushless);
@@ -54,8 +57,10 @@ public class Hopper extends SubsystemBase {
     // Through Bore Encoder — kept initialized but no longer used for control
     m_throughBoreEncoder = new Encoder(HopperConstants.kEncoderDioA, HopperConstants.kEncoderDioB);
 
-    m_pid = new PIDController(HopperConstants.kP, HopperConstants.kI, HopperConstants.kD);
-
+    m_extendPid = new PIDController(
+        HopperConstants.kExtendP, HopperConstants.kExtendI, HopperConstants.kExtendD);
+    m_retractPid = new PIDController(
+        HopperConstants.kRetractP, HopperConstants.kRetractI, HopperConstants.kRetractD);
 
     SparkFlexConfig config = new SparkFlexConfig();
     config.idleMode(IdleMode.kCoast);
@@ -67,9 +72,13 @@ public class Hopper extends SubsystemBase {
     m_encoder = m_motor.getEncoder();
     m_encoder.setPosition(0);
 
-    SmartDashboard.putNumber("Hopper PID/kP", HopperConstants.kP);
-    SmartDashboard.putNumber("Hopper PID/kI", HopperConstants.kI);
-    SmartDashboard.putNumber("Hopper PID/kD", HopperConstants.kD);
+    // Editable PID gains via SmartDashboard / AdvantageScope
+    SmartDashboard.putNumber("Hopper PID/Extend kP", HopperConstants.kExtendP);
+    SmartDashboard.putNumber("Hopper PID/Extend kI", HopperConstants.kExtendI);
+    SmartDashboard.putNumber("Hopper PID/Extend kD", HopperConstants.kExtendD);
+    SmartDashboard.putNumber("Hopper PID/Retract kP", HopperConstants.kRetractP);
+    SmartDashboard.putNumber("Hopper PID/Retract kI", HopperConstants.kRetractI);
+    SmartDashboard.putNumber("Hopper PID/Retract kD", HopperConstants.kRetractD);
 
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Hopper");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
@@ -77,17 +86,19 @@ public class Hopper extends SubsystemBase {
     m_testVelocityPub = table.getDoubleTopic("VelocityRPM").publish();
     m_testSetpointPub = table.getDoubleTopic("Setpoint").publish();
     m_testErrorPub = table.getDoubleTopic("Error").publish();
-    m_testPPub = table.getDoubleTopic("kP").publish();
-    m_testIPub = table.getDoubleTopic("kI").publish();
-    m_testDPub = table.getDoubleTopic("kD").publish();
-
+    m_testExtendPPub = table.getDoubleTopic("Extend kP").publish();
+    m_testExtendIPub = table.getDoubleTopic("Extend kI").publish();
+    m_testExtendDPub = table.getDoubleTopic("Extend kD").publish();
+    m_testRetractPPub = table.getDoubleTopic("Retract kP").publish();
+    m_testRetractIPub = table.getDoubleTopic("Retract kI").publish();
+    m_testRetractDPub = table.getDoubleTopic("Retract kD").publish();
   }
 
   /** Extends the hopper fully to the configured setpoint. */
   public void extend() {
     m_setpoint = HopperConstants.kExtendedSetpoint;
     m_pidActive = true;
-    m_extended = true;
+    m_extending = true;
   }
 
   /**
@@ -98,22 +109,49 @@ public class Hopper extends SubsystemBase {
   public void extendTo(double pct) {
     m_setpoint = (pct / 100.0) * HopperConstants.kExtendedSetpoint;
     m_pidActive = true;
-    m_extended = pct >= 95.0;
+    m_extending = true;
   }
 
   /** Retracts the hopper to its home position (encoder = 0). */
   public void retract() {
     m_setpoint = 0.0;
     m_pidActive = true;
-    m_extended = false;
+    m_extending = false;
+  }
+
+  /** Stops the hopper motor immediately, disabling PID control. */
+  public void stop() {
+    m_pidActive = false;
+    m_motor.stopMotor();
+  }
+
+  /**
+   * Returns whether the hopper is currently at the extended position,
+   * based on the actual encoder reading.
+   */
+  public boolean isExtended() {
+    double pos = m_encoder.getPosition();
+    return pos >= HopperConstants.kExtendMinPosition
+        && pos <= HopperConstants.kExtendMaxPosition;
+  }
+
+  /**
+   * Returns whether the hopper is currently at the retracted position,
+   * based on the actual encoder reading.
+   */
+  public boolean isRetracted() {
+    double pos = m_encoder.getPosition();
+    return pos >= HopperConstants.kRetractMinPosition
+        && pos <= HopperConstants.kRetractMaxPosition;
   }
 
   /**
    * Returns whether the hopper is currently extended.
-   * Updated by {@link #extend()}, {@link #extendTo(double)}, and {@link #retract()}.
+   * @deprecated Use {@link #isExtended()} for position-based checking.
    */
+  @Deprecated
   public boolean check() {
-    return m_extended;
+    return isExtended();
   }
 
   /** Drives the motor at raw power, bypassing PID control. */
@@ -126,6 +164,7 @@ public class Hopper extends SubsystemBase {
   public void testSetPosition(double position) {
     m_setpoint = position;
     m_pidActive = true;
+    m_extending = position > m_encoder.getPosition();
   }
 
   /** Enables or disables test mode telemetry publishing. */
@@ -135,23 +174,34 @@ public class Hopper extends SubsystemBase {
 
   @Override
   public void periodic() {
-    m_pid.setP(SmartDashboard.getNumber("Hopper PID/kP", HopperConstants.kP));
-    m_pid.setI(SmartDashboard.getNumber("Hopper PID/kI", HopperConstants.kI));
-    m_pid.setD(SmartDashboard.getNumber("Hopper PID/kD", HopperConstants.kD));
+    // Read editable PID gains from SmartDashboard
+    m_extendPid.setP(SmartDashboard.getNumber("Hopper PID/Extend kP", HopperConstants.kExtendP));
+    m_extendPid.setI(SmartDashboard.getNumber("Hopper PID/Extend kI", HopperConstants.kExtendI));
+    m_extendPid.setD(SmartDashboard.getNumber("Hopper PID/Extend kD", HopperConstants.kExtendD));
+    m_retractPid.setP(SmartDashboard.getNumber("Hopper PID/Retract kP", HopperConstants.kRetractP));
+    m_retractPid.setI(SmartDashboard.getNumber("Hopper PID/Retract kI", HopperConstants.kRetractI));
+    m_retractPid.setD(SmartDashboard.getNumber("Hopper PID/Retract kD", HopperConstants.kRetractD));
 
     if (m_pidActive) {
-      double output = m_pid.calculate(m_encoder.getPosition(), m_setpoint);
+      PIDController activePid = m_extending ? m_extendPid : m_retractPid;
+      double output = activePid.calculate(m_encoder.getPosition(), m_setpoint);
       m_motor.set(output);
     }
+
+    SmartDashboard.putNumber("Hopper/Position", m_encoder.getPosition());
+
     if (m_testMode) {
       m_testPowerPub.set(m_motor.get());
       m_testPositionPub.set(m_encoder.getPosition());
       m_testVelocityPub.set(m_encoder.getVelocity());
       m_testSetpointPub.set(m_setpoint);
       m_testErrorPub.set(m_setpoint - m_encoder.getPosition());
-      m_testPPub.set(m_pid.getP());
-      m_testIPub.set(m_pid.getI());
-      m_testDPub.set(m_pid.getD());
+      m_testExtendPPub.set(m_extendPid.getP());
+      m_testExtendIPub.set(m_extendPid.getI());
+      m_testExtendDPub.set(m_extendPid.getD());
+      m_testRetractPPub.set(m_retractPid.getP());
+      m_testRetractIPub.set(m_retractPid.getI());
+      m_testRetractDPub.set(m_retractPid.getD());
     }
   }
 }

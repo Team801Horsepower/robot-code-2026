@@ -67,7 +67,24 @@ public final class Constants {
     public static final double kPartialExtendSetpoint = 23.245955;
     /** Closed-loop position tolerance (motor rotations). */
     public static final double kTolerance = 0.1;
-    // PID gains for hopper position control. TODO: tune.
+
+    // Position thresholds for extended/retracted checks (motor rotations).
+    public static final double kExtendMinPosition = 26.0;
+    public static final double kExtendMaxPosition = 27.183872;
+    public static final double kRetractMinPosition = 0.0;
+    public static final double kRetractMaxPosition = 1.0;
+
+    // PID gains for hopper extension. TODO: tune.
+    public static final double kExtendP = 0;
+    public static final double kExtendI = 0;
+    public static final double kExtendD = 0;
+    // PID gains for hopper retraction. TODO: tune.
+    public static final double kRetractP = 0;
+    public static final double kRetractI = 0;
+    public static final double kRetractD = 0;
+
+    /** @deprecated Use kExtendP instead. Kept for SmartDashboard compatibility. */
+    @Deprecated
     public static final double kP = 0;
     public static final double kI = 0;
     public static final double kD = 0;
