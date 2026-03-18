@@ -21,8 +21,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.Commands.GatherCommand;
-import frc.robot.Commands.ShootCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.FeederSubsystem;
@@ -58,8 +56,8 @@ public class RobotContainer {
     private final SpindexerSubsystem spindexer = new SpindexerSubsystem();
     private final TurretSubsystem turret = new TurretSubsystem();
 
-    private final ShootCommand shootcommand = new ShootCommand();
-    private final GatherCommand gathercommand = new GatherCommand();
+    //private final ShootCommand shootcommand = new ShootCommand();
+    //private final GatherCommand gathercommand = new GatherCommand();
 
     /* Path follower */
     private final SendableChooser<Command> autoChooser;
@@ -117,19 +115,37 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        joystick.rightTrigger(0.5).whileTrue(shootcommand);
-        joystick.leftTrigger(0.5).whileTrue(gathercommand);
+        //joystick.rightTrigger(0.5).whileTrue(shootcommand);
+        //joystick.leftTrigger(0.5).whileTrue(gathercommand);
 
-        joystick.x().onTrue(Commands
+        joystick.y().onTrue(Commands
         .run(()-> hopper.HopperExtend(), hopper)
         .until(()-> hopper.HopperIsExtended())
         .finallyDo(()-> hopper.HopperStop())
         );
-        joystick.y().onTrue(Commands
+        joystick.a().onTrue(Commands
         .run(()-> hopper.HopperRetract(), hopper)
         .until(()-> hopper.HopperIsRetracted())
         .finallyDo(()-> hopper.HopperStop())
         );
+
+        joystick.rightTrigger(0.5).whileTrue(Commands.parallel(
+            Commands.run(()->feeder.Feed(), feeder),
+            Commands.run(()->spindexer.SpindexerForward(), spindexer),
+            Commands.run(()->gather.GatherForward(), gather),
+            Commands.run(()->turret.HoodAim(), turret)
+            )
+        );
+        joystick.rightTrigger(0.5).whileFalse(Commands.parallel(
+            Commands.run(()->feeder.FeederStop(), feeder),
+            Commands.run(()->spindexer.SpindexerStop(), spindexer),
+            Commands.run(()->gather.StopGather(), gather),
+            Commands.run(()->turret.HoodReset(), turret)
+            )
+        );
+
+        joystick.leftTrigger(0.5).whileTrue(Commands.run(()-> gather.GatherForward(), gather));
+        joystick.leftTrigger(0.5).whileFalse(Commands.run(()-> gather.StopGather(), gather));
     }
 
     public Command getAutonomousCommand() {

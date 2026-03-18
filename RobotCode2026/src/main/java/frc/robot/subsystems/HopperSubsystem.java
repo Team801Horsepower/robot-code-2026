@@ -19,21 +19,21 @@ public class HopperSubsystem extends SubsystemBase {
   SparkFlex HopperMotor = new SparkFlex(Constants.HopperSubsystemConstants.HopperCANID, MotorType.kBrushless);
   RelativeEncoder HopperEncoder;
 
-  PIDController HopperExtentionPID = new PIDController(0, 0, 0);
-  PIDController HopperRetractionPID = new PIDController(0, 0, 0);
+  PIDController HopperExtentionPID = new PIDController(0.09, 0, 0);
+  PIDController HopperRetractionPID = new PIDController(0.065, 0, 0);
 
-  double HopperExtentionTarget = 27.183872;
-  double HopperRetractionTarget = 0.0;
+  double HopperExtentionTarget = 28;
+  double HopperRetractionTarget = 0;
   double HopperExtentionActual;
 
   double HopperExtendMotorPower;
   double HopperRetractMotorPower;
 
-  double HopperExtendMinPosition = 26;
-  double HopperExtendMaxPosition = 27.183872;
+  double HopperExtendMinPosition = 27.75;
+  double HopperExtendMaxPosition = 27;
 
-  double HopperRetractMinPosition = 0.0;
-  double HopperRetractMaxPosition = 1;
+  double HopperRetractMinPosition = 0.75;
+  double HopperRetractMaxPosition = 1.5;
 
   public HopperSubsystem() {
     HopperMotor.getEncoder().setPosition(0);
@@ -50,6 +50,10 @@ public class HopperSubsystem extends SubsystemBase {
     SmartDashboard.putData("HopperExtentionPID", HopperExtentionPID);
     SmartDashboard.putData("HopperretractionPID", HopperRetractionPID);
     SmartDashboard.putNumber("Hopper Etention Actual", HopperExtentionActual);
+
+    SmartDashboard.putNumber("HopperExtentionActual", HopperExtentionActual);
+    SmartDashboard.putNumber("HopperretractionSetpoint", HopperRetractionTarget);
+    SmartDashboard.putNumber("HopperExtentionSetpoint", HopperExtentionTarget);
   }
 
   public void HopperExtend() {

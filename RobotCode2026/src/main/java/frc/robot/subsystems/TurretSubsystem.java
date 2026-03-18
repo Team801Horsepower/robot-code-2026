@@ -14,7 +14,6 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import com.revrobotics.spark.config.SparkFlexConfig;
@@ -83,11 +82,6 @@ public class TurretSubsystem extends SubsystemBase {
     SparkFlexConfig GlobalConfig = new SparkFlexConfig();
     SparkFlexConfig ShooterRightFollowerConfig = new SparkFlexConfig();
     ShooterRightFollowerConfig.inverted(true).apply((GlobalConfig).follow(s_ShooterMotorRight));
-
-    SmartDashboard.putNumber("ShooterVelocityMultiplier", Constants.TurretSubsystemConstants.ShooterVelocityMultiplier);
-    SmartDashboard.putNumber("ShooterVelocityEficiencey", Constants.TurretSubsystemConstants.ShooterVelcoityEfficiency);
-    SmartDashboard.putNumber("TurretRotateScoreOffset", Constants.TurretSubsystemConstants.TurretRotateScoreOffset);
-    SmartDashboard.putNumber("BallVelocityTarget", 0);
     ShooterPID.setIZone(750);
   }
 
