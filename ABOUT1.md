@@ -179,6 +179,7 @@ rest()
 * Automatically calculates turret rotation, hood angle, and flywheel velocity based on distance to goal
 * Goal coordinates are alliance-aware: blue goal at (4.635, 4.034), red goal at (11.9068, 4.034). Red is X-mirrored from blue; Y is preserved per standard FRC field mirroring.
 * Uses PID + feedforward control for turret rotate, hood tilt, and shooter motors
+* The turret automatically compensates for robot velocity by leading its rotation target, allowing scoring while moving at reduced drive speed
 * Supports test mode (setTestMode/testRunLaunch/testRunHood/testRunRotate) for manual control
 
 

@@ -19,6 +19,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import java.util.function.Supplier;
 
 public class TurretSubsystem extends SubsystemBase {
 
@@ -39,6 +42,7 @@ public class TurretSubsystem extends SubsystemBase {
   SimpleMotorFeedforward ShooterFeedForward = new SimpleMotorFeedforward(0, 0.0022, 0.0);
   
   private final QuestSubsystem questNav;
+  private final Supplier<ChassisSpeeds> m_chassisSpeedsSupplier;
 
   Transform3d RobotToTurret = new Transform3d(
     Constants.TurretSubsystemConstants.RobotToTurretX, 
@@ -91,8 +95,9 @@ public class TurretSubsystem extends SubsystemBase {
     m_alliance = alliance;
   }
 
-  public TurretSubsystem(QuestSubsystem questNav) {
+  public TurretSubsystem(QuestSubsystem questNav, Supplier<ChassisSpeeds> chassisSpeedsSupplier) {
     this.questNav = questNav;
+    this.m_chassisSpeedsSupplier = chassisSpeedsSupplier;
     s_HoodTiltMotor.getEncoder().setPosition(0);
 
     SparkFlexConfig GlobalConfig = new SparkFlexConfig();
@@ -146,6 +151,9 @@ public class TurretSubsystem extends SubsystemBase {
     
     DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
 
+    // Ball velocity needed for both lead compensation and shooter control
+    BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + -0.0394 * Math.pow(DistanceToGoal, 2);
+
     /*
      * TURRET ROTATE
      * Takes the tanget of the 2D unit vector to get the heading of the goal relative the robot.
@@ -154,10 +162,39 @@ public class TurretSubsystem extends SubsystemBase {
      * Feedback drives turret motor to target turret rotate theta.
      */
     TurretThetaActual = s_TurretRotateEncoder.get() - Constants.TurretSubsystemConstants.TurretRotateOffset;
-    // Theta target without accounting for 360ing
+
     double TurretThetaTargetRaw1 = -Math.atan2(vY, vX)
       + TurretYaw
       + Constants.TurretSubsystemConstants.TurretRotateScoreOffset;
+
+    // ── Lead compensation ──────────────────────────────────────────────
+    // Skip lead calc if too close to goal (avoid division by zero)
+    double leadOffset = 0.0;
+    if (DistanceToGoal > 0.1 && BallVelocityTarget > 0.1) {
+      // Convert robot-relative chassis speeds to field-relative
+      // Note: TurretYaw equals robot heading because RobotToTurretYaw = 0.0
+      // Note: ChassisSpeeds source is CTRE odometry; heading is from QuestNav
+      ChassisSpeeds robotSpeeds = m_chassisSpeedsSupplier.get();
+      ChassisSpeeds fieldSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
+          robotSpeeds, Rotation2d.fromRadians(TurretYaw));
+
+      // Unit vector from turret to goal
+      double uX = vX / DistanceToGoal;
+      double uY = vY / DistanceToGoal;
+
+      // Perpendicular direction (90° CCW rotation of unit vector)
+      // Signed dot product gives velocity component perpendicular to goal line
+      double vPerp = fieldSpeeds.vxMetersPerSecond * (-uY)
+                   + fieldSpeeds.vyMetersPerSecond * uX;
+
+      // Lead offset: atan(v_perp / ball_velocity) — distance cancels out of flight time
+      leadOffset = Math.atan(vPerp / BallVelocityTarget)
+                        * Constants.TurretSubsystemConstants.kLeadFactor;
+    }
+    SmartDashboard.putNumber("LeadOffset", Math.toDegrees(leadOffset));
+
+    TurretThetaTargetRaw1 += leadOffset;
+
     while (TurretThetaTargetRaw1 < -Math.PI) {
       TurretThetaTargetRaw1 += 2.0 * Math.PI;
     }
@@ -243,7 +280,6 @@ public class TurretSubsystem extends SubsystemBase {
      * Feedforward drives flywheel to target velocity.
      * Feedback drives flywheel to target velocity. 
      */
-    BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + -0.0394 * Math.pow(DistanceToGoal, 2);
     ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterWheelCircumference);
     ShooterEncoder = s_ShooterMotorLeft.getEncoder();
     ShooterVelocityActual = ShooterEncoder.getVelocity();
