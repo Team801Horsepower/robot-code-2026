@@ -16,9 +16,13 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathPlannerPath;
+
+import java.util.List;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -26,7 +30,6 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj.DriverStation;
 
-import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.GatherConstants;
 import frc.robot.Constants.HopperConstants;
@@ -328,41 +331,21 @@ public class RobotContainer {
     m_cachedAlliance = allianceOpt.orElse(DriverStation.Alliance.Blue);
     m_TurretSubsystem.setAlliance(m_cachedAlliance);
 
-    // Determine starting pose from selected auto name
+    // Derive starting pose from the first path in the selected auto file
     Command selected = m_autoChooser.getSelected();
     String autoName = selected != null ? selected.getName() : "";
 
-    double startX, startY, startYaw;
-    if (autoName.startsWith("CH")) {
-      startX = AutoConstants.kCenterStartX;
-      startY = AutoConstants.kCenterStartY;
-      startYaw = AutoConstants.kCenterStartYaw;
-    } else if (autoName.startsWith("FL")) {
-      startX = AutoConstants.kFarLeftStartX;
-      startY = AutoConstants.kFarLeftStartY;
-      startYaw = AutoConstants.kFarLeftStartYaw;
-    } else if (autoName.startsWith("FR")) {
-      startX = AutoConstants.kFarRightStartX;
-      startY = AutoConstants.kFarRightStartY;
-      startYaw = AutoConstants.kFarRightStartYaw;
-    } else if (autoName.startsWith("L")) {
-      startX = AutoConstants.kLeftStartX;
-      startY = AutoConstants.kLeftStartY;
-      startYaw = AutoConstants.kLeftStartYaw;
-    } else if (autoName.startsWith("R")) {
-      startX = AutoConstants.kRightStartX;
-      startY = AutoConstants.kRightStartY;
-      startYaw = AutoConstants.kRightStartYaw;
-    } else {
-      // Default/Dummy — use center
-      startX = AutoConstants.kCenterStartX;
-      startY = AutoConstants.kCenterStartY;
-      startYaw = AutoConstants.kCenterStartYaw;
+    Pose2d startPose2d = new Pose2d();
+    try {
+      List<PathPlannerPath> paths = PathPlannerAuto.getPathGroupFromAutoFile(autoName);
+      if (!paths.isEmpty()) {
+        startPose2d = paths.get(0).getStartingHolonomicPose().orElse(new Pose2d());
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
 
-    Pose3d startPose = new Pose3d(startX, startY, 0.0,
-        new Rotation3d(0.0, 0.0, startYaw));
-    m_QuestSubsystem.setPose(startPose);
+    m_QuestSubsystem.setPose(new Pose3d(startPose2d));
   }
 
   /**

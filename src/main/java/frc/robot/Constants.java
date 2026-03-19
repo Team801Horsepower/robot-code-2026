@@ -256,35 +256,4 @@ public final class Constants {
     }
   }
 
-  // ─── Autonomous ─────────────────────────────────────────────────────────────
-
-  public static final class AutoConstants {
-    // Starting positions extracted from PathPlanner path first waypoint anchors.
-    // These are robot-center poses (PathPlanner uses robot-center coordinates).
-
-    // Center start (linked name "Center" in C-H1.path, C-D1.path)
-    public static final double kCenterStartX = 3.586;
-    public static final double kCenterStartY = 4.067;
-    public static final double kCenterStartYaw = Math.PI; // 180 degrees
-
-    // Right start (linked name "Right" in R-S1.path, R-C1.path)
-    public static final double kRightStartX = 3.648;
-    public static final double kRightStartY = 2.210;
-    public static final double kRightStartYaw = 0.0;
-
-    // Left start (linked name "Left" in L-S1.path)
-    public static final double kLeftStartX = 3.637;
-    public static final double kLeftStartY = 5.794;
-    public static final double kLeftStartYaw = Math.PI / 2.0; // 90 degrees
-
-    // Far Right start (linked name "Far Right" in FR-S1.path)
-    public static final double kFarRightStartX = 4.414;
-    public static final double kFarRightStartY = 0.432;
-    public static final double kFarRightStartYaw = 0.0;
-
-    // Far Left start (linked name "Far Left" in FL-S1.path)
-    public static final double kFarLeftStartX = 4.401;
-    public static final double kFarLeftStartY = 7.625;
-    public static final double kFarLeftStartYaw = 0.0;
-  }
 }
