@@ -213,7 +213,7 @@ public final class Constants {
     public static double TurretRotateScoreOffset = 0.232;
 
     /** Multiplier on turret lead offset. 0 = disabled, 1 = full compensation. */
-    public static final double kLeadFactor = 1.0;
+    public static final double kLeadFactor = 2.0;
   }
 
   // ─── Field ──────────────────────────────────────────────────────────────────

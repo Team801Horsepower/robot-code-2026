@@ -191,6 +191,7 @@ public class TurretSubsystem extends SubsystemBase {
       leadOffset = Math.atan(vPerp / BallVelocityTarget)
                         * Constants.TurretSubsystemConstants.kLeadFactor;
     }
+    SmartDashboard.putNumber("LeadOffset", Math.toDegrees(leadOffset));
 
     TurretThetaTargetRaw1 += leadOffset;
 
@@ -295,7 +296,6 @@ public class TurretSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("TurretRotateEncoder", TurretThetaActual);
     SmartDashboard.putNumber("TurretThetaTarget", TurretThetaTarget);
     SmartDashboard.putNumber("TurretRotateMotorPower", s_TurretRotateMotor.get());
-    SmartDashboard.putNumber("LeadOffset", Math.toDegrees(leadOffset));
 
     // Hood Numbers
     SmartDashboard.putNumber("TurretHoodEncoder", HoodThetaActual);
