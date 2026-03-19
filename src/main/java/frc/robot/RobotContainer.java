@@ -20,6 +20,8 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -102,6 +104,11 @@ public class RobotContainer {
     configureTestBindings();
     configureAutoBuilder();
     configureAutoChooser();
+    m_drive.seedPose(new Pose2d(
+      Constants.QuestSubsystemConstants.RobotStart1TestX,
+      Constants.QuestSubsystemConstants.RobotStart1TestY,
+      new Rotation2d(Constants.QuestSubsystemConstants.RobotStart1TestYaw)
+    ));
   }
 
   // ─── Default Commands ──────────────────────────────────────────────────────

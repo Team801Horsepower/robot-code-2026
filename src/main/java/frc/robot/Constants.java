@@ -156,7 +156,7 @@ public final class Constants {
     public static final double RobotStart1TestZ = 0.0;
     public static final double RobotStart1TestRoll = 0.0;
     public static final double RobotStart1TestPitch = 0.0;
-    public static final double RobotStart1TestYaw = 0;
+    public static final double RobotStart1TestYaw = Math.PI;
 
     // Quest to Robot Orientation
     public static final double QuestToRobotX = -0.296671;
