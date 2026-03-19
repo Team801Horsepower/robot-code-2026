@@ -71,10 +71,10 @@ public final class Constants {
     public static final double kTolerance = 0.1;
 
     // Position thresholds for extended/retracted checks (motor rotations).
-    public static final double kExtendMinPosition = 27.75;
-    public static final double kExtendMaxPosition = 28.0;
-    public static final double kRetractMinPosition = 0.05;
-    public static final double kRetractMaxPosition = 0.25;
+    public static final double kExtendMinPosition = 26.75;
+    public static final double kExtendMaxPosition = 27.0;
+    public static final double kRetractMinPosition = 0.75;
+    public static final double kRetractMaxPosition = 1.25;
 
     // PID gains for hopper extension
     public static final double kExtendP = 0.09;
