@@ -26,6 +26,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.DriverStation;
 
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.GatherConstants;
 import frc.robot.Constants.HopperConstants;
 import frc.robot.Constants.OperatorConstants;
@@ -81,6 +82,7 @@ public class RobotContainer {
   private SendableChooser<Command> m_autoChooser;
   private SendableChooser<Pose2d> m_startPositionChooser;
   private Pose2d m_lastSeededPose;
+  private DriverStation.Alliance m_lastSeededAlliance;
 
   // ─── Swerve requests ───────────────────────────────────────────────────────
 
@@ -340,14 +342,21 @@ public class RobotContainer {
           selected = new Pose2d();
       }
 
-      // Only re-seed when the selection actually changes
-      if (selected.equals(m_lastSeededPose)) {
+      DriverStation.Alliance alliance =
+          DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
+
+      // Re-seed when the selection or alliance changes
+      if (selected.equals(m_lastSeededPose) && alliance == m_lastSeededAlliance) {
           return;
       }
       m_lastSeededPose = selected;
+      m_lastSeededAlliance = alliance;
 
-      m_QuestSubsystem.setPose(new Pose3d(selected));
-      m_drive.seedPose(selected);
+      Pose2d pose = (alliance == DriverStation.Alliance.Red)
+          ? flipForRedAlliance(selected) : selected;
+
+      m_QuestSubsystem.setPose(new Pose3d(pose));
+      m_drive.seedPose(pose);
   }
 
   /**
@@ -362,6 +371,7 @@ public class RobotContainer {
 
     // Force re-seed even if chooser hasn't changed (auto init is authoritative)
     m_lastSeededPose = null;
+    m_lastSeededAlliance = null;
     seedFromChooser();
   }
 
@@ -379,5 +389,16 @@ public class RobotContainer {
 
   private static double applyDeadband(double input) {
     return MathUtil.applyDeadband(input, OperatorConstants.kDeadbandDriver);
+  }
+
+  /**
+   * Flips a blue-alliance pose to red-alliance coordinates using 180° rotational
+   * symmetry (both X and Y mirror, heading rotates π).
+   */
+  private static Pose2d flipForRedAlliance(Pose2d bluePose) {
+    return new Pose2d(
+        FieldConstants.kFieldLengthMeters - bluePose.getX(),
+        FieldConstants.kFieldWidthMeters - bluePose.getY(),
+        bluePose.getRotation().plus(Rotation2d.fromRadians(Math.PI)));
   }
 }
