@@ -20,15 +20,6 @@ public class QuestSubsystem extends SubsystemBase {
 
   public Pose3d RobotPose = new Pose3d();
   public Pose3d QuestPose = new Pose3d();
-  
-  Pose3d RobotStartingPosition = new Pose3d(
-    Constants.QuestSubsystemConstants.RobotStart1TestX, 
-    Constants.QuestSubsystemConstants.RobotStart1TestY, 
-    Constants.QuestSubsystemConstants.RobotStart1TestZ, 
-    new Rotation3d(
-      Constants.QuestSubsystemConstants.RobotStart1TestRoll, 
-      Constants.QuestSubsystemConstants.RobotStart1TestPitch, 
-      Constants.QuestSubsystemConstants.RobotStart1TestYaw));
 
   Transform3d QuestToRobot = new Transform3d(
     Constants.QuestSubsystemConstants.QuestToRobotX, 
@@ -42,9 +33,7 @@ public class QuestSubsystem extends SubsystemBase {
   StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
 
   /** Creates a new QuestSubsystem. */
-  public QuestSubsystem() {
-    setPose(RobotStartingPosition);
-  }
+  public QuestSubsystem() {}
 
   /**
    * Seeds QuestNav with a known robot pose. Call at the start of autonomous
