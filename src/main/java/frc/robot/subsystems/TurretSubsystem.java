@@ -236,40 +236,11 @@ public class TurretSubsystem extends SubsystemBase {
        */
       HoodEncoder = s_HoodTiltMotor.getEncoder();
       HoodThetaActual = (((HoodEncoder.getPosition()) / (Constants.TurretSubsystemConstants.HoodGearRatio)) * (2 * Math.PI)) + 0.261799;
-
-      if (m_hoodAutoAimEnabled) {
-        Constants.FieldZone zone = Constants.FieldConstants.getFieldZone(
-            questNav.RobotPose.getX(), m_alliance);
-
-        switch (zone) {
-          case LAUNCH:
-            // Normal auto-aim: polynomial fit from physics analysis
-            HoodThetaTarget = MathUtil.clamp(
-              (0.0136 + 0.234 * DistanceToGoal + -0.0205 * Math.pow(DistanceToGoal, 2)),
-              0.261799, 0.785398
-            );
-            s_HoodTiltMotor.set(
-              (TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)) +
-              (TurretHoodFeedForward.calculate(0))
-            );
-            break;
-
-          case TRENCH:
-            // Retract hood to minimum angle to clear the trench
-            HoodThetaTarget = 0.261799;
-            s_HoodTiltMotor.set(
-              (TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)) +
-              (TurretHoodFeedForward.calculate(0))
-            );
-            break;
-
-          case FAR:
-            // No hood control — future: alternate aiming behavior
-            break;
-        }
-      } else {
-        s_HoodTiltMotor.set(0);
-      }
+      HoodThetaTarget = MathUtil.clamp(
+        (0.0136 + 0.234 * DistanceToGoal + -0.0205 * Math.pow(DistanceToGoal, 2)),
+        0.261799, 0.785398
+      );
+      
     } // end isTracking guard
 
     /*
@@ -321,5 +292,20 @@ public class TurretSubsystem extends SubsystemBase {
     // Shooter Tuning Values
     SmartDashboard.putData(ShooterPID);
     SmartDashboard.putNumber("DistanceToGoal", DistanceToGoal);
+  }
+
+  public void HoodAim() {
+    s_HoodTiltMotor.set(
+      (TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)) +
+      (TurretHoodFeedForward.calculate(0))
+    );
+  }
+
+  public void HoodReset() {
+    double HoodResetTarget = 0.261799;
+    s_HoodTiltMotor.set(
+      (TurretHoodPID.calculate(HoodThetaActual, HoodResetTarget)) +
+      (TurretHoodFeedForward.calculate(0))
+    );
   }
 }
