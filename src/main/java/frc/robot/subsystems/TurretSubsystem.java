@@ -124,152 +124,152 @@ public class TurretSubsystem extends SubsystemBase {
 
     // Only run pose-dependent aiming if QuestNav has valid tracking data
     if (questNav.isTracking()) {
-    /*
-     * Takes robot pose2d published by QuestNav (Position of Quest, NOT position of center of robot)
-     * and offsets it to the center of the turret.
-     */
-    TurretPose = questNav.RobotPose.transformBy(RobotToTurret);
-    TurretX = TurretPose.getX();
-    TurretY = TurretPose.getY();
-    TurretRotation = TurretPose.getRotation();
-    TurretYaw = TurretRotation.getZ();
+      /*
+       * Takes robot pose2d published by QuestNav (Position of Quest, NOT position of center of robot)
+       * and offsets it to the center of the turret.
+       */
+      TurretPose = questNav.RobotPose.transformBy(RobotToTurret);
+      TurretX = TurretPose.getX();
+      TurretY = TurretPose.getY();
+      TurretRotation = TurretPose.getRotation();
+      TurretYaw = TurretRotation.getZ();
 
-    /*
-     * Creates a 2D unit vector from the robot to the goal.
-     * Calculates distance to goal.
-     */
-    double goalX, goalY;
-    if (m_alliance == edu.wpi.first.wpilibj.DriverStation.Alliance.Red) {
-      goalX = Constants.TurretSubsystemConstants.RedGoalX;
-      goalY = Constants.TurretSubsystemConstants.RedGoalY;
-    } else {
-      goalX = Constants.TurretSubsystemConstants.BlueGoalX;
-      goalY = Constants.TurretSubsystemConstants.BlueGoalY;
-    }
-    vX = goalX - TurretX;
-    vY = goalY - TurretY;
-    
-    DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
-
-    // Ball velocity needed for both lead compensation and shooter control
-    BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + -0.0394 * Math.pow(DistanceToGoal, 2);
-
-    /*
-     * TURRET ROTATE
-     * Takes the tanget of the 2D unit vector to get the heading of the goal relative the robot.
-     * Subtracts the position of the turret from the rotation of the robot to get the true angle of the turret.
-     * Feedforward helps to overcome system resistance.
-     * Feedback drives turret motor to target turret rotate theta.
-     */
-    TurretThetaActual = s_TurretRotateEncoder.get() - Constants.TurretSubsystemConstants.TurretRotateOffset;
-
-    double TurretThetaTargetRaw1 = -Math.atan2(vY, vX)
-      + TurretYaw
-      + Constants.TurretSubsystemConstants.TurretRotateScoreOffset;
-
-    // ── Lead compensation ──────────────────────────────────────────────
-    // Skip lead calc if too close to goal (avoid division by zero)
-    double leadOffset = 0.0;
-    if (DistanceToGoal > 0.1 && BallVelocityTarget > 0.1) {
-      // Convert robot-relative chassis speeds to field-relative
-      // Note: TurretYaw equals robot heading because RobotToTurretYaw = 0.0
-      // Note: ChassisSpeeds source is CTRE odometry; heading is from QuestNav
-      ChassisSpeeds robotSpeeds = m_chassisSpeedsSupplier.get();
-      ChassisSpeeds fieldSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
-          robotSpeeds, Rotation2d.fromRadians(TurretYaw));
-
-      // Unit vector from turret to goal
-      double uX = vX / DistanceToGoal;
-      double uY = vY / DistanceToGoal;
-
-      // Perpendicular direction (90° CCW rotation of unit vector)
-      // Signed dot product gives velocity component perpendicular to goal line
-      double vPerp = fieldSpeeds.vxMetersPerSecond * (-uY)
-                   + fieldSpeeds.vyMetersPerSecond * uX;
-
-      // Lead offset: atan(v_perp / ball_velocity) — distance cancels out of flight time
-      leadOffset = Math.atan(vPerp / BallVelocityTarget)
-                        * Constants.TurretSubsystemConstants.kLeadFactor;
-    }
-    SmartDashboard.putNumber("LeadOffset", Math.toDegrees(leadOffset));
-
-    TurretThetaTargetRaw1 += leadOffset;
-
-    while (TurretThetaTargetRaw1 < -Math.PI) {
-      TurretThetaTargetRaw1 += 2.0 * Math.PI;
-    }
-    while (TurretThetaTargetRaw1 > Math.PI) {
-      TurretThetaTargetRaw1 -= 2.0 * Math.PI;
-    }
-    double TurretThetaTargetRaw2 = TurretThetaTargetRaw1;
-    double BestDist = 2.0 * Math.PI;
-    for (int i = -1; i <= 1; i++) {
-      double PossibleTarget = TurretThetaTargetRaw1 + (double)i * 2.0 * Math.PI;
-      double Min = -3.49066;
-      double Max = 3.49066;
-      if (PossibleTarget <= Min || PossibleTarget >= Max) {
-        continue;
+      /*
+       * Creates a 2D unit vector from the robot to the goal.
+       * Calculates distance to goal.
+       */
+      double goalX, goalY;
+      if (m_alliance == edu.wpi.first.wpilibj.DriverStation.Alliance.Red) {
+        goalX = Constants.TurretSubsystemConstants.RedGoalX;
+        goalY = Constants.TurretSubsystemConstants.RedGoalY;
+      } else {
+        goalX = Constants.TurretSubsystemConstants.BlueGoalX;
+        goalY = Constants.TurretSubsystemConstants.BlueGoalY;
       }
-      double Dist = Math.abs(PossibleTarget - TurretThetaActual);
-      if (Dist >= BestDist) {
-        continue;
-      }
-      BestDist = Dist;
-      TurretThetaTargetRaw2 = PossibleTarget;
-    }
-    TurretThetaTarget = MathUtil.clamp(
-      TurretThetaTargetRaw2,
-      -3.49066,
-      3.49066
-    );
-
-    s_TurretRotateMotor.set(
-    (TurretRotatePID.calculate(TurretThetaActual, TurretThetaTarget)) +
-    (TurretRotateFeedForward.calculate(0))
-    );
+      vX = goalX - TurretX;
+      vY = goalY - TurretY;
     
-    /*
-     * TURRET HOOD — zone-aware
-     * Launch zone: auto-aim hood based on distance-to-goal polynomial.
-     * Trench zone: retract hood to clear the trench (drive to minimum angle).
-     * Far zone: skip hood control entirely (future: alternate aiming).
-     */
-    HoodEncoder = s_HoodTiltMotor.getEncoder();
-    HoodThetaActual = (((HoodEncoder.getPosition()) / (Constants.TurretSubsystemConstants.HoodGearRatio)) * (2 * Math.PI)) + 0.261799;
+      DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
 
-    if (m_hoodAutoAimEnabled) {
-    Constants.FieldZone zone = Constants.FieldConstants.getFieldZone(
-        questNav.RobotPose.getX(), m_alliance);
+      // Ball velocity needed for both lead compensation and shooter control
+      BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + -0.0394 * Math.pow(DistanceToGoal, 2);
 
-    switch (zone) {
-      case LAUNCH:
-        // Normal auto-aim: polynomial fit from physics analysis
-        HoodThetaTarget = MathUtil.clamp(
-          (0.0136 + 0.234 * DistanceToGoal + -0.0205 * Math.pow(DistanceToGoal, 2)),
-          0.261799, 0.785398
-        );
-        s_HoodTiltMotor.set(
-          (TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)) +
-          (TurretHoodFeedForward.calculate(0))
-        );
-        break;
+      /*
+       * TURRET ROTATE
+       * Takes the tanget of the 2D unit vector to get the heading of the goal relative the robot.
+       * Subtracts the position of the turret from the rotation of the robot to get the true angle of the turret.
+       * Feedforward helps to overcome system resistance.
+       * Feedback drives turret motor to target turret rotate theta.
+       */
+      TurretThetaActual = s_TurretRotateEncoder.get() - Constants.TurretSubsystemConstants.TurretRotateOffset;
 
-      case TRENCH:
-        // Retract hood to minimum angle to clear the trench
-        HoodThetaTarget = 0.261799;
-        s_HoodTiltMotor.set(
-          (TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)) +
-          (TurretHoodFeedForward.calculate(0))
-        );
-        break;
+      double TurretThetaTargetRaw1 = -Math.atan2(vY, vX)
+        + TurretYaw
+        + Constants.TurretSubsystemConstants.TurretRotateScoreOffset;
 
-      case FAR:
-        // No hood control — future: alternate aiming behavior
-        break;
-    }
-    } else {
-      s_HoodTiltMotor.set(0);
-    }
+      // ── Lead compensation ──────────────────────────────────────────────
+      // Skip lead calc if too close to goal (avoid division by zero)
+      double leadOffset = 0.0;
+      if (DistanceToGoal > 0.1 && BallVelocityTarget > 0.1) {
+        // Convert robot-relative chassis speeds to field-relative
+        // Note: TurretYaw equals robot heading because RobotToTurretYaw = 0.0
+        // Note: ChassisSpeeds source is CTRE odometry; heading is from QuestNav
+        ChassisSpeeds robotSpeeds = m_chassisSpeedsSupplier.get();
+        ChassisSpeeds fieldSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
+            robotSpeeds, Rotation2d.fromRadians(TurretYaw));
+
+        // Unit vector from turret to goal
+        double uX = vX / DistanceToGoal;
+        double uY = vY / DistanceToGoal;
+
+        // Perpendicular direction (90° CCW rotation of unit vector)
+        // Signed dot product gives velocity component perpendicular to goal line
+        double vPerp = fieldSpeeds.vxMetersPerSecond * (-uY)
+                     + fieldSpeeds.vyMetersPerSecond * uX;
+
+        // Lead offset: atan(v_perp / ball_velocity) — distance cancels out of flight time
+        leadOffset = Math.atan(vPerp / BallVelocityTarget)
+                          * Constants.TurretSubsystemConstants.kLeadFactor;
+      }
+      SmartDashboard.putNumber("LeadOffset", Math.toDegrees(leadOffset));
+
+      TurretThetaTargetRaw1 += leadOffset;
+
+      while (TurretThetaTargetRaw1 < -Math.PI) {
+        TurretThetaTargetRaw1 += 2.0 * Math.PI;
+      }
+      while (TurretThetaTargetRaw1 > Math.PI) {
+        TurretThetaTargetRaw1 -= 2.0 * Math.PI;
+      }
+      double TurretThetaTargetRaw2 = TurretThetaTargetRaw1;
+      double BestDist = 2.0 * Math.PI;
+      for (int i = -1; i <= 1; i++) {
+        double PossibleTarget = TurretThetaTargetRaw1 + (double)i * 2.0 * Math.PI;
+        double Min = -3.49066;
+        double Max = 3.49066;
+        if (PossibleTarget <= Min || PossibleTarget >= Max) {
+          continue;
+        }
+        double Dist = Math.abs(PossibleTarget - TurretThetaActual);
+        if (Dist >= BestDist) {
+          continue;
+        }
+        BestDist = Dist;
+        TurretThetaTargetRaw2 = PossibleTarget;
+      }
+      TurretThetaTarget = MathUtil.clamp(
+        TurretThetaTargetRaw2,
+        -3.49066,
+        3.49066
+      );
+
+      s_TurretRotateMotor.set(
+      (TurretRotatePID.calculate(TurretThetaActual, TurretThetaTarget)) +
+      (TurretRotateFeedForward.calculate(0))
+      );
+    
+      /*
+       * TURRET HOOD — zone-aware
+       * Launch zone: auto-aim hood based on distance-to-goal polynomial.
+       * Trench zone: retract hood to clear the trench (drive to minimum angle).
+       * Far zone: skip hood control entirely (future: alternate aiming).
+       */
+      HoodEncoder = s_HoodTiltMotor.getEncoder();
+      HoodThetaActual = (((HoodEncoder.getPosition()) / (Constants.TurretSubsystemConstants.HoodGearRatio)) * (2 * Math.PI)) + 0.261799;
+
+      if (m_hoodAutoAimEnabled) {
+        Constants.FieldZone zone = Constants.FieldConstants.getFieldZone(
+            questNav.RobotPose.getX(), m_alliance);
+
+        switch (zone) {
+          case LAUNCH:
+            // Normal auto-aim: polynomial fit from physics analysis
+            HoodThetaTarget = MathUtil.clamp(
+              (0.0136 + 0.234 * DistanceToGoal + -0.0205 * Math.pow(DistanceToGoal, 2)),
+              0.261799, 0.785398
+            );
+            s_HoodTiltMotor.set(
+              (TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)) +
+              (TurretHoodFeedForward.calculate(0))
+            );
+            break;
+
+          case TRENCH:
+            // Retract hood to minimum angle to clear the trench
+            HoodThetaTarget = 0.261799;
+            s_HoodTiltMotor.set(
+              (TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)) +
+              (TurretHoodFeedForward.calculate(0))
+            );
+            break;
+
+          case FAR:
+            // No hood control — future: alternate aiming behavior
+            break;
+        }
+      } else {
+        s_HoodTiltMotor.set(0);
+      }
     } // end isTracking guard
 
     /*
