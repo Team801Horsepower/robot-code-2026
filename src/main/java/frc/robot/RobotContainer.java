@@ -16,18 +16,13 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.path.PathPlannerPath;
-
-import java.util.List;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj.DriverStation;
 
 import frc.robot.Constants.DriveConstants;
@@ -84,6 +79,8 @@ public class RobotContainer {
   // ─── Auto chooser ─────────────────────────────────────────────────────────
 
   private SendableChooser<Command> m_autoChooser;
+  private SendableChooser<Pose2d> m_startPositionChooser;
+  private Pose2d m_lastSeededPose;
 
   // ─── Swerve requests ───────────────────────────────────────────────────────
 
@@ -108,11 +105,6 @@ public class RobotContainer {
     configureTestBindings();
     configureAutoBuilder();
     configureAutoChooser();
-    m_drive.seedPose(new Pose2d(
-      Constants.QuestSubsystemConstants.RobotStart1TestX,
-      Constants.QuestSubsystemConstants.RobotStart1TestY,
-      new Rotation2d(Constants.QuestSubsystemConstants.RobotStart1TestYaw)
-    ));
   }
 
   // ─── Default Commands ──────────────────────────────────────────────────────
@@ -312,6 +304,20 @@ public class RobotContainer {
   private void configureAutoChooser() {
     m_autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
+
+    // Manual starting position chooser (blue-alliance coordinates)
+    m_startPositionChooser = new SendableChooser<>();
+    m_startPositionChooser.setDefaultOption("Center",
+        new Pose2d(3.586, 4.067, Rotation2d.fromDegrees(180.0)));
+    m_startPositionChooser.addOption("Left",
+        new Pose2d(3.637, 5.794, Rotation2d.fromDegrees(90.0)));
+    m_startPositionChooser.addOption("Right",
+        new Pose2d(3.648, 2.210, Rotation2d.fromDegrees(0.0)));
+    m_startPositionChooser.addOption("Far Left",
+        new Pose2d(4.401, 7.625, Rotation2d.fromDegrees(0.0)));
+    m_startPositionChooser.addOption("Far Right",
+        new Pose2d(4.414, 0.432, Rotation2d.fromDegrees(0.0)));
+    SmartDashboard.putData("Start Position", m_startPositionChooser);
   }
 
   // ─── Autonomous ────────────────────────────────────────────────────────────
@@ -321,31 +327,39 @@ public class RobotContainer {
   }
 
   /**
+   * Seeds QuestNav and drivetrain odometry from the start-position chooser.
+   * Only re-seeds when the selected pose changes, to avoid hammering
+   * QuestNav with redundant setPose calls every 20ms.
+   */
+  public void seedFromChooser() {
+      Pose2d selected = m_startPositionChooser.getSelected();
+      if (selected == null) {
+          selected = new Pose2d();
+      }
+
+      // Only re-seed when the selection actually changes
+      if (selected.equals(m_lastSeededPose)) {
+          return;
+      }
+      m_lastSeededPose = selected;
+
+      m_QuestSubsystem.setPose(new Pose3d(selected));
+      m_drive.seedPose(selected);
+  }
+
+  /**
    * Seeds QuestNav with the starting pose for the selected autonomous routine.
    * Also caches the alliance color for the turret subsystem.
    * Call from Robot.autonomousInit() before scheduling the auto command.
    */
   public void seedAutoStartPose() {
-    // Cache alliance
     var allianceOpt = DriverStation.getAlliance();
     m_cachedAlliance = allianceOpt.orElse(DriverStation.Alliance.Blue);
     m_TurretSubsystem.setAlliance(m_cachedAlliance);
 
-    // Derive starting pose from the first path in the selected auto file
-    Command selected = m_autoChooser.getSelected();
-    String autoName = selected != null ? selected.getName() : "";
-
-    Pose2d startPose2d = new Pose2d();
-    try {
-      List<PathPlannerPath> paths = PathPlannerAuto.getPathGroupFromAutoFile(autoName);
-      if (!paths.isEmpty()) {
-        startPose2d = paths.get(0).getStartingHolonomicPose().orElse(new Pose2d());
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-    m_QuestSubsystem.setPose(new Pose3d(startPose2d));
+    // Force re-seed even if chooser hasn't changed (auto init is authoritative)
+    m_lastSeededPose = null;
+    seedFromChooser();
   }
 
   /**
