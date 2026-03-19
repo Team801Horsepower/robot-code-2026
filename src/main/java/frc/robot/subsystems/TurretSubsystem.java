@@ -152,7 +152,7 @@ public class TurretSubsystem extends SubsystemBase {
       DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
 
       // Ball velocity needed for both lead compensation and shooter control
-      BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + -0.0394 * Math.pow(DistanceToGoal, 2);
+      BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + 0.0394 * Math.pow(DistanceToGoal, 2);
 
       /*
        * TURRET ROTATE
