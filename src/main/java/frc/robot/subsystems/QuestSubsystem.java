@@ -43,7 +43,7 @@ public class QuestSubsystem extends SubsystemBase {
 
   /** Creates a new QuestSubsystem. */
   public QuestSubsystem() {
-    questNav.setPose(RobotStartingPosition);
+    setPose(RobotStartingPosition);
   }
 
   /**
@@ -53,7 +53,8 @@ public class QuestSubsystem extends SubsystemBase {
    * @param pose The robot's known starting pose
    */
   public void setPose(Pose3d pose) {
-    questNav.setPose(pose);
+    Pose3d questPose = pose.transformBy(QuestToRobot.inverse());
+    questNav.setPose(questPose);
   }
 
   /** Returns true if QuestNav is actively tracking the headset pose. */
