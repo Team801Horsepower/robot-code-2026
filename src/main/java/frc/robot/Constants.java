@@ -151,8 +151,8 @@ public final class Constants {
   }
   public static final class QuestSubsystemConstants {
     // Starting Position 1 - Testing
-    public static final double RobotStart1TestX = 3.460152;
-    public static final double RobotStart1TestY = 4.015336;
+    public static final double RobotStart1TestX = 3.510952; // added 0.0254 twice
+    public static final double RobotStart1TestY = 3.812136; // subtracted 0.2032
     public static final double RobotStart1TestZ = 0.0;
     public static final double RobotStart1TestRoll = 0.0;
     public static final double RobotStart1TestPitch = 0.0;
