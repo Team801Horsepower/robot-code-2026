@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Team 801 Horsepower
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 
 /**
  * Robot-wide constants shared across subsystems and commands.
@@ -182,14 +184,15 @@ public final class Constants {
     public static final int TurretRotateEncoderDIOID = 0;
 
     // Blue Alliance Goal Position
-    public static final double BlueGoalX = 4.635;
-    public static final double BlueGoalY = 4.034;
-    public static final double BlueGoalZ = 1.0;
+    // Blue Alliance TargetPositions
+    public static final Pose3d BlueAllianceGoal = new Pose3d(4.635,4.034,0, new Rotation3d(0,0,0));
+    public static final Pose3d AimPointB1 = new Pose3d(3.977894,5.759196,0, new Rotation3d(0,0,0));
+    public static final Pose3d AimPointB2 = new Pose3d(3.977894,2.31013,0, new Rotation3d(0,0,0));
 
-    // Red Alliance Goal Position (field-mirrored from blue; only X flipped)
-    public static final double RedGoalX = 11.9068;
-    public static final double RedGoalY = 4.034;
-    public static final double RedGoalZ = 1.0;
+    // Red Alliance Goal TargetPositions
+    public static final Pose3d RedAllianceGoal = new Pose3d(11.9068,4.034,0, new Rotation3d(0,0,0));
+    public static final Pose3d AimPointR1 = new Pose3d(12.563094,2.31013,0, new Rotation3d(0,0,0));
+    public static final Pose3d AimPointR2 = new Pose3d(12.563094,5.759196,0, new Rotation3d(0,0,0));
     
     // Robot To Turret
     public static final double RobotToTurretX = -0.103165;

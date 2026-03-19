@@ -13,6 +13,8 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -21,6 +23,8 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class TurretSubsystem extends SubsystemBase {
@@ -84,6 +88,11 @@ public class TurretSubsystem extends SubsystemBase {
   private boolean m_testMode = false;
   private boolean m_hoodAutoAimEnabled = false;
 
+  //Alliance
+  public Optional<Alliance> AllianceColor;
+  public double GoalX;
+  public double GoalY;
+
   private edu.wpi.first.wpilibj.DriverStation.Alliance m_alliance =
       edu.wpi.first.wpilibj.DriverStation.Alliance.Blue;
 
@@ -138,18 +147,37 @@ public class TurretSubsystem extends SubsystemBase {
        * Creates a 2D unit vector from the robot to the goal.
        * Calculates distance to goal.
        */
-      double goalX, goalY;
-      if (m_alliance == edu.wpi.first.wpilibj.DriverStation.Alliance.Red) {
-        goalX = Constants.TurretSubsystemConstants.RedGoalX;
-        goalY = Constants.TurretSubsystemConstants.RedGoalY;
-      } else {
-        goalX = Constants.TurretSubsystemConstants.BlueGoalX;
-        goalY = Constants.TurretSubsystemConstants.BlueGoalY;
+      AllianceColor = DriverStation.getAlliance();
+      if (AllianceColor.get() == Alliance.Red) {
+        if (TurretX < 11.915394 && TurretY < 4.034536) {
+          vX = Constants.TurretSubsystemConstants.AimPointR1.getX() - TurretX;
+          vY = Constants.TurretSubsystemConstants.AimPointR1.getY() - TurretY;
+        }
+        else if (TurretX < 11.915394 && TurretY > 4.034536) {
+          vX = Constants.TurretSubsystemConstants.AimPointR2.getX() - TurretX;
+          vY = Constants.TurretSubsystemConstants.AimPointR2.getY() - TurretY;
+        }
+        else {
+          vX = Constants.TurretSubsystemConstants.RedAllianceGoal.getX() - TurretX;
+          vY = Constants.TurretSubsystemConstants.RedAllianceGoal.getY() - TurretY;
+        }
       }
-      vX = goalX - TurretX;
-      vY = goalY - TurretY;
+      else {
+        if (TurretX > 4.625594 && TurretY < 4.034536) {
+          vX = Constants.TurretSubsystemConstants.AimPointB2.getX() - TurretX;
+          vY = Constants.TurretSubsystemConstants.AimPointB2.getY() - TurretY;
+        }
+        else if (TurretX > 4.625594 && TurretY > 4.034536) {
+          vX = Constants.TurretSubsystemConstants.AimPointB1.getX() - TurretX;
+          vY = Constants.TurretSubsystemConstants.AimPointB1.getY() - TurretY;
+        }
+        else {
+          vX = Constants.TurretSubsystemConstants.BlueAllianceGoal.getX() - TurretX;
+          vY = Constants.TurretSubsystemConstants.BlueAllianceGoal.getY() - TurretY;
+        }
+      }
     
-      DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
+    DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
 
       // Ball velocity needed for both lead compensation and shooter control
       BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + 0.0394 * Math.pow(DistanceToGoal, 2);
