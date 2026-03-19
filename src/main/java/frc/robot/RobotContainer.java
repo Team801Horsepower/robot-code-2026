@@ -157,14 +157,17 @@ public class RobotContainer {
     // Right trigger (>0.15, held) → shoot with hood auto-aim
     m_driverController
         .rightTrigger(0.15)
-        .onTrue(Commands.runOnce(() -> m_TurretSubsystem.setHoodAutoAim(true)))
-        .onFalse(Commands.runOnce(() -> m_TurretSubsystem.setHoodAutoAim(false)))
+        .onTrue(Commands.run(() -> m_TurretSubsystem.setHoodAutoAim(true)))
+        .onFalse(Commands.run(() -> m_TurretSubsystem.setHoodAutoAim(false)))
         .whileTrue(new Shoot(m_launch, m_gather, m_spindex, m_feeder));
 
     // X button → retract hopper
+    /*
+    Removed because hooper retract will hurt robot :(
     m_driverController
         .x()
         .onTrue(Commands.runOnce(() -> m_hopper.retract(), m_hopper));
+    */
   }
 
   // ─── Test Mode Bindings ─────────────────────────────────────────────────────
