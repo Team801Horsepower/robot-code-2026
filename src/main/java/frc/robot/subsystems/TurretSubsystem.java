@@ -320,6 +320,12 @@ public class TurretSubsystem extends SubsystemBase {
     // Shooter Tuning Values
     SmartDashboard.putData(ShooterPID);
     SmartDashboard.putNumber("DistanceToGoal", DistanceToGoal);
+
+    if (m_hoodAutoAimEnabled) {
+      HoodAim();
+    } else {
+      HoodReset();
+    }
   }
 
   public void HoodAim() {
