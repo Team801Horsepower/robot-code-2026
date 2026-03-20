@@ -112,10 +112,6 @@ public class TurretSubsystem extends SubsystemBase {
     SparkFlexConfig GlobalConfig = new SparkFlexConfig();
     SparkFlexConfig ShooterRightFollowerConfig = new SparkFlexConfig();
     ShooterRightFollowerConfig.inverted(true).apply((GlobalConfig).follow(s_ShooterMotorRight));
-
-    SmartDashboard.putNumber("ShooterVelocityMultiplier", Constants.TurretSubsystemConstants.ShooterVelocityMultiplier);
-    SmartDashboard.putNumber("ShooterVelocityEficiencey", Constants.TurretSubsystemConstants.ShooterVelcoityEfficiency);
-    SmartDashboard.putNumber("TurretRotateScoreOffset", Constants.TurretSubsystemConstants.TurretRotateScoreOffset);
     ShooterPID.setIZone(50.0);
   }
 
@@ -131,8 +127,8 @@ public class TurretSubsystem extends SubsystemBase {
       return;
     }
 
-    // Only run pose-dependent aiming if QuestNav has valid tracking data
-    if (questNav.isTracking()) {
+    // Only run pose-dependent aiming if QuestNav has valid tracking data and is not at (0,0)
+    if (questNav.isTracking() && questNav.RobotPose.getX() > 0 && questNav.RobotPose.getY() > 0) {
       /*
        * Takes robot pose2d published by QuestNav (Position of Quest, NOT position of center of robot)
        * and offsets it to the center of the turret.
@@ -146,6 +142,7 @@ public class TurretSubsystem extends SubsystemBase {
       /*
        * Creates a 2D unit vector from the robot to the goal.
        * Calculates distance to goal.
+       * Aims at 1 of 6 field coordinates depending on robot location (zone) and alliance color
        */
       AllianceColor = DriverStation.getAlliance();
       if (AllianceColor.get() == Alliance.Red) {
@@ -177,10 +174,23 @@ public class TurretSubsystem extends SubsystemBase {
         }
       }
     
-    DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
+      DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
 
+
+      /*
+      * TURRET SHOOTER
+      * Calculates the shooter velocity target based on the line of best fit fron an analysis of physics equations.
+      * Converts the ball velocity in m/s to motor speed in RPM.
+      * Gets the velocity reading from the left flywheel motor.
+      * Feedforward drives flywheel to target velocity.
+      * Feedback drives flywheel to target velocity. 
+      */
       // Ball velocity needed for both lead compensation and shooter control
       BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + 0.0394 * Math.pow(DistanceToGoal, 2);
+
+      ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterWheelCircumference);
+      ShooterEncoder = s_ShooterMotorLeft.getEncoder();
+      ShooterVelocityActual = ShooterEncoder.getVelocity();
 
       /*
        * TURRET ROTATE
@@ -250,11 +260,6 @@ public class TurretSubsystem extends SubsystemBase {
         -3.49066,
         3.49066
       );
-
-      s_TurretRotateMotor.set(
-      (TurretRotatePID.calculate(TurretThetaActual, TurretThetaTarget)) +
-      (TurretRotateFeedForward.calculate(0))
-      );
     
       /*
        * TURRET HOOD — zone-aware
@@ -268,58 +273,39 @@ public class TurretSubsystem extends SubsystemBase {
         (0.0136 + 0.234 * DistanceToGoal + -0.0205 * Math.pow(DistanceToGoal, 2)),
         0.261799, 0.785398
       );
-      
-    } // end isTracking guard
 
-    /*
-     * TURRET SHOOTER
-     * Calculates the shooter velocity target based on the line of best fit fron an analysis of physics equations.
-     * Converts the ball velocity in m/s to motor speed in RPM.
-     * Gets the velocity reading from the left flywheel motor.
-     * Feedforward drives flywheel to target velocity.
-     * Feedback drives flywheel to target velocity. 
-     */
-    ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterWheelCircumference);
+  } // end isTracking guard
+
+  else {
+    // Shooter
     ShooterEncoder = s_ShooterMotorLeft.getEncoder();
     ShooterVelocityActual = ShooterEncoder.getVelocity();
+    ShooterVelocityTarget = 1754.463941;
+    // Hood
+    HoodEncoder = s_HoodTiltMotor.getEncoder();
+    HoodThetaActual = (((HoodEncoder.getPosition()) / (Constants.TurretSubsystemConstants.HoodGearRatio)) * (2 * Math.PI)) + 0.261799;
+    HoodThetaTarget = 0.785398;
+    // Rotate
+    TurretThetaActual = s_TurretRotateEncoder.get() - Constants.TurretSubsystemConstants.TurretRotateOffset;
+    TurretThetaTarget = 0.0;
 
+  }
+
+    /*
+     * Turret Rotate PID
+     */
+    s_TurretRotateMotor.set(
+      (TurretRotatePID.calculate(TurretThetaActual, TurretThetaTarget)) +
+      (TurretRotateFeedForward.calculate(0))
+      );
+
+    /*
+     * Turret Shoter PID
+     */
     s_ShooterMotorLeft.setVoltage(
       (ShooterPID.calculate(ShooterVelocityActual, ShooterVelocityTarget)) +
       (ShooterFeedForward.calculate(ShooterVelocityTarget))
     );
-
-    /*
-     * Publishes several values to Smart Dashboard which can be accessed in advantagescope under the Smart Dashboard topic.
-     */
-    // Turret Numbers
-    SmartDashboard.putNumber("TurretRotateEncoder", TurretThetaActual);
-    SmartDashboard.putNumber("TurretThetaTarget", TurretThetaTarget);
-    SmartDashboard.putNumber("TurretRotateMotorPower", s_TurretRotateMotor.get());
-
-    // Hood Numbers
-    SmartDashboard.putNumber("TurretHoodEncoder", HoodThetaActual);
-    SmartDashboard.putNumber("HoodThetaTarget", HoodThetaTarget);
-    SmartDashboard.putNumber("TurretHoodMotorPower", s_HoodTiltMotor.get());
-
-    // Shooter Numbers
-    SmartDashboard.putNumber("ShooterVelocityEncoder", ShooterVelocityActual);
-    SmartDashboard.putNumber("ShooterVelocityTarget", ShooterVelocityTarget);
-    SmartDashboard.getNumber("ShooterLeftMotorVelocity", s_ShooterMotorLeft.get());
-
-    /*
-     * Publishes numbers to Advantage Scope that can be adjusted without the need for editing robot code.
-     * NOT SUITABLE FOR MATCH CODE
-     */
-    // Turret Tuning Values
-    SmartDashboard.putData(TurretRotatePID);
-    SmartDashboard.getNumber("TurretRotateScoreOffset", Constants.TurretSubsystemConstants.TurretRotateScoreOffset);
-    
-    // Hood Tuning Values
-    SmartDashboard.putData(TurretHoodPID);
-
-    // Shooter Tuning Values
-    SmartDashboard.putData(ShooterPID);
-    SmartDashboard.putNumber("DistanceToGoal", DistanceToGoal);
 
     if (m_hoodAutoAimEnabled) {
       HoodAim();
