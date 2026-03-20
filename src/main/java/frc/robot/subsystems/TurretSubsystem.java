@@ -128,7 +128,7 @@ public class TurretSubsystem extends SubsystemBase {
     }
 
     // Only run pose-dependent aiming if QuestNav has valid tracking data and is not at (0,0)
-    if (questNav.isTracking() && questNav.RobotPose.getX() > 0 && questNav.RobotPose.getY() > 0) {
+    if (questNav.isTracking() && questNav.RobotPose.getX() > 0.1 && questNav.RobotPose.getY() > 0.1) {
       /*
        * Takes robot pose2d published by QuestNav (Position of Quest, NOT position of center of robot)
        * and offsets it to the center of the turret.
