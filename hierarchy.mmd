@@ -6,34 +6,27 @@ graph TD
     LT["Left Trigger\n(>0.08, held)"]
     LB["Left Bumper\n(held)"]
     RT["Right Trigger\n(>0.15, held)"]
-    DPU["D-Pad Up"]
   end
 
   %% ── Leaf Subsystems ───────────────────────────────────────────
   DT[DrivetrainSubsystem]
-  QN[QuestNavSubsystem]
+  QN[QuestSubsystem]
   Gather[Gather]
   Hopper[Hopper]
   Spindex[Spindex]
   Feeder[Feeder]
-  Turret[Turret]
-  Level1[Level1]
+  Turret[TurretSubsystem]
 
   %% ── Composite Subsystems ──────────────────────────────────────
   Drive[Drive]
   Possession[Possession]
   Launch[Launch]
-  Ascension[Ascension]
   Manipulator[Manipulator]
-  Vision[Vision]
 
   %% ── Commands ──────────────────────────────────────────────────
   DriveToPose([DriveToPose])
-  RunLaunchWheel([RunLaunchWheel])
-  ClimbL1Cmd([ClimbL1])
   Gathering([Gathering])
   Shoot([Shoot])
-  AimCmd([Aim])
   Score([Score])
   ReverseIntake([Reverse Intake])
 
@@ -41,33 +34,31 @@ graph TD
   LT --> Gathering
   LB --> ReverseIntake
   RT --> Shoot
-  DPU --> ClimbL1Cmd
 
   %% ── Composite → Leaf composition ─────────────────────────────
   Drive --> DT
-  Vision --> QN
-  Vision --> DT
   Possession --> Hopper
   Possession --> Gather
   Launch --> Spindex
   Launch --> Feeder
-  Launch --> Turret
   Launch --> Gather
-  Ascension --> Level1
   Manipulator --> Possession
   Manipulator --> Launch
 
   %% ── Commands → Subsystem requirements ────────────────────────
   DriveToPose --> Drive
-  RunLaunchWheel --> Turret
-  ClimbL1Cmd --> Hopper
-  ClimbL1Cmd --> Ascension
   Gathering --> Possession
+  Gathering --> Gather
+  Gathering --> Hopper
   Shoot --> Launch
-  Shoot --> Hopper
-  AimCmd --> Vision
-  AimCmd --> Turret
+  Shoot --> Gather
+  Shoot --> Spindex
+  Shoot --> Feeder
   Score --> Manipulator
+  Score --> Gather
+  Score --> Hopper
+  Score --> Spindex
+  Score --> Feeder
   ReverseIntake --> Gather
 
   %% ── Styling ───────────────────────────────────────────────────
@@ -76,7 +67,7 @@ graph TD
   classDef command   fill:#fff3cd,stroke:#ffc107,color:#000;
   classDef button    fill:#f8d7da,stroke:#dc3545,color:#000;
 
-  class DT,QN,Gather,Hopper,Spindex,Feeder,Turret,Level1 leaf;
-  class Drive,Possession,Launch,Ascension,Manipulator,Vision composite;
-  class DriveToPose,RunLaunchWheel,ClimbL1Cmd,Gathering,Shoot,AimCmd,Score,ReverseIntake command;
-  class LT,LB,RT,DPU button;
+  class DT,QN,Gather,Hopper,Spindex,Feeder,Turret leaf;
+  class Drive,Possession,Launch,Manipulator composite;
+  class DriveToPose,Gathering,Shoot,Score,ReverseIntake command;
+  class LT,LB,RT button;

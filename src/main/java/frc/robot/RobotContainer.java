@@ -125,10 +125,14 @@ public class RobotContainer {
       speedScale = DriveConstants.kShootWhileMovingSpeedMultiplier;
     }
 
-    double translationX = applyDeadband(-m_driverController.getLeftY())
+    // Negate translations when on red alliance so driver controls match their
+    // perspective — the field coordinate origin is at the blue alliance wall.
+    double allianceSign = (m_cachedAlliance == DriverStation.Alliance.Red) ? -1.0 : 1.0;
+
+    double translationX = allianceSign * applyDeadband(-m_driverController.getLeftY())
         * DriveConstants.kMaxSpeedMetersPerSecond * speedScale;
 
-    double translationY = applyDeadband(-m_driverController.getLeftX())
+    double translationY = allianceSign * applyDeadband(-m_driverController.getLeftX())
         * DriveConstants.kMaxSpeedMetersPerSecond * speedScale;
 
     double rotation = applyDeadband(-m_driverController.getRightX())
@@ -159,8 +163,8 @@ public class RobotContainer {
     // Right trigger (>0.15, held) → shoot with hood auto-aim
     m_driverController
         .rightTrigger(0.15)
-        .onTrue(Commands.run(() -> m_TurretSubsystem.setHoodAutoAim(true)))
-        .onFalse(Commands.run(() -> m_TurretSubsystem.setHoodAutoAim(false)))
+        .onTrue(Commands.runOnce(() -> m_TurretSubsystem.setHoodAutoAim(true)))
+        .onFalse(Commands.runOnce(() -> m_TurretSubsystem.setHoodAutoAim(false)))
         .whileTrue(new Shoot(m_launch, m_gather, m_spindex, m_feeder));
 
     // X button → retract hopper
