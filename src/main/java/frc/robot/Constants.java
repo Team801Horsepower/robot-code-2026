@@ -213,7 +213,7 @@ public final class Constants {
     // Tuning Constants
     public static double ShooterVelcoityEfficiency = 0.5;
     public static double ShooterVelocityMultiplier = 1.0;
-    public static double TurretRotateScoreOffset = 0.232;
+    public static double TurretRotateScoreOffset = 0.232 - 0.797;
 
     /** Multiplier on turret lead offset. 0 = disabled, 1 = full compensation. */
     public static final double kLeadFactor = 2.0;

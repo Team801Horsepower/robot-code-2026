@@ -43,7 +43,7 @@ public class TurretSubsystem extends SubsystemBase {
   PIDController TurretHoodPID = new PIDController(0.9, 0.003, 0);
   SimpleMotorFeedforward TurretHoodFeedForward = new SimpleMotorFeedforward(0, 0, 0);
   PIDController ShooterPID = new PIDController(0.005, 0.001, 0);
-  SimpleMotorFeedforward ShooterFeedForward = new SimpleMotorFeedforward(0, 0.0022, 0.0);
+  SimpleMotorFeedforward ShooterFeedForward = new SimpleMotorFeedforward(0, 0.002, 0.0);
   
   private final QuestSubsystem questNav;
   private final Supplier<ChassisSpeeds> m_chassisSpeedsSupplier;
@@ -84,6 +84,7 @@ public class TurretSubsystem extends SubsystemBase {
   public double BallVelocityTarget;
   public double ShooterVelocityTarget;
   public double ShooterVelocityActual;
+  public double ShooterVelocityPIDSet;
 
   private boolean m_testMode = false;
   private boolean m_hoodAutoAimEnabled = false;
@@ -109,9 +110,6 @@ public class TurretSubsystem extends SubsystemBase {
     this.m_chassisSpeedsSupplier = chassisSpeedsSupplier;
     s_HoodTiltMotor.getEncoder().setPosition(0);
 
-    SparkFlexConfig GlobalConfig = new SparkFlexConfig();
-    SparkFlexConfig ShooterRightFollowerConfig = new SparkFlexConfig();
-    ShooterRightFollowerConfig.inverted(true).apply((GlobalConfig).follow(s_ShooterMotorRight));
     ShooterPID.setIZone(50.0);
   }
 
@@ -188,8 +186,10 @@ public class TurretSubsystem extends SubsystemBase {
       BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + 0.0394 * Math.pow(DistanceToGoal, 2);
 
       ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterWheelCircumference);
-      ShooterEncoder = s_ShooterMotorLeft.getEncoder();
+      ShooterEncoder = s_ShooterMotorRight.getEncoder();
       ShooterVelocityActual = ShooterEncoder.getVelocity();
+
+      ShooterVelocityPIDSet = ShooterPID.calculate(ShooterVelocityActual, ShooterVelocityTarget) + ShooterFeedForward.calculate(ShooterVelocityTarget);
 
       /*
        * TURRET ROTATE
@@ -298,13 +298,19 @@ public class TurretSubsystem extends SubsystemBase {
       (TurretRotateFeedForward.calculate(0))
       );
 
+    SmartDashboard.putNumber("TurretEncoderActual", TurretThetaActual);
+    SmartDashboard.putNumber("TurretPositionTarget", TurretThetaTarget);
+    SmartDashboard.putData(TurretRotatePID);
+
     /*
      * Turret Shoter PID
      */
-    s_ShooterMotorLeft.setVoltage(
-      (ShooterPID.calculate(ShooterVelocityActual, ShooterVelocityTarget)) +
-      (ShooterFeedForward.calculate(ShooterVelocityTarget))
-    );
+    s_ShooterMotorLeft.setVoltage(-1 * ShooterVelocityPIDSet);
+    s_ShooterMotorRight.setVoltage(ShooterVelocityPIDSet);
+
+    SmartDashboard.putNumber("ShooterVelocityTarget", ShooterVelocityTarget);
+    SmartDashboard.putNumber("ShooterVelocityActual", ShooterVelocityActual);
+    SmartDashboard.putData(ShooterPID);
 
     if (m_hoodAutoAimEnabled) {
       HoodAim();
