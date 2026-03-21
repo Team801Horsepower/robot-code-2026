@@ -174,6 +174,11 @@ public class RobotContainer {
         .x()
         .onTrue(Commands.runOnce(() -> m_hopper.retract(), m_hopper));
     */
+
+    m_driverController
+        .b()
+        .whileTrue(Commands.runOnce(() -> m_spindex.setReversing(true)))
+        .whileFalse(Commands.runOnce(() -> m_spindex.setReversing(false)));
   }
 
   // ─── Test Mode Bindings ─────────────────────────────────────────────────────

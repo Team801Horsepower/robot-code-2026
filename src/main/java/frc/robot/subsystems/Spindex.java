@@ -34,6 +34,8 @@ public class Spindex extends SubsystemBase {
   private final DoublePublisher m_testPowerPub;
   private final DoublePublisher m_testVelocityPub;
 
+  private boolean reversing = false;
+
   public Spindex() {
     m_motor = new SparkFlex(SpindexConstants.kMotorId, MotorType.kBrushless);
     m_encoder = (SparkRelativeEncoder) m_motor.getEncoder();
@@ -64,7 +66,15 @@ public class Spindex extends SubsystemBase {
 
   /** Stops the spindexer. */
   public void rest() {
-    m_motor.set(0.0);
+    if (reversing) {
+      m_motor.set(-0.3);
+    } else {
+      m_motor.set(0.0);
+    }
+  }
+
+  public void setReversing(boolean reversing) {
+    this.reversing = reversing;
   }
 
   /** Drives the motor at raw power, bypassing PID. */
