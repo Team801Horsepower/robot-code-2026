@@ -42,8 +42,8 @@ public class TurretSubsystem extends SubsystemBase {
   SimpleMotorFeedforward TurretRotateFeedForward = new SimpleMotorFeedforward(0, 0);
   PIDController TurretHoodPID = new PIDController(0.9, 0.003, 0);
   SimpleMotorFeedforward TurretHoodFeedForward = new SimpleMotorFeedforward(0, 0, 0);
-  PIDController ShooterPID = new PIDController(0.005, 0.001, 0);
-  SimpleMotorFeedforward ShooterFeedForward = new SimpleMotorFeedforward(0, 0.002, 0.0);
+  PIDController ShooterPID = new PIDController(0.0023, 0.0005, 0.0005);
+  SimpleMotorFeedforward ShooterFeedForward = new SimpleMotorFeedforward(0.0, 0.00195, 0.0);
   
   private final QuestSubsystem questNav;
   private final Supplier<ChassisSpeeds> m_chassisSpeedsSupplier;
@@ -111,6 +111,15 @@ public class TurretSubsystem extends SubsystemBase {
     s_HoodTiltMotor.getEncoder().setPosition(0);
 
     ShooterPID.setIZone(50.0);
+
+    SmartDashboard.putNumber("Shooter P", 0.0023);
+    SmartDashboard.putNumber("Shooter I", 0.0005);
+    SmartDashboard.putNumber("Shooter D", 0.0005);
+    SmartDashboard.putNumber("Shooter Ks", 0.0);
+    SmartDashboard.putNumber("Shooter Kv", 0.00195);
+    SmartDashboard.putNumber("Shooter Ka", 0.0);
+
+    SmartDashboard.putNumber("ShotMultiplier", 0.95);
   }
 
   public void setTestMode(boolean enabled) { m_testMode = enabled; }
@@ -121,6 +130,19 @@ public class TurretSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+    double newP = SmartDashboard.getNumber("Shooter P", 0.0023);
+    double newI = SmartDashboard.getNumber("Shooter I", 0.0005);
+    double newD = SmartDashboard.getNumber("Shooter D", 0.0005);
+    ShooterPID.setP(newP);
+    ShooterPID.setI(newI);
+    ShooterPID.setD(newD);
+    double newKs = SmartDashboard.getNumber("Shooter Ks", 0.0);
+    double newKv = SmartDashboard.getNumber("Shooter Kv", 0.00195);
+    double newKa = SmartDashboard.getNumber("Shooter Ka", 0.0);
+    ShooterFeedForward.setKs(newKs);
+    ShooterFeedForward.setKv(newKv);
+    ShooterFeedForward.setKa(newKa);
+
     if (m_testMode) {
       return;
     }
@@ -173,6 +195,7 @@ public class TurretSubsystem extends SubsystemBase {
     
       DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
 
+      double ShotMultiplier = SmartDashboard.getNumber("ShotMultiplier", 0.95);
 
       /*
       * TURRET SHOOTER
@@ -184,6 +207,7 @@ public class TurretSubsystem extends SubsystemBase {
       */
       // Ball velocity needed for both lead compensation and shooter control
       BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + 0.0394 * Math.pow(DistanceToGoal, 2);
+      BallVelocityTarget *= ShotMultiplier;
 
       ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterWheelCircumference);
       ShooterEncoder = s_ShooterMotorRight.getEncoder();
