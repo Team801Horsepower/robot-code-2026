@@ -144,8 +144,7 @@ public class TurretSubsystem extends SubsystemBase {
        * Calculates distance to goal.
        * Aims at 1 of 6 field coordinates depending on robot location (zone) and alliance color
        */
-      AllianceColor = DriverStation.getAlliance();
-      if (AllianceColor.get() == Alliance.Red) {
+      if (m_alliance == Alliance.Red) {
         if (TurretX < 11.915394 && TurretY < 4.034536) {
           vX = Constants.TurretSubsystemConstants.AimPointR1.getX() - TurretX;
           vY = Constants.TurretSubsystemConstants.AimPointR1.getY() - TurretY;
