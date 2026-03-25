@@ -12,6 +12,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.FeederConstants;
 
@@ -49,11 +50,12 @@ public class Feeder extends SubsystemBase {
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Feeder");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
     m_testVelocityPub = table.getDoubleTopic("VelocityRPM").publish();
+    SmartDashboard.putNumber("FeederSpeed(RPM)", 0);
   }
 
   /** Spins the feeder at the target velocity. */
   public void spin() {
-    m_pid.setReference(FeederConstants.kTargetVelocityRPM, ControlType.kVelocity);
+    m_pid.setReference(SmartDashboard.getNumber("FeederSpeed(RPM)", 0), ControlType.kVelocity);
   }
 
   /** Stops the feeder. */
