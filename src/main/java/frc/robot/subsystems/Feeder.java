@@ -50,12 +50,12 @@ public class Feeder extends SubsystemBase {
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Feeder");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
     m_testVelocityPub = table.getDoubleTopic("VelocityRPM").publish();
-    SmartDashboard.putNumber("FeederSpeed(RPM)", 0);
+    SmartDashboard.putNumber("FeederSpeed(RPM)", 6500);
   }
 
   /** Spins the feeder at the target velocity. */
   public void spin() {
-    m_pid.setReference(SmartDashboard.getNumber("FeederSpeed(RPM)", 0), ControlType.kVelocity);
+    m_pid.setReference(SmartDashboard.getNumber("FeederSpeed(RPM)", 6500), ControlType.kVelocity);
   }
 
   /** Stops the feeder. */

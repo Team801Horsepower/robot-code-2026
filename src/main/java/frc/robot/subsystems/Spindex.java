@@ -58,13 +58,13 @@ public class Spindex extends SubsystemBase {
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Spindex");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
     m_testVelocityPub = table.getDoubleTopic("VelocityRPM").publish();
-    SmartDashboard.putNumber("SpindexerSpeed(RPM)", 0);
+    SmartDashboard.putNumber("SpindexerSpeed(RPM)", 6500);
   }
 
   /** Spins the spindexer at launch velocity (toward feeder). */
   public void spin() {
     // m_pid.setReference(SpindexConstants.kTargetVelocityRPM, ControlType.kVelocity);
-    m_pid.setReference(SmartDashboard.getNumber("SpindexerSpeed(RPM)", 0), ControlType.kVelocity);
+    m_pid.setReference(SmartDashboard.getNumber("SpindexerSpeed(RPM)", 6500), ControlType.kVelocity);
   }
 
   /** Stops the spindexer. */
