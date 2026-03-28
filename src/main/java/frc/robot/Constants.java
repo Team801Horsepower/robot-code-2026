@@ -99,7 +99,7 @@ public final class Constants {
     /** CAN ID of the NEO Vortex (SparkFlex) spinning the spindexer. */
     public static final int kMotorId = 25;
     /** Target spindexer velocity (RPM). */
-    public static final double kTargetVelocityRPM = 2500.0;
+    public static final double kTargetVelocityRPM = 6500.0;
     /** Velocity PID P gain. */
     public static final double kVelocityP = 0.0002;
     /** Velocity PID I gain. */
