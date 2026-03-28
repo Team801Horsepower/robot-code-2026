@@ -31,7 +31,6 @@ This is the robot code for FRC Team 801 Horsepower's 2026 season. It is a Java/W
 - **WPILib 2026.2.1** / GradleRIO / Java 17
 - **CTRE Phoenix 6** — Swerve drivetrain (Kraken X60/X44), Pigeon 2.0 IMU, CANcoders
 - **REV Robotics** — NEO Vortex motors via SparkFlex
-- **YAGSL** — Swerve drive library
 - **PathPlanner** — Autonomous path following
 - **AdvantageKit** — Logging and telemetry
 - **QuestNav** — Meta Quest-based pose estimation

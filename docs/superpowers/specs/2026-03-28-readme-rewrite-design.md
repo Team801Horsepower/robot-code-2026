@@ -28,7 +28,6 @@ Concise list of key technologies with versions where relevant:
 - WPILib 2026.2.1 / GradleRIO / Java 17
 - CTRE Phoenix 6 (swerve drivetrain, Pigeon 2.0 IMU)
 - REV Robotics (NEO Vortex motors via SparkFlex)
-- YAGSL (swerve drive library)
 - PathPlanner (autonomous path following)
 - AdvantageKit (logging/telemetry)
 - QuestNav (Meta Quest-based pose estimation)
