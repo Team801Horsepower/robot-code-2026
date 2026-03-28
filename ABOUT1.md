@@ -181,6 +181,7 @@ rest()
 * Uses PID + feedforward control for turret rotate, hood tilt, and shooter motors
 * The turret automatically compensates for robot velocity by leading its rotation target, allowing scoring while moving at reduced drive speed
 * Supports test mode (setTestMode/testRunLaunch/testRunHood/testRunRotate) for manual control
+* For detailed turret mathematics (aim equations, vertical displacement compensation, lead compensation), see ABOUT5.md
 
 
 

@@ -19,6 +19,7 @@ Detailed robot specifications are organized across numbered ABOUT files in the p
 - **[ABOUT2.md](ABOUT2.md)** — CAN bus ID map for all motors, encoders, and sensors
 - **[ABOUT3.md](ABOUT3.md)** — Controller mapping and operator controls
 - **[ABOUT4.md](ABOUT4.md)** — Autonomous system: PathPlanner setup, field zones, path naming, and available routines
+- **[ABOUT5.md](ABOUT5.md)** — Turret aiming mathematics: rotation, hood angle, flywheel velocity, and vertical displacement compensation
 
 ## Setup & Deployment
 
