@@ -12,7 +12,7 @@ Our robot uses a ROBORIO 2.0 computer, and a fault-tolerant CAN bus architecture
 
 
 
-Our advanced design uses an extendable hopper with a gatherer (roller) at the end, allowing for high capacity and intake efficiency. The gatherer itself uses a motor to spin the roller. The hopper also uses a motor to expand and retract the hopper. The robot cannot intake with the gatherer unless the hopper is extended. The hopper uses a rail system with a buffer, though ideally the system is tuned as to not cause damage to the buffer. This rail system only requires one motor. The rail system uses the SparkFlex built-in motor encoder for closed-loop position control (units: motor rotations, zeroed on startup). A REV Through Bore Encoder (connected to roboRIO DIO ports 1 and 3) is kept initialized but unused. Full extension = 28.183872 motor rotations; partial extension = 23.245955 motor rotations.
+Our advanced design uses an extendable hopper with a gatherer (roller) at the end, allowing for high capacity and intake efficiency. The gatherer itself uses a motor to spin the roller. The hopper also uses a motor to expand and retract the hopper. The robot cannot intake with the gatherer unless the hopper is extended. The hopper uses a rail system with a buffer, though ideally the system is tuned as to not cause damage to the buffer. This rail system only requires one motor. The rail system uses the SparkFlex built-in motor encoder for closed-loop position control (units: motor rotations, zeroed on startup). A REV Through Bore Encoder (connected to roboRIO DIO ports 1 and 3) is kept initialized but unused. Full extension = 27.183872 motor rotations; partial extension = 23.245955 motor rotations.
 
 
 
@@ -20,7 +20,7 @@ The centerpiece of our robot is a spindexer which stores and deposits game piece
 
 
 
-Our scoring mechanism consists of a feeder, one motor that powers a series of spinners on a horizontal-to-vertical ramp into the turret. The turret has a few motors. The first is connected to a REV Through Bore Encoder (connected to roboRIO DIO port 0) configured in absolute mode, allowing 420° of total turret travel (configured so 420° = 1 full encoder revolution). The turret has a final launching wheel that is powered by two motors that face each other (i.e. they must be configured so that one of them is reversed to work in tandem). For the launching system, it is likely that we'll be targeting a specific velocity, not a positional value. Finally, the turret has an angle manipulator, called a hood, that is designed to be able to change the trajectory of a piece anywhere from 15 to 30 degrees.
+Our scoring mechanism consists of a feeder, one motor that powers a series of spinners on a horizontal-to-vertical ramp into the turret. The turret has a few motors. The first is connected to a REV Through Bore Encoder (connected to roboRIO DIO port 0) configured in absolute mode, allowing 420° of total turret travel (configured so 420° = 1 full encoder revolution). The turret has a final launching wheel that is powered by two motors that face each other (i.e. they must be configured so that one of them is reversed to work in tandem). For the launching system, it is likely that we'll be targeting a specific velocity, not a positional value. Finally, the turret has an angle manipulator, called a hood, that is designed to be able to change the trajectory of a piece anywhere from 15 to 45 degrees.
 
 
 
@@ -35,7 +35,7 @@ For most of the system, built-in motor encoders will be used, save the systems t
 
 WPILib version 2026.2.1
 
-QuestNav version 2026-2.1.0
+QuestNav version 2026-1.0.0
 
 Java version 17.0.12
 
