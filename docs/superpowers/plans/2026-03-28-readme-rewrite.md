@@ -1,6 +1,30 @@
+# README Rewrite Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Rewrite the README to accurately describe this Java/WPILib FRC robot codebase, replacing the outdated Python-referencing content.
+
+**Architecture:** Single-file rewrite of `README.md` with five sections: intro, tech stack, ABOUT file guide, setup/deploy instructions, and contributors. References ABOUT files for detail rather than duplicating them.
+
+**Tech Stack:** Markdown
+
+**Spec:** `docs/superpowers/specs/2026-03-28-readme-rewrite-design.md`
+
+---
+
+### Task 1: Rewrite README.md
+
+**Files:**
+- Modify: `README.md`
+
+- [ ] **Step 1: Replace README.md contents**
+
+Write the complete new README:
+
+```markdown
 # robot-code-2026
 
-This is the robot code for FRC Team 801 Horsepower's 2026 season. It is a Java/WPILib codebase for a swerve-drive robot featuring an auto-aiming turret and PathPlanner autonomous routines. This is a codebase tested and improved upon during the recent 2026 Orlando Regional Competition.
+This is the robot code for FRC Team 801 Horsepower's 2026 season. It is a Java/WPILib codebase for a swerve-drive robot featuring an auto-aiming turret and PathPlanner autonomous routines. This is an active competition codebase.
 
 ## Tech Stack
 
@@ -52,3 +76,15 @@ Open the project folder in WPILib VS Code.
 - Hudson Jimenez
 - Robert Ward
 - Omkar Subramaniam
+```
+
+- [ ] **Step 2: Verify the README renders correctly**
+
+Read the file back and visually confirm all sections, links, and formatting are correct.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add README.md
+git commit -m "Rewrite README for correctness and clarity"
+```
