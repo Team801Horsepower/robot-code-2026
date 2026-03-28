@@ -12,6 +12,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.SpindexConstants;
 
@@ -57,11 +58,13 @@ public class Spindex extends SubsystemBase {
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Spindex");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
     m_testVelocityPub = table.getDoubleTopic("VelocityRPM").publish();
+    SmartDashboard.putNumber("SpindexerSpeed(RPM)", 6500);
   }
 
   /** Spins the spindexer at launch velocity (toward feeder). */
   public void spin() {
-    m_pid.setReference(SpindexConstants.kTargetVelocityRPM, ControlType.kVelocity);
+    // m_pid.setReference(SpindexConstants.kTargetVelocityRPM, ControlType.kVelocity);
+    m_pid.setReference(SmartDashboard.getNumber("SpindexerSpeed(RPM)", 6500), ControlType.kVelocity);
   }
 
   /** Stops the spindexer. */
