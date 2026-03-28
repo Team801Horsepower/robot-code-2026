@@ -41,7 +41,7 @@ public class TurretSubsystem extends SubsystemBase {
 
   PIDController TurretRotatePID = new PIDController(1.5, 0, 0);
   SimpleMotorFeedforward TurretRotateFeedForward = new SimpleMotorFeedforward(0, 0);
-  PIDController TurretHoodPID = new PIDController(0.9, 0.003, 0);
+  PIDController TurretHoodPID = new PIDController(0.7, 0, 0.0085); //0.9, 0.003, 0
   SimpleMotorFeedforward TurretHoodFeedForward = new SimpleMotorFeedforward(0, 0, 0);
   PIDController ShooterPID = new PIDController(0.0021, 0.00085, 0.000085);
   SimpleMotorFeedforward ShooterFeedForward = new SimpleMotorFeedforward(0.0, 0.00195, 0.0);
@@ -408,6 +408,7 @@ public class TurretSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("TurretEncoderActual", TurretThetaActual);
     SmartDashboard.putNumber("TurretPositionTarget", TurretThetaTarget);
     SmartDashboard.putData("TurretRotatePID", TurretRotatePID);
+    SmartDashboard.putData("TurretHoodPID", TurretHoodPID);
 
     /*
      * Turret Shoter PID
