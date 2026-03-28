@@ -429,17 +429,19 @@ public class TurretSubsystem extends SubsystemBase {
   }
 
   public void HoodAim() {
-    s_HoodTiltMotor.set(
-      (TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)) +
-      (TurretHoodFeedForward.calculate(0))
-    );
+    double hoodOutput = TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)
+        + TurretHoodFeedForward.calculate(0);
+    s_HoodTiltMotor.set(hoodOutput);
+    SmartDashboard.putNumber("Hood/ActualAngle", Math.toDegrees(HoodThetaActual));
+    SmartDashboard.putNumber("Hood/MotorPower", hoodOutput);
   }
 
   public void HoodReset() {
     double HoodResetTarget = 0.261799;
-    s_HoodTiltMotor.set(
-      (TurretHoodPID.calculate(HoodThetaActual, HoodResetTarget)) +
-      (TurretHoodFeedForward.calculate(0))
-    );
+    double hoodOutput = TurretHoodPID.calculate(HoodThetaActual, HoodResetTarget)
+        + TurretHoodFeedForward.calculate(0);
+    s_HoodTiltMotor.set(hoodOutput);
+    SmartDashboard.putNumber("Hood/ActualAngle", Math.toDegrees(HoodThetaActual));
+    SmartDashboard.putNumber("Hood/MotorPower", hoodOutput);
   }
 }
