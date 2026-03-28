@@ -90,6 +90,7 @@ public class TurretSubsystem extends SubsystemBase {
 
   private boolean m_testMode = false;
   private boolean m_hoodAutoAimEnabled = false;
+  private boolean m_climbing = false;
 
   //Alliance
   public Optional<Alliance> AllianceColor;
@@ -128,6 +129,7 @@ public class TurretSubsystem extends SubsystemBase {
 
   public void setTestMode(boolean enabled) { m_testMode = enabled; }
   public void setHoodAutoAim(boolean enabled) { m_hoodAutoAimEnabled = enabled; }
+  public void setClimbing(boolean enabled) { m_climbing = enabled; }
   public void testRunLaunch(double power) { s_ShooterMotorLeft.set(power); }
   public void testRunHood(double power) { s_HoodTiltMotor.set(power); }
   public void testRunRotate(double power) { s_TurretRotateMotor.set(power); }
@@ -341,31 +343,33 @@ public class TurretSubsystem extends SubsystemBase {
       // Flat-ground polynomial baseline
       double hoodPolynomial = 0.0136 + 0.234 * effectiveDistance + -0.0205 * Math.pow(effectiveDistance, 2);
 
-      // Elevation correction for actual height difference vs flat-ground baseline
-      double elevationCorrection = Math.atan2(vZ, DistanceToGoal)
-          - Math.atan2(Constants.TurretSubsystemConstants.BaselineDeltaZ, DistanceToGoal);
+      double elevationCorrection = 0.0;
+      double requiredHoodAngle;
 
-      // Desired field-frame launch elevation
-      double desiredFieldElevation = hoodPolynomial + elevationCorrection;
+      if (m_climbing) {
+        // Full vertical displacement compensation (pitch/roll/elevation)
+        elevationCorrection = Math.atan2(vZ, DistanceToGoal)
+            - Math.atan2(Constants.TurretSubsystemConstants.BaselineDeltaZ, DistanceToGoal);
 
-      // Construct desired field-frame launch direction unit vector
-      double aimYawField = Math.atan2(vY, vX);
-      double cElev = Math.cos(desiredFieldElevation);
-      double sElev = Math.sin(desiredFieldElevation);
-      Translation3d fieldDir = new Translation3d(
-          cElev * Math.cos(aimYawField),
-          cElev * Math.sin(aimYawField),
-          sElev);
+        double desiredFieldElevation = hoodPolynomial + elevationCorrection;
 
-      // Inverse-rotate from field frame to robot frame.
-      // Handles all pitch/roll/yaw coupling — turret yaw no longer
-      // controls pure horizontal aim when the robot is tilted.
-      Translation3d robotDir = fieldDir.rotateBy(TurretRotation.unaryMinus());
+        double aimYawField = Math.atan2(vY, vX);
+        double cElev = Math.cos(desiredFieldElevation);
+        double sElev = Math.sin(desiredFieldElevation);
+        Translation3d fieldDir = new Translation3d(
+            cElev * Math.cos(aimYawField),
+            cElev * Math.sin(aimYawField),
+            sElev);
 
-      // Extract required robot-frame hood angle
-      double robotDirHoriz = Math.sqrt(
-          robotDir.getX() * robotDir.getX() + robotDir.getY() * robotDir.getY());
-      double requiredHoodAngle = Math.atan2(robotDir.getZ(), robotDirHoriz);
+        Translation3d robotDir = fieldDir.rotateBy(TurretRotation.unaryMinus());
+
+        double robotDirHoriz = Math.sqrt(
+            robotDir.getX() * robotDir.getX() + robotDir.getY() * robotDir.getY());
+        requiredHoodAngle = Math.atan2(robotDir.getZ(), robotDirHoriz);
+      } else {
+        // Flat ground — no pitch/roll/elevation correction
+        requiredHoodAngle = hoodPolynomial;
+      }
 
       HoodThetaTarget = MathUtil.clamp(requiredHoodAngle, 0.261799, 0.785398);
 
