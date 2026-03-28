@@ -275,6 +275,8 @@ Motor output = PID(HoodThetaActual, HoodThetaTarget) + Feedforward(0)
 
   ## 7\. Hood Angle — Vertical Displacement Compensation
 
+  > **Note:** All corrections in this section (elevation correction, pitch/roll inverse rotation, and Z-height compensation) are **only active when the `Climb` command is running**. When not climbing, `elevationCorrection = 0` and `requiredHoodAngle = polynomial(D)` — the flat-ground polynomial is used directly with no pitch, roll, yaw, or Z adjustments. The `Climb` command is currently a boilerplate command that is never bound to a button or auto routine, so these corrections are effectively disabled.
+
   ### 7.1 The Problem
 
   The flat-ground polynomial (Section 6) does not account for two effects that arise when the robot is on a tilted surface (ramp, bump, uneven field):
@@ -383,7 +385,7 @@ periodic() \[every 20 ms]:
         7. Adjust ShooterVelocityTarget for radial velocity
         8. Compute effectiveDistance for hood polynomial
         9. Compute TurretThetaTarget (bearing + lead with corrected flight time + wrap)
-        10. Compute HoodThetaTarget (polynomial on effectiveDistance + vertical displacement compensation)
+        10. Compute HoodThetaTarget (polynomial on effectiveDistance; vertical displacement compensation only if climbing)
     else:
         Use fallback defaults
 
