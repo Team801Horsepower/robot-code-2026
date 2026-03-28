@@ -13,13 +13,11 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -64,6 +62,12 @@ public class TurretSubsystem extends SubsystemBase {
   public double vX;
   public double vY;
 
+  public double GoalX;
+  public double GoalY;
+
+  public double GoalOffsetX;
+  public double GoalOffsetY;
+
   // Robot Position Variables
   public double TurretX;
   public double TurretY;
@@ -91,8 +95,6 @@ public class TurretSubsystem extends SubsystemBase {
 
   //Alliance
   public Optional<Alliance> AllianceColor;
-  public double GoalX;
-  public double GoalY;
 
   private edu.wpi.first.wpilibj.DriverStation.Alliance m_alliance =
       edu.wpi.first.wpilibj.DriverStation.Alliance.Blue;
@@ -111,17 +113,6 @@ public class TurretSubsystem extends SubsystemBase {
     s_HoodTiltMotor.getEncoder().setPosition(0);
 
     ShooterPID.setIZone(50.0);
-
-    //SmartDashboard.putNumber("BallVelocityTarget", 0);
-
-    //SmartDashboard.putNumber("Shooter P", 0.0023);
-    //SmartDashboard.putNumber("Shooter I", 0.0005);
-    //SmartDashboard.putNumber("Shooter D", 0.0005);
-    //SmartDashboard.putNumber("Shooter Ks", 0.0);
-    //SmartDashboard.putNumber("Shooter Kv", 0.00195);
-    //SmartDashboard.putNumber("Shooter Ka", 0.0);
-
-    //SmartDashboard.putNumber("ShotMultiplier", 0.95);
   }
 
   public void setTestMode(boolean enabled) { m_testMode = enabled; }
@@ -132,18 +123,6 @@ public class TurretSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    //double newP = SmartDashboard.getNumber("Shooter P", 0.0023);
-    //double newI = SmartDashboard.getNumber("Shooter I", 0.0005);
-    //double newD = SmartDashboard.getNumber("Shooter D", 0.0005);
-    //ShooterPID.setP(newP);
-    //ShooterPID.setI(newI);
-    //ShooterPID.setD(newD);
-    //double newKs = SmartDashboard.getNumber("Shooter Ks", 0.0);
-    //double newKv = SmartDashboard.getNumber("Shooter Kv", 0.00195);
-    //double newKa = SmartDashboard.getNumber("Shooter Ka", 0.0);
-    //ShooterFeedForward.setKs(newKs);
-    //ShooterFeedForward.setKv(newKv);
-    //ShooterFeedForward.setKa(newKa);
 
     if (m_testMode) {
       return;
@@ -162,6 +141,21 @@ public class TurretSubsystem extends SubsystemBase {
       TurretRotation = TurretPose.getRotation();
       TurretYaw = TurretRotation.getZ();
 
+      if (DistanceToGoal > 0.1 && BallVelocityTarget > 0.1) {
+        // Convert robot-relative chassis speeds to field-relative
+        // Note: TurretYaw equals robot heading because RobotToTurretYaw = 0.0
+        // Note: ChassisSpeeds source is CTRE odometry; heading is from QuestNav
+        ChassisSpeeds robotSpeeds = m_chassisSpeedsSupplier.get();
+        ChassisSpeeds fieldSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
+            robotSpeeds, Rotation2d.fromRadians(TurretYaw));
+
+        GoalOffsetX = fieldSpeeds.vxMetersPerSecond;
+        GoalOffsetY = fieldSpeeds.vyMetersPerSecond;
+
+        SmartDashboard.putNumber("GoalOffsetX", GoalOffsetX);
+        SmartDashboard.putNumber("GoalOffsetY", GoalOffsetY);
+      }
+
       /*
        * Creates a 2D unit vector from the robot to the goal.
        * Calculates distance to goal.
@@ -169,37 +163,41 @@ public class TurretSubsystem extends SubsystemBase {
        */
       if (m_alliance == Alliance.Red) {
         if (TurretX < 11.915394 && TurretY < 4.034536) {
-          vX = Constants.TurretSubsystemConstants.AimPointR1.getX() - TurretX;
-          vY = Constants.TurretSubsystemConstants.AimPointR1.getY() - TurretY;
+          GoalX = Constants.TurretSubsystemConstants.AimPointR1.getX();
+          GoalY = Constants.TurretSubsystemConstants.AimPointR1.getY();
         }
         else if (TurretX < 11.915394 && TurretY > 4.034536) {
-          vX = Constants.TurretSubsystemConstants.AimPointR2.getX() - TurretX;
-          vY = Constants.TurretSubsystemConstants.AimPointR2.getY() - TurretY;
+          GoalX = Constants.TurretSubsystemConstants.AimPointR2.getX();
+          GoalY = Constants.TurretSubsystemConstants.AimPointR2.getY();
         }
         else {
-          vX = Constants.TurretSubsystemConstants.RedAllianceGoal.getX() - TurretX;
-          vY = Constants.TurretSubsystemConstants.RedAllianceGoal.getY() - TurretY;
+          GoalX = Constants.TurretSubsystemConstants.RedAllianceGoal.getX();
+          GoalY = Constants.TurretSubsystemConstants.RedAllianceGoal.getY();
         }
       }
       else {
         if (TurretX > 4.625594 && TurretY < 4.034536) {
-          vX = Constants.TurretSubsystemConstants.AimPointB2.getX() - TurretX;
-          vY = Constants.TurretSubsystemConstants.AimPointB2.getY() - TurretY;
+          GoalX = Constants.TurretSubsystemConstants.AimPointB2.getX();
+          GoalY = Constants.TurretSubsystemConstants.AimPointB2.getY();
         }
         else if (TurretX > 4.625594 && TurretY > 4.034536) {
-          vX = Constants.TurretSubsystemConstants.AimPointB1.getX() - TurretX;
-          vY = Constants.TurretSubsystemConstants.AimPointB1.getY() - TurretY;
+          GoalX = Constants.TurretSubsystemConstants.AimPointB1.getX();
+          GoalY = Constants.TurretSubsystemConstants.AimPointB1.getY();
         }
         else {
-          vX = Constants.TurretSubsystemConstants.BlueAllianceGoal.getX() - TurretX;
-          vY = Constants.TurretSubsystemConstants.BlueAllianceGoal.getY() - TurretY;
+          GoalX = Constants.TurretSubsystemConstants.BlueAllianceGoal.getX();
+          GoalY = Constants.TurretSubsystemConstants.BlueAllianceGoal.getY();
         }
       }
+
+      GoalX -= GoalOffsetX;
+      GoalY -= GoalOffsetY;
+
+      vX = GoalX - TurretX;
+      vY = GoalY - TurretY;
     
       DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
       SmartDashboard.putNumber("DistanceToGoal", DistanceToGoal);
-
-      //double ShotMultiplier = SmartDashboard.getNumber("ShotMultiplier", 0.95);
 
       /*
       * TURRET SHOOTER
@@ -230,34 +228,6 @@ public class TurretSubsystem extends SubsystemBase {
       double TurretThetaTargetRaw1 = -Math.atan2(vY, vX)
         + TurretYaw
         + Constants.TurretSubsystemConstants.TurretRotateScoreOffset;
-
-      // ── Lead compensation ──────────────────────────────────────────────
-      // Skip lead calc if too close to goal (avoid division by zero)
-      double leadOffset = 0.0;
-      if (DistanceToGoal > 0.1 && BallVelocityTarget > 0.1) {
-        // Convert robot-relative chassis speeds to field-relative
-        // Note: TurretYaw equals robot heading because RobotToTurretYaw = 0.0
-        // Note: ChassisSpeeds source is CTRE odometry; heading is from QuestNav
-        ChassisSpeeds robotSpeeds = m_chassisSpeedsSupplier.get();
-        ChassisSpeeds fieldSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
-            robotSpeeds, Rotation2d.fromRadians(TurretYaw));
-
-        // Unit vector from turret to goal
-        double uX = vX / DistanceToGoal;
-        double uY = vY / DistanceToGoal;
-
-        // Perpendicular direction (90° CCW rotation of unit vector)
-        // Signed dot product gives velocity component perpendicular to goal line
-        double vPerp = fieldSpeeds.vxMetersPerSecond * (-uY)
-                     + fieldSpeeds.vyMetersPerSecond * uX;
-
-        // Lead offset: atan(v_perp / ball_velocity) — distance cancels out of flight time
-        leadOffset = Math.atan(vPerp / BallVelocityTarget)
-                          * Constants.TurretSubsystemConstants.kLeadFactor;
-      }
-      SmartDashboard.putNumber("LeadOffset", Math.toDegrees(leadOffset));
-
-      TurretThetaTargetRaw1 += leadOffset;
 
       while (TurretThetaTargetRaw1 < -Math.PI) {
         TurretThetaTargetRaw1 += 2.0 * Math.PI;
