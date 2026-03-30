@@ -19,11 +19,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public class TurretSubsystem extends SubsystemBase {
 
@@ -44,7 +41,6 @@ public class TurretSubsystem extends SubsystemBase {
   SimpleMotorFeedforward ShooterFeedForward = new SimpleMotorFeedforward(0.0, 0.00195, 0.0);
   
   private final QuestSubsystem questNav;
-  private final Supplier<ChassisSpeeds> m_chassisSpeedsSupplier;
 
   Transform3d RobotToTurret = new Transform3d(
     Constants.TurretSubsystemConstants.RobotToTurretX, 
@@ -58,7 +54,10 @@ public class TurretSubsystem extends SubsystemBase {
   public Pose3d TurretPose = new Pose3d();
   public Rotation3d TurretRotation = new Rotation3d();
 
-  // Vector Variables
+/*
+ * TURRET SUBSYSTEM VARIABLES ----------------------------------------------------------------------------------------------------
+ */
+  // Vector Variables  * * * * *
   public double vX;
   public double vY;
 
@@ -68,23 +67,31 @@ public class TurretSubsystem extends SubsystemBase {
   public double GoalOffsetX;
   public double GoalOffsetY;
 
-  // Robot Position Variables
+  // Robot Position Variables  * * * * *
   public double TurretX;
   public double TurretY;
-  public double TurretZ;
   public double TurretYaw;
 
-  //Turret Variables
+  public double TurretXMinusOne;
+  public double TurretYMinusOne;
+
+  // Robot Velocity Vectors  * * * * *
+  public double TurretVx;
+  public double TurretVy;
+
+  public double TimeOfFlight;
+
+  //Turret Variables  * * * * *
   public double TicksPerDegree;
   public double TurretThetaActual;
   public double TurretThetaTarget;
 
-  // Hood Variables
+  // Hood Variables  * * * * *
   public double HoodThetaActual;
   public double HoodThetaTarget;
   public double DistanceToGoal;
 
-  // Shooter Variables
+  // Shooter Variables  * * * * *
   public double BallVelocityTarget;
   public double ShooterVelocityTarget;
   public double ShooterVelocityActual;
@@ -92,24 +99,28 @@ public class TurretSubsystem extends SubsystemBase {
 
   private boolean m_testMode = false;
   private boolean m_hoodAutoAimEnabled = false;
+/*
+ * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
+ */
 
-  //Alliance
+/*
+ * GET ALLIANCE COLOR ------------------------------------------------------------------------------------------------------------
+ */
   public Optional<Alliance> AllianceColor;
 
   private edu.wpi.first.wpilibj.DriverStation.Alliance m_alliance =
       edu.wpi.first.wpilibj.DriverStation.Alliance.Blue;
 
-  /**
-   * Caches the current alliance color. Call from autonomousInit/teleopInit.
-   * Defaults to Blue if not set.
-   */
   public void setAlliance(edu.wpi.first.wpilibj.DriverStation.Alliance alliance) {
     m_alliance = alliance;
   }
+/*
+ * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
+ */
 
-  public TurretSubsystem(QuestSubsystem questNav, Supplier<ChassisSpeeds> chassisSpeedsSupplier) {
+  public TurretSubsystem(QuestSubsystem questNav) {
     this.questNav = questNav;
-    this.m_chassisSpeedsSupplier = chassisSpeedsSupplier;
+
     s_HoodTiltMotor.getEncoder().setPosition(0);
 
     ShooterPID.setIZone(50.0);
@@ -124,43 +135,59 @@ public class TurretSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
 
+/*
+ * GET ENCODER VALUES ----------------------------------------------------------------------------------------------------------
+ */
+    // Turret Rotate Encoder  * * * * *
+    TurretThetaActual = s_TurretRotateEncoder.get() - Constants.TurretSubsystemConstants.TurretRotateOffset;
+
+    // Turret Hood Encoder  * * * * *
+    HoodEncoder = s_HoodTiltMotor.getEncoder();
+    HoodThetaActual = (((HoodEncoder.getPosition()) / (Constants.TurretSubsystemConstants.HoodGearRatio)) * (2 * Math.PI)) + 0.261799;
+
+    // Turret Shooter Encoder  * * * * *
+    ShooterEncoder = s_ShooterMotorRight.getEncoder();
+    ShooterVelocityActual = ShooterEncoder.getVelocity();
+/*
+ * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
+ */
+
+/*
+ * GET ROBOT POSITION AND VELOCITY ---------------------------------------------------------------------------------------------
+ */
+    // Robot Position  * * * * *
+    TurretPose = questNav.RobotPose.transformBy(RobotToTurret);
+    TurretRotation = TurretPose.getRotation();
+
+    TurretX = TurretPose.getX();
+    TurretY = TurretPose.getY();
+    TurretYaw = TurretRotation.getZ();
+
+    // Robot Velocity  * * * * *
+    TurretVx = (TurretX - TurretXMinusOne) / 0.02;
+    TurretVy = (TurretY - TurretYMinusOne) / 0.02;
+/*
+ * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
+ */
+
+/*
+ * GET BALL TIME OF FLIGHT -----------------------------------------------------------------------------------------------------
+ */
+    TimeOfFlight = 1.0;
+/*
+ * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
+ */
+
     if (m_testMode) {
       return;
     }
 
-    // Only run pose-dependent aiming if QuestNav has valid tracking data and is not at (0,0)
+/*
+ * IF QUEST NAV IS TRACKNG -----------------------------------------------------------------------------------------------------
+ */
     if (questNav.isTracking()) {
-      // && questNav.RobotPose.getX() > 0.1 && questNav.RobotPose.getY() > 0.1
-      /*
-       * Takes robot pose2d published by QuestNav (Position of Quest, NOT position of center of robot)
-       * and offsets it to the center of the turret.
-       */
-      TurretPose = questNav.RobotPose.transformBy(RobotToTurret);
-      TurretX = TurretPose.getX();
-      TurretY = TurretPose.getY();
-      TurretRotation = TurretPose.getRotation();
-      TurretYaw = TurretRotation.getZ();
 
-      if (DistanceToGoal > 0.1 && BallVelocityTarget > 0.1) {
-        // Convert robot-relative chassis speeds to field-relative
-        // Note: TurretYaw equals robot heading because RobotToTurretYaw = 0.0
-        // Note: ChassisSpeeds source is CTRE odometry; heading is from QuestNav
-        ChassisSpeeds robotSpeeds = m_chassisSpeedsSupplier.get();
-        ChassisSpeeds fieldSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
-            robotSpeeds, Rotation2d.fromRadians(TurretYaw));
-
-        GoalOffsetX = fieldSpeeds.vxMetersPerSecond;
-        GoalOffsetY = fieldSpeeds.vyMetersPerSecond;
-
-        SmartDashboard.putNumber("GoalOffsetX", GoalOffsetX);
-        SmartDashboard.putNumber("GoalOffsetY", GoalOffsetY);
-      }
-
-      /*
-       * Creates a 2D unit vector from the robot to the goal.
-       * Calculates distance to goal.
-       * Aims at 1 of 6 field coordinates depending on robot location (zone) and alliance color
-       */
+      // Target Position  * * * * *
       if (m_alliance == Alliance.Red) {
         if (TurretX < 11.915394 && TurretY < 4.034536) {
           GoalX = Constants.TurretSubsystemConstants.AimPointR1.getX();
@@ -190,41 +217,14 @@ public class TurretSubsystem extends SubsystemBase {
         }
       }
 
-      GoalX -= GoalOffsetX;
-      GoalY -= GoalOffsetY;
-
-      vX = GoalX - TurretX;
-      vY = GoalY - TurretY;
-    
+      // Calculate Distance To Goal  * * * * *
       DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
-      SmartDashboard.putNumber("DistanceToGoal", DistanceToGoal);
 
-      /*
-      * TURRET SHOOTER
-      * Calculates the shooter velocity target based on the line of best fit fron an analysis of physics equations.
-      * Converts the ball velocity in m/s to motor speed in RPM.
-      * Gets the velocity reading from the left flywheel motor.
-      * Feedforward drives flywheel to target velocity.
-      * Feedback drives flywheel to target velocity. 
-      */
-      // Ball velocity needed for both lead compensation and shooter control
-      // BallVelocityTarget = 5.58 + 0.38 * DistanceToGoal + 0.0394 * Math.pow(DistanceToGoal, 2);
-      //BallVelocityTarget = SmartDashboard.getNumber("BallVelocityTarget", 0);
-      BallVelocityTarget = 6 - 0.00447 * DistanceToGoal + 0.104 * Math.pow(DistanceToGoal, 2);
+      // Adjust Goal Position For Robot Velocity * * * * *
+      vX = (GoalX - (TurretVx * TimeOfFlight)) - TurretX;
+      vY = (GoalY - (TurretVy * TimeOfFlight)) - TurretY;
 
-      ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterWheelCircumference);
-      //ShooterEncoder = s_ShooterMotorRight.getEncoder();
-      //ShooterVelocityActual = ShooterEncoder.getVelocity();
-
-      /*
-       * TURRET ROTATE
-       * Takes the tanget of the 2D unit vector to get the heading of the goal relative the robot.
-       * Subtracts the position of the turret from the rotation of the robot to get the true angle of the turret.
-       * Feedforward helps to overcome system resistance.
-       * Feedback drives turret motor to target turret rotate theta.
-       */
-      TurretThetaActual = s_TurretRotateEncoder.get() - Constants.TurretSubsystemConstants.TurretRotateOffset;
-
+      // Calculate Turret Rotate * * * * *
       double TurretThetaTargetRaw1 = -Math.atan2(vY, vX)
         + TurretYaw
         + Constants.TurretSubsystemConstants.TurretRotateScoreOffset;
@@ -256,13 +256,8 @@ public class TurretSubsystem extends SubsystemBase {
         -3.49066,
         3.49066
       );
-    
-      /*
-       * TURRET HOOD — zone-aware
-       * Launch zone: auto-aim hood based on distance-to-goal polynomial.
-       * Trench zone: retract hood to clear the trench (drive to minimum angle).
-       * Far zone: skip hood control entirely (future: alternate aiming).
-       */
+
+      // Calculate  Turret Hood  * * * * *
       HoodEncoder = s_HoodTiltMotor.getEncoder();
       HoodThetaActual = (((HoodEncoder.getPosition()) / (Constants.TurretSubsystemConstants.HoodGearRatio)) * (2 * Math.PI)) + 0.261799;
       HoodThetaTarget = MathUtil.clamp(
@@ -270,49 +265,72 @@ public class TurretSubsystem extends SubsystemBase {
         0.261799, 0.785398
       );
 
-  } // end isTracking guard
-
-  else {
-    // Shooter
-    ShooterVelocityTarget = 1754.463941;
-  
-    //Hood
-    HoodEncoder = s_HoodTiltMotor.getEncoder();
-    HoodThetaActual = (((HoodEncoder.getPosition()) / (Constants.TurretSubsystemConstants.HoodGearRatio)) * (2 * Math.PI)) + 0.261799;
-    HoodThetaTarget = 0.785398;
-    
-    // Rotate
-    TurretThetaActual = s_TurretRotateEncoder.get() - Constants.TurretSubsystemConstants.TurretRotateOffset;
-    TurretThetaTarget = 0.0;
+      // Calculate Turret Shooter  * * * * *
+      BallVelocityTarget = 6 - 0.00447 * DistanceToGoal + 0.104 * Math.pow(DistanceToGoal, 2);
+      ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterWheelCircumference);
 
   }
 
-    /*
-     * Turret Rotate PID
-     */
+/*
+ * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
+ */
+
+/*
+ * IF QUEST NAV IS NOT TRACKING ------------------------------------------------------------------------------------------------
+ */
+    else {
+      // Shooter  * * * * *
+      ShooterVelocityTarget = 1754.463941;
+    
+      //Hood  * * * * *
+      HoodThetaTarget = 0.785398;
+      
+      // Rotate  * * * * *
+      TurretThetaTarget = -0.797;
+
+    }
+/*
+ * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
+ */
+
+/*
+ * PID CONTROLLERS -------------------------------------------------------------------------------------------------------------
+ */
+    // Turret Rotate PID  * * * * *
     s_TurretRotateMotor.set(
       (TurretRotatePID.calculate(TurretThetaActual, TurretThetaTarget)) +
       (TurretRotateFeedForward.calculate(0))
       );
 
-    SmartDashboard.putNumber("TurretEncoderActual", TurretThetaActual);
-    SmartDashboard.putNumber("TurretPositionTarget", TurretThetaTarget);
-    SmartDashboard.putData("TurretRotatePID", TurretRotatePID);
-
-    /*
-     * Turret Shoter PID
-     */
+    // Turret Shooter PID  * * * * *
+    ShooterVelocityPIDSet = ShooterPID.calculate(ShooterVelocityActual, ShooterVelocityTarget) + ShooterFeedForward.calculate(ShooterVelocityTarget);
     s_ShooterMotorLeft.setVoltage(-1 * ShooterVelocityPIDSet);
     s_ShooterMotorRight.setVoltage(ShooterVelocityPIDSet);
+/*
+ * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
+ */
 
-    ShooterEncoder = s_ShooterMotorRight.getEncoder();
-    ShooterVelocityActual = ShooterEncoder.getVelocity();
+/*
+ * STORE PREVIOUS ROBOT POSITION -----------------------------------------------------------------------------------------------
+ */
+    TurretXMinusOne = TurretX;
+    TurretYMinusOne = TurretY;
+/*
+ * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
+ */
 
-    ShooterVelocityPIDSet = ShooterPID.calculate(ShooterVelocityActual, ShooterVelocityTarget) + ShooterFeedForward.calculate(ShooterVelocityTarget);
+/*
+ * SMART DASHBOARD -------------------------------------------------------------------------------------------------------------
+ */
+    // Robot Velocity  * * * * *
+    SmartDashboard.putNumber("TurretVx", TurretVx);
+    SmartDashboard.putNumber("TurretVy", TurretVy);
 
-    SmartDashboard.putNumber("ShooterVelocityTarget", ShooterVelocityTarget);
-    SmartDashboard.putNumber("ShooterVelocityActual", ShooterVelocityActual);
-    SmartDashboard.putData("ShooterPID", ShooterPID);
+    // Targeting  * * * * *
+    SmartDashboard.putNumber("DistanceToGoal", DistanceToGoal);
+/*
+ * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
+ */
 
     if (m_hoodAutoAimEnabled) {
       HoodAim();
@@ -321,6 +339,9 @@ public class TurretSubsystem extends SubsystemBase {
     }
   }
 
+/*
+ * TURRET HOOD SET / RESET METHODS -----------------------------------------------------------------------------------------------
+ */
   public void HoodAim() {
     s_HoodTiltMotor.set(
       (TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)) +
@@ -335,4 +356,7 @@ public class TurretSubsystem extends SubsystemBase {
       (TurretHoodFeedForward.calculate(0))
     );
   }
+/*
+ * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
+ */
 }

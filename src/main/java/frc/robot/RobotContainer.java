@@ -56,7 +56,7 @@ public class RobotContainer {
   private final DrivetrainSubsystem m_drivetrain = TunerConstants.createDrivetrain();
   private final QuestSubsystem m_QuestSubsystem = new QuestSubsystem();
   private final TurretSubsystem m_TurretSubsystem = new TurretSubsystem(
-      m_QuestSubsystem, () -> m_drivetrain.getState().Speeds);
+      m_QuestSubsystem);
 
   private final Gather   m_gather  = new Gather();
   private final Hopper   m_hopper  = new Hopper();
