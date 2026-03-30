@@ -173,7 +173,7 @@ public class TurretSubsystem extends SubsystemBase {
 /*
  * GET BALL TIME OF FLIGHT -----------------------------------------------------------------------------------------------------
  */
-    TimeOfFlight = 1.0;
+    TimeOfFlight = 0.877 + 0.0491 * DistanceToGoal + .000654 * Math.pow(DistanceToGoal, 2);
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
