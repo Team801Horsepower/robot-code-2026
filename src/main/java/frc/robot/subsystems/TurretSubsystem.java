@@ -10,6 +10,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -35,7 +36,7 @@ public class TurretSubsystem extends SubsystemBase {
 
   PIDController TurretRotatePID = new PIDController(1.5, 0, 0);
   SimpleMotorFeedforward TurretRotateFeedForward = new SimpleMotorFeedforward(0, 0);
-  PIDController TurretHoodPID = new PIDController(0.9, 0.003, 0);
+  PIDController TurretHoodPID = new PIDController(0.7, 0, 0.0085);
   SimpleMotorFeedforward TurretHoodFeedForward = new SimpleMotorFeedforward(0, 0, 0);
   PIDController ShooterPID = new PIDController(0.0021, 0.00085, 0.000085);
   SimpleMotorFeedforward ShooterFeedForward = new SimpleMotorFeedforward(0.0, 0.00195, 0.0);
@@ -53,6 +54,9 @@ public class TurretSubsystem extends SubsystemBase {
 
   public Pose3d TurretPose = new Pose3d();
   public Rotation3d TurretRotation = new Rotation3d();
+
+  LinearFilter VelocityFilterX = LinearFilter.movingAverage(5);
+  LinearFilter VelocityFilterY = LinearFilter.movingAverage(5);
 
 /*
  * TURRET SUBSYSTEM VARIABLES ----------------------------------------------------------------------------------------------------
@@ -164,8 +168,11 @@ public class TurretSubsystem extends SubsystemBase {
     TurretYaw = TurretRotation.getZ();
 
     // Robot Velocity  * * * * *
-    TurretVx = (TurretX - TurretXMinusOne) / 0.02;
-    TurretVy = (TurretY - TurretYMinusOne) / 0.02;
+    //TurretVx = (TurretX - TurretXMinusOne) / 0.02;
+    //TurretVy = (TurretY - TurretYMinusOne) / 0.02;
+
+    TurretVx = VelocityFilterX.calculate((TurretX - TurretXMinusOne) / 0.02);
+    TurretVy = VelocityFilterY.calculate((TurretY - TurretYMinusOne) / 0.02);
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
@@ -173,7 +180,7 @@ public class TurretSubsystem extends SubsystemBase {
 /*
  * GET BALL TIME OF FLIGHT -----------------------------------------------------------------------------------------------------
  */
-    TimeOfFlight = 0.877 + 0.0491 * DistanceToGoal + .000654 * Math.pow(DistanceToGoal, 2);
+    TimeOfFlight = 0.976 + 0.0027 * DistanceToGoal + .00677 * Math.pow(DistanceToGoal, 2);
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
