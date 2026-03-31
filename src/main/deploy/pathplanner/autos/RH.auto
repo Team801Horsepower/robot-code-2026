@@ -5,21 +5,79 @@
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "race",
           "data": {
-            "pathName": "R-H1"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "R-H1"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "gathering"
+                }
+              }
+            ]
           }
         },
         {
-          "type": "wait",
+          "type": "race",
           "data": {
-            "waitTime": 4.0
+            "commands": [
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 4.0
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "shoot"
+                }
+              }
+            ]
           }
         },
         {
-          "type": "path",
+          "type": "race",
           "data": {
-            "pathName": "C-H2"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "C-H2"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "gathering"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 4.0
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "shoot"
+                }
+              }
+            ]
           }
         }
       ]
