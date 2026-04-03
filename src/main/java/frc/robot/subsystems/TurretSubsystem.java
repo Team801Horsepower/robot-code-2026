@@ -55,8 +55,8 @@ public class TurretSubsystem extends SubsystemBase {
   public Pose3d TurretPose = new Pose3d();
   public Rotation3d TurretRotation = new Rotation3d();
 
-  LinearFilter VelocityFilterX = LinearFilter.movingAverage(5);
-  LinearFilter VelocityFilterY = LinearFilter.movingAverage(5);
+  LinearFilter VelocityFilterX = LinearFilter.movingAverage(10);
+  LinearFilter VelocityFilterY = LinearFilter.movingAverage(10);
 
 /*
  * TURRET SUBSYSTEM VARIABLES ----------------------------------------------------------------------------------------------------
@@ -335,6 +335,10 @@ public class TurretSubsystem extends SubsystemBase {
 
     // Targeting  * * * * *
     SmartDashboard.putNumber("DistanceToGoal", DistanceToGoal);
+
+    // PID Controller
+    SmartDashboard.putData("ShooterPID", ShooterPID);
+    SmartDashboard.putData("TurretRotatePID", TurretRotatePID);
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
