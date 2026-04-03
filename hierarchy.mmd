@@ -6,6 +6,7 @@ graph TD
     LT["Left Trigger\n(>0.08, held)"]
     LB["Left Bumper\n(held)"]
     RT["Right Trigger\n(>0.15, held)"]
+    B["B Button\n(held)"]
   end
 
   %% ── Leaf Subsystems ───────────────────────────────────────────
@@ -29,11 +30,14 @@ graph TD
   Shoot([Shoot])
   Score([Score])
   ReverseIntake([Reverse Intake])
+  ReverseSpindex([Reverse Spindex])
 
   %% ── Button → Command ──────────────────────────────────────────
   LT --> Gathering
   LB --> ReverseIntake
   RT --> Shoot
+  RT --> Turret
+  B --> ReverseSpindex
 
   %% ── Composite → Leaf composition ─────────────────────────────
   Drive --> DT
@@ -44,6 +48,7 @@ graph TD
   Launch --> Gather
   Manipulator --> Possession
   Manipulator --> Launch
+  Turret --> QN
 
   %% ── Commands → Subsystem requirements ────────────────────────
   DriveToPose --> Drive
@@ -60,6 +65,7 @@ graph TD
   Score --> Spindex
   Score --> Feeder
   ReverseIntake --> Gather
+  ReverseSpindex --> Spindex
 
   %% ── Styling ───────────────────────────────────────────────────
   classDef leaf      fill:#dce8f5,stroke:#4a90d9,color:#000;
@@ -69,5 +75,5 @@ graph TD
 
   class DT,QN,Gather,Hopper,Spindex,Feeder,Turret leaf;
   class Drive,Possession,Launch,Manipulator composite;
-  class DriveToPose,Gathering,Shoot,Score,ReverseIntake command;
-  class LT,LB,RT button;
+  class DriveToPose,Gathering,Shoot,Score,ReverseIntake,ReverseSpindex command;
+  class LT,LB,RT,B button;
