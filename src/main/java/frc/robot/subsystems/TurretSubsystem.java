@@ -178,10 +178,6 @@ public class TurretSubsystem extends SubsystemBase {
  */
 
 /*
- * GET BALL TIME OF FLIGHT -----------------------------------------------------------------------------------------------------
- */
-    TimeOfFlight = 0.976 + 0.0027 * DistanceToGoal + .00677 * Math.pow(DistanceToGoal, 2);
-/*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
 
@@ -224,8 +220,13 @@ public class TurretSubsystem extends SubsystemBase {
         }
       }
 
-      // Calculate Distance To Goal  * * * * *
-      DistanceToGoal = Math.sqrt(vX*vX + vY*vY);
+      // Calculate Distance To Goal (raw, without velocity compensation)  * * * * *
+      double rawVx = GoalX - TurretX;
+      double rawVy = GoalY - TurretY;
+      DistanceToGoal = Math.sqrt(rawVx * rawVx + rawVy * rawVy);
+
+      // Calculate Time Of Flight from raw distance  * * * * *
+      TimeOfFlight = 0.976 + 0.0027 * DistanceToGoal + .00677 * Math.pow(DistanceToGoal, 2);
 
       // Adjust Goal Position For Robot Velocity * * * * *
       vX = (GoalX - (TurretVx * TimeOfFlight)) - TurretX;
