@@ -79,6 +79,9 @@ public class TurretSubsystem extends SubsystemBase {
   public double TurretXMinusOne;
   public double TurretYMinusOne;
 
+  public double DTGvX;
+  public double DTGvY;
+
   // Robot Velocity Vectors  * * * * *
   public double TurretVx;
   public double TurretVy;
@@ -173,6 +176,8 @@ public class TurretSubsystem extends SubsystemBase {
 
     TurretVx = VelocityFilterX.calculate((TurretX - TurretXMinusOne) / 0.02);
     TurretVy = VelocityFilterY.calculate((TurretY - TurretYMinusOne) / 0.02);
+
+    DistanceToGoal = Math.sqrt((GoalX - TurretX)*(GoalX - TurretX) + (GoalY - TurretY)*(GoalY - TurretY));
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
@@ -219,14 +224,6 @@ public class TurretSubsystem extends SubsystemBase {
           GoalY = Constants.TurretSubsystemConstants.BlueAllianceGoal.getY();
         }
       }
-
-      // Calculate Distance To Goal (raw, without velocity compensation)  * * * * *
-      double rawVx = GoalX - TurretX;
-      double rawVy = GoalY - TurretY;
-      DistanceToGoal = Math.sqrt(rawVx * rawVx + rawVy * rawVy);
-
-      // Calculate Time Of Flight from raw distance  * * * * *
-      TimeOfFlight = 0.976 + 0.0027 * DistanceToGoal + .00677 * Math.pow(DistanceToGoal, 2);
 
       // Adjust Goal Position For Robot Velocity * * * * *
       vX = (GoalX - (TurretVx * TimeOfFlight)) - TurretX;
@@ -336,6 +333,14 @@ public class TurretSubsystem extends SubsystemBase {
 
     // Targeting  * * * * *
     SmartDashboard.putNumber("DistanceToGoal", DistanceToGoal);
+
+    // Turret
+    SmartDashboard.putNumber("TimeofFlight", TimeOfFlight);
+    SmartDashboard.putNumber("GoalX", GoalX);
+    SmartDashboard.putNumber("GoalY", GoalY);
+
+    SmartDashboard.putData("ShooterPID", ShooterPID);
+    SmartDashboard.putData("TurretRotatePID", TurretRotatePID);
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
