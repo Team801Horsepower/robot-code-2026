@@ -341,6 +341,8 @@ public class TurretSubsystem extends SubsystemBase {
 
     SmartDashboard.putData("ShooterPID", ShooterPID);
     SmartDashboard.putData("TurretRotatePID", TurretRotatePID);
+
+    SmartDashboard.putNumber("TurretRotation", TurretYaw);
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */

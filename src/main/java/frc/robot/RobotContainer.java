@@ -331,6 +331,8 @@ public class RobotContainer {
         new Pose2d(4.401, 7.625, Rotation2d.fromDegrees(0.0)));
     m_startPositionChooser.addOption("Far Right",
         new Pose2d(4.414, 0.432, Rotation2d.fromDegrees(0.0)));
+    m_startPositionChooser.addOption("Right Goal",
+        new Pose2d(3.599852, 3.812136, Rotation2d.fromDegrees(180.0)));
     SmartDashboard.putData("Start Position", m_startPositionChooser);
   }
 
