@@ -53,6 +53,7 @@ public class TurretSubsystem extends SubsystemBase {
       Constants.TurretSubsystemConstants.RobotToTurretYaw));
 
   public Pose3d TurretPose = new Pose3d();
+  public Pose3d QuestPose = new Pose3d();
   public Rotation3d TurretRotation = new Rotation3d();
 
   LinearFilter VelocityFilterX = LinearFilter.movingAverage(5);
@@ -72,15 +73,10 @@ public class TurretSubsystem extends SubsystemBase {
   public double GoalOffsetY;
 
   // Robot Position Variables  * * * * *
-  public double TurretX;
-  public double TurretY;
   public double TurretYaw;
 
   public double TurretXMinusOne;
   public double TurretYMinusOne;
-
-  public double DTGvX;
-  public double DTGvY;
 
   // Robot Velocity Vectors  * * * * *
   public double TurretVx;
@@ -164,20 +160,23 @@ public class TurretSubsystem extends SubsystemBase {
  */
     // Robot Position  * * * * *
     TurretPose = questNav.RobotPose.transformBy(RobotToTurret);
+    QuestPose = questNav.QuestPose;
     TurretRotation = TurretPose.getRotation();
 
-    TurretX = TurretPose.getX();
-    TurretY = TurretPose.getY();
-    TurretYaw = TurretRotation.getZ();
+    double x1 = GoalX - QuestPose.getX();
+    double y1 = GoalX - QuestPose.getY();
+    double x2 = GoalX - TurretPose.getX();
+    double y2 = GoalY - TurretPose.getY();
+
+    // Turret Yaw
+    TurretYaw = TurretRotation.getZ() + Math.atan2(((x1 * y2) - (y1 * x2)), ((x1 * x2) + (y1 * y2)));
 
     // Robot Velocity  * * * * *
-    //TurretVx = (TurretX - TurretXMinusOne) / 0.02;
-    //TurretVy = (TurretY - TurretYMinusOne) / 0.02;
+    TurretVx = VelocityFilterX.calculate((TurretPose.getX() - TurretXMinusOne) / 0.02);
+    TurretVy = VelocityFilterY.calculate((TurretPose.getY() - TurretYMinusOne) / 0.02);
 
-    TurretVx = VelocityFilterX.calculate((TurretX - TurretXMinusOne) / 0.02);
-    TurretVy = VelocityFilterY.calculate((TurretY - TurretYMinusOne) / 0.02);
-
-    DistanceToGoal = Math.sqrt((GoalX - TurretX)*(GoalX - TurretX) + (GoalY - TurretY)*(GoalY - TurretY));
+    // Distance to Goal
+    DistanceToGoal = Math.sqrt((x2 * x2) + (y2 *y2));
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
@@ -197,11 +196,11 @@ public class TurretSubsystem extends SubsystemBase {
 
       // Target Position  * * * * *
       if (m_alliance == Alliance.Red) {
-        if (TurretX < 11.915394 && TurretY < 4.034536) {
+        if (TurretPose.getX() < 11.915394 && TurretPose.getY() < 4.034536) {
           GoalX = Constants.TurretSubsystemConstants.AimPointR1.getX();
           GoalY = Constants.TurretSubsystemConstants.AimPointR1.getY();
         }
-        else if (TurretX < 11.915394 && TurretY > 4.034536) {
+        else if (TurretPose.getX() < 11.915394 && TurretPose.getY() > 4.034536) {
           GoalX = Constants.TurretSubsystemConstants.AimPointR2.getX();
           GoalY = Constants.TurretSubsystemConstants.AimPointR2.getY();
         }
@@ -211,11 +210,11 @@ public class TurretSubsystem extends SubsystemBase {
         }
       }
       else {
-        if (TurretX > 4.625594 && TurretY < 4.034536) {
+        if (TurretPose.getX() > 4.625594 && TurretPose.getY() < 4.034536) {
           GoalX = Constants.TurretSubsystemConstants.AimPointB2.getX();
           GoalY = Constants.TurretSubsystemConstants.AimPointB2.getY();
         }
-        else if (TurretX > 4.625594 && TurretY > 4.034536) {
+        else if (TurretPose.getX() > 4.625594 && TurretPose.getY() > 4.034536) {
           GoalX = Constants.TurretSubsystemConstants.AimPointB1.getX();
           GoalY = Constants.TurretSubsystemConstants.AimPointB1.getY();
         }
@@ -226,8 +225,8 @@ public class TurretSubsystem extends SubsystemBase {
       }
 
       // Adjust Goal Position For Robot Velocity * * * * *
-      vX = (GoalX - (TurretVx * TimeOfFlight)) - TurretX;
-      vY = (GoalY - (TurretVy * TimeOfFlight)) - TurretY;
+      vX = (GoalX - (TurretVx * TimeOfFlight)) - TurretPose.getX();
+      vY = (GoalY - (TurretVy * TimeOfFlight)) - TurretPose.getX();
 
       // Calculate Turret Rotate * * * * *
       double TurretThetaTargetRaw1 = -Math.atan2(vY, vX)
@@ -318,8 +317,8 @@ public class TurretSubsystem extends SubsystemBase {
 /*
  * STORE PREVIOUS ROBOT POSITION -----------------------------------------------------------------------------------------------
  */
-    TurretXMinusOne = TurretX;
-    TurretYMinusOne = TurretY;
+    TurretXMinusOne = TurretPose.getX();
+    TurretYMinusOne = TurretPose.getY();
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
