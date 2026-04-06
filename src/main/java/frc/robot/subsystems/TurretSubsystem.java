@@ -52,9 +52,10 @@ public class TurretSubsystem extends SubsystemBase {
       Constants.TurretSubsystemConstants.RobotToTurretPitch, 
       Constants.TurretSubsystemConstants.RobotToTurretYaw));
 
+  Transform3d TurretToForward = new Transform3d(-1, -0.09405, 0, new Rotation3d(0, 0, 0));
+
   public Pose3d TurretPose = new Pose3d();
-  public Pose3d QuestPose = new Pose3d();
-  public Rotation3d TurretRotation = new Rotation3d();
+  public Pose3d TurretForwardPose = new Pose3d();
 
   LinearFilter VelocityFilterX = LinearFilter.movingAverage(5);
   LinearFilter VelocityFilterY = LinearFilter.movingAverage(5);
@@ -160,23 +161,22 @@ public class TurretSubsystem extends SubsystemBase {
  */
     // Robot Position  * * * * *
     TurretPose = questNav.RobotPose.transformBy(RobotToTurret);
-    QuestPose = questNav.QuestPose;
-    TurretRotation = TurretPose.getRotation();
+    TurretForwardPose = questNav.RobotPose.transformBy(TurretToForward);
 
-    double x1 = GoalX - QuestPose.getX();
-    double y1 = GoalX - QuestPose.getY();
-    double x2 = GoalX - TurretPose.getX();
-    double y2 = GoalY - TurretPose.getY();
+    double TurretToGoalX = GoalX - TurretPose.getX();
+    double TurretToGoalY = GoalX - TurretPose.getY();
+    double TurretForwardX = GoalX - TurretForwardPose.getX();
+    double TurretForwardY = GoalY - TurretForwardPose.getY();
 
     // Turret Yaw
-    TurretYaw = TurretRotation.getZ() + Math.atan2(((x1 * y2) - (y1 * x2)), ((x1 * x2) + (y1 * y2)));
+    TurretYaw = Math.atan2(((TurretToGoalX * TurretForwardY) - (TurretToGoalY * TurretForwardX)), ((TurretToGoalX * TurretForwardX) + (TurretToGoalY * TurretForwardY)));
 
     // Robot Velocity  * * * * *
     TurretVx = VelocityFilterX.calculate((TurretPose.getX() - TurretXMinusOne) / 0.02);
     TurretVy = VelocityFilterY.calculate((TurretPose.getY() - TurretYMinusOne) / 0.02);
 
     // Distance to Goal
-    DistanceToGoal = Math.sqrt((x2 * x2) + (y2 *y2));
+    DistanceToGoal = Math.sqrt((TurretToGoalX * TurretToGoalX) + (TurretToGoalY * TurretToGoalY));
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
@@ -301,10 +301,12 @@ public class TurretSubsystem extends SubsystemBase {
  * PID CONTROLLERS -------------------------------------------------------------------------------------------------------------
  */
     // Turret Rotate PID  * * * * *
+    /*
     s_TurretRotateMotor.set(
       (TurretRotatePID.calculate(TurretThetaActual, TurretThetaTarget)) +
       (TurretRotateFeedForward.calculate(0))
       );
+    */
 
     // Turret Shooter PID  * * * * *
     ShooterVelocityPIDSet = ShooterPID.calculate(ShooterVelocityActual, ShooterVelocityTarget) + ShooterFeedForward.calculate(ShooterVelocityTarget);
