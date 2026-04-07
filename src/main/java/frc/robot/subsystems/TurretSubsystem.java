@@ -11,9 +11,12 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.LinearFilter;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -52,10 +55,14 @@ public class TurretSubsystem extends SubsystemBase {
       Constants.TurretSubsystemConstants.RobotToTurretPitch, 
       Constants.TurretSubsystemConstants.RobotToTurretYaw));
 
-  Transform3d TurretToForward = new Transform3d(-1, -0.09405, 0, new Rotation3d(0, 0, 0));
+  Transform3d TurretToForward = new Transform3d(-0.2, -0.09405, 0, new Rotation3d(0, 0, 0));
 
   public Pose3d TurretPose = new Pose3d();
   public Pose3d TurretForwardPose = new Pose3d();
+  public Rotation3d RobotRotation = new Rotation3d();
+
+  StructPublisher<Pose2d> turretPosePublisher = NetworkTableInstance.getDefault().getStructTopic("TurretPose", Pose2d.struct).publish();
+  StructPublisher<Pose2d> turretForwardPosePublisher = NetworkTableInstance.getDefault().getStructTopic("TurretForwardPose", Pose2d.struct).publish();
 
   LinearFilter VelocityFilterX = LinearFilter.movingAverage(5);
   LinearFilter VelocityFilterY = LinearFilter.movingAverage(5);
@@ -163,13 +170,23 @@ public class TurretSubsystem extends SubsystemBase {
     TurretPose = questNav.RobotPose.transformBy(RobotToTurret);
     TurretForwardPose = questNav.RobotPose.transformBy(TurretToForward);
 
+    RobotRotation = TurretPose.getRotation();
+
+    turretPosePublisher.set(TurretPose.toPose2d());
+    turretForwardPosePublisher.set(TurretForwardPose.toPose2d());
+
     double TurretToGoalX = GoalX - TurretPose.getX();
-    double TurretToGoalY = GoalX - TurretPose.getY();
-    double TurretForwardX = GoalX - TurretForwardPose.getX();
-    double TurretForwardY = GoalY - TurretForwardPose.getY();
+    double TurretToGoalY = GoalY - TurretPose.getY();
+    SmartDashboard.putNumber("TurretToGoalX", TurretToGoalX);
+    SmartDashboard.putNumber("TurretToGoalY", TurretToGoalY);
+
+    double TurretForwardX = TurretForwardPose.getX() - TurretPose.getX();
+    double TurretForwardY = TurretForwardPose.getY() - TurretPose.getY();
+    SmartDashboard.putNumber("TurretForwardX", TurretForwardX);
+    SmartDashboard.putNumber("TurretForwardY", TurretForwardY);
 
     // Turret Yaw
-    TurretYaw = Math.atan2(((TurretToGoalX * TurretForwardY) - (TurretToGoalY * TurretForwardX)), ((TurretToGoalX * TurretForwardX) + (TurretToGoalY * TurretForwardY)));
+    TurretYaw = Math.atan2(((TurretToGoalX * TurretForwardY) - (TurretToGoalY * TurretForwardX)), ((TurretToGoalX * TurretForwardX) + (TurretForwardY * TurretToGoalY)));
 
     // Robot Velocity  * * * * *
     TurretVx = VelocityFilterX.calculate((TurretPose.getX() - TurretXMinusOne) / 0.02);
@@ -226,10 +243,10 @@ public class TurretSubsystem extends SubsystemBase {
 
       // Adjust Goal Position For Robot Velocity * * * * *
       vX = (GoalX - (TurretVx * TimeOfFlight)) - TurretPose.getX();
-      vY = (GoalY - (TurretVy * TimeOfFlight)) - TurretPose.getX();
+      vY = (GoalY - (TurretVy * TimeOfFlight)) - TurretPose.getY();
 
       // Calculate Turret Rotate * * * * *
-      double TurretThetaTargetRaw1 = -Math.atan2(vY, vX)
+      double TurretThetaTargetRaw1 =
         + TurretYaw
         + Constants.TurretSubsystemConstants.TurretRotateScoreOffset;
 
@@ -301,12 +318,10 @@ public class TurretSubsystem extends SubsystemBase {
  * PID CONTROLLERS -------------------------------------------------------------------------------------------------------------
  */
     // Turret Rotate PID  * * * * *
-    /*
     s_TurretRotateMotor.set(
       (TurretRotatePID.calculate(TurretThetaActual, TurretThetaTarget)) +
       (TurretRotateFeedForward.calculate(0))
       );
-    */
 
     // Turret Shooter PID  * * * * *
     ShooterVelocityPIDSet = ShooterPID.calculate(ShooterVelocityActual, ShooterVelocityTarget) + ShooterFeedForward.calculate(ShooterVelocityTarget);
