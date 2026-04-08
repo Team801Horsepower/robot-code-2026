@@ -20,19 +20,22 @@ import frc.robot.Constants.GatherConstants;
  */
 public class Gather extends SubsystemBase {
 
-  private final SparkFlex m_motor;
+  private final SparkFlex m_motor_one;
+  private final SparkFlex m_motor_two;
   private boolean m_testMode = false;
   private final DoublePublisher m_testPowerPub;
 
   public Gather() {
-    m_motor = new SparkFlex(GatherConstants.kMotorId, MotorType.kBrushless);
+    m_motor_one = new SparkFlex(GatherConstants.kMotorOneID, MotorType.kBrushless);
+    m_motor_two = new SparkFlex(GatherConstants.kMotorTwoID, MotorType.kBrushless);
 
     SparkFlexConfig config = new SparkFlexConfig();
     config.idleMode(IdleMode.kCoast);
     config.smartCurrentLimit(60);
     config.inverted(true);
 
-    m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    m_motor_one.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    m_motor_two.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Gather");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
@@ -40,17 +43,20 @@ public class Gather extends SubsystemBase {
 
   /** Spins the gatherer roller at the given power. Positive = intake direction. */
   public void gather(double power) {
-    m_motor.set(power);
+    m_motor_one.set(power);
+    m_motor_two.set(-power);
   }
 
   /** Stops the gatherer roller. */
   public void rest() {
-    m_motor.set(0.0);
+    m_motor_one.set(0.0);
+    m_motor_two.set(0);
   }
 
   /** Drives the motor at the given power for test mode. */
   public void testRun(double power) {
-    m_motor.set(power);
+    m_motor_one.set(power);
+    m_motor_two.set(-power);
   }
 
   /** Enables or disables test-mode telemetry publishing. */
@@ -61,7 +67,7 @@ public class Gather extends SubsystemBase {
   @Override
   public void periodic() {
     if (m_testMode) {
-      m_testPowerPub.set(m_motor.get());
+      m_testPowerPub.set(m_motor_one.get());
     }
   }
 }
