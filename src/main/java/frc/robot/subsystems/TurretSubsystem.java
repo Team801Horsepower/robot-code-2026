@@ -175,18 +175,14 @@ public class TurretSubsystem extends SubsystemBase {
     turretPosePublisher.set(TurretPose.toPose2d());
     turretForwardPosePublisher.set(TurretForwardPose.toPose2d());
 
-    double TurretToGoalX = GoalX - TurretPose.getX();
-    double TurretToGoalY = GoalY - TurretPose.getY();
-    SmartDashboard.putNumber("TurretToGoalX", TurretToGoalX);
-    SmartDashboard.putNumber("TurretToGoalY", TurretToGoalY);
+    double TurretToGoalX = vX; //a1
+    double TurretToGoalY = vY; //a2
 
-    double TurretForwardX = TurretForwardPose.getX() - TurretPose.getX();
-    double TurretForwardY = TurretForwardPose.getY() - TurretPose.getY();
-    SmartDashboard.putNumber("TurretForwardX", TurretForwardX);
-    SmartDashboard.putNumber("TurretForwardY", TurretForwardY);
+    double TurretForwardX = TurretForwardPose.getX() - TurretPose.getX(); //b1
+    double TurretForwardY = TurretForwardPose.getY() - TurretPose.getY(); //b2
 
     // Turret Yaw
-    TurretYaw = Math.atan2(((TurretToGoalX * TurretForwardY) - (TurretToGoalY * TurretForwardX)), ((TurretToGoalX * TurretForwardX) + (TurretForwardY * TurretToGoalY)));
+    TurretYaw = Math.atan2(((TurretToGoalX * TurretForwardY) - (TurretToGoalY * TurretForwardX)), ((TurretToGoalX * TurretForwardX) + (TurretForwardY * TurretToGoalY))) + 3.14159;
 
     // Robot Velocity  * * * * *
     TurretVx = VelocityFilterX.calculate((TurretPose.getX() - TurretXMinusOne) / 0.02);
@@ -246,34 +242,32 @@ public class TurretSubsystem extends SubsystemBase {
       vY = (GoalY - (TurretVy * TimeOfFlight)) - TurretPose.getY();
 
       // Calculate Turret Rotate * * * * *
-      double TurretThetaTargetRaw1 =
+      double TurretThetaTarget =
         + TurretYaw
         + Constants.TurretSubsystemConstants.TurretRotateScoreOffset;
 
-      while (TurretThetaTargetRaw1 < -Math.PI) {
-        TurretThetaTargetRaw1 += 2.0 * Math.PI;
+      // Step 1: Bring target near current angle by adding/subtracting 2π
+      double adjustedTarget = TurretThetaTarget;
+
+      while (adjustedTarget - TurretThetaActual > Math.PI) {
+            adjustedTarget -= 2 * Math.PI;
       }
-      while (TurretThetaTargetRaw1 > Math.PI) {
-        TurretThetaTargetRaw1 -= 2.0 * Math.PI;
+
+      while (adjustedTarget - TurretThetaActual < -Math.PI) {
+            adjustedTarget += 2 * Math.PI;
       }
-      double TurretThetaTargetRaw2 = TurretThetaTargetRaw1;
-      double BestDist = 2.0 * Math.PI;
-      for (int i = -1; i <= 1; i++) {
-        double PossibleTarget = TurretThetaTargetRaw1 + (double)i * 2.0 * Math.PI;
-        double Min = -3.49066;
-        double Max = 3.49066;
-        if (PossibleTarget <= Min || PossibleTarget >= Max) {
-          continue;
-        }
-        double Dist = Math.abs(PossibleTarget - TurretThetaActual);
-        if (Dist >= BestDist) {
-          continue;
-        }
-        BestDist = Dist;
-        TurretThetaTargetRaw2 = PossibleTarget;
+
+      // Step 2: Clamp to turret mechanical limits
+      double max = 3.49066;
+      double min = -3.49066;
+
+      if (adjustedTarget > max) {
+            adjustedTarget -= 2 * Math.PI;
+      } else if (adjustedTarget < min) {
+            adjustedTarget += 2 * Math.PI;
       }
       TurretThetaTarget = MathUtil.clamp(
-        TurretThetaTargetRaw2,
+        adjustedTarget,
         -3.49066,
         3.49066
       );
@@ -351,13 +345,8 @@ public class TurretSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("DistanceToGoal", DistanceToGoal);
 
     // Turret
-    SmartDashboard.putNumber("TimeofFlight", TimeOfFlight);
-    SmartDashboard.putNumber("GoalX", GoalX);
-    SmartDashboard.putNumber("GoalY", GoalY);
-
     SmartDashboard.putData("ShooterPID", ShooterPID);
     SmartDashboard.putData("TurretRotatePID", TurretRotatePID);
-
     SmartDashboard.putNumber("TurretRotation", TurretYaw);
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
