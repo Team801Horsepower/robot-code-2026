@@ -62,6 +62,7 @@ public class RobotContainer {
   private final Hopper   m_hopper  = new Hopper();
   private final Spindex  m_spindex = new Spindex();
   private final Feeder   m_feeder  = new Feeder();
+  private final Climb    m_climb   = new Climb();
 
   // ─── Composite subsystems ──────────────────────────────────────────────────
 
@@ -181,6 +182,16 @@ public class RobotContainer {
         .b()
         .whileTrue(Commands.runOnce(() -> m_spindex.setReversing(true)))
         .whileFalse(Commands.runOnce(() -> m_spindex.setReversing(false)));
+
+    // D-pad Up → engage climb (runs until interrupted)
+    m_driverController
+        .povUp()
+        .onTrue(new Climbing(m_TurretSubsystem, m_climb));
+
+    // D-pad Down → disengage climb (interrupts Climbing via shared subsystem requirement)
+    m_driverController
+        .povDown()
+        .onTrue(Commands.runOnce(() -> m_climb.rest(), m_climb));
   }
 
   // ─── Test Mode Bindings ─────────────────────────────────────────────────────
@@ -235,6 +246,7 @@ public class RobotContainer {
     m_spindex.setTestMode(true);
     m_feeder.setTestMode(true);
     m_TurretSubsystem.setTestMode(true);
+    m_climb.setTestMode(true);
 
     // Drive: same field-centric controls as teleop
     m_drive.setDefaultCommand(
@@ -271,6 +283,7 @@ public class RobotContainer {
     m_spindex.setTestMode(false);
     m_feeder.setTestMode(false);
     m_TurretSubsystem.setTestMode(false);
+    m_climb.setTestMode(false);
 
     configureDefaultCommands();
   }

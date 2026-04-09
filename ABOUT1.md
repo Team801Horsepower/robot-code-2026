@@ -16,6 +16,10 @@ Our advanced design uses an extendable hopper with a gatherer (roller) at the en
 
 
 
+The robot features a climb mechanism powered by a single NEO Vortex motor with closed-loop position control via a SparkFlex controller. The climb motor uses brake idle mode to prevent the robot from descending when not actively driven. Two positions are used: rest (encoder = 0) and fully climbed (configurable setpoint in motor rotations, zeroed on startup). When climbing is engaged, the turret subsystem also activates vertical displacement compensation to account for robot tilt and height changes.
+
+
+
 The centerpiece of our robot is a spindexer which stores and deposits game pieces to be later sent to the feeder. Its job is to quickly launch game pieces towards the feeder.
 
 

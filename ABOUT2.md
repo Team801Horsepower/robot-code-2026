@@ -48,4 +48,6 @@ Hopper REV Through Bore Encoder (no CAN ID – connected to roboRIO DIO ports 1 
 
 28: Turret NEO Vortex (spin turret)
 
+29: Climb NEO Vortex (climb mechanism)
+
 Turret REV Through Bore Encoder (no CAN ID – connected to roboRIO DIO port 0)
