@@ -96,6 +96,8 @@ public class TurretSubsystem extends SubsystemBase {
   public double TicksPerDegree;
   public double TurretThetaActual;
   public double TurretThetaTarget;
+  public double TurretThetaTargetRaw1;
+  public double TurretThetaTargetRaw2;
 
   // Hood Variables  * * * * *
   public double HoodThetaActual;
@@ -242,32 +244,34 @@ public class TurretSubsystem extends SubsystemBase {
       vY = (GoalY - (TurretVy * TimeOfFlight)) - TurretPose.getY();
 
       // Calculate Turret Rotate * * * * *
-      double TurretThetaTarget =
+      double TurretThetaTargetRaw1 =
         + TurretYaw
         + Constants.TurretSubsystemConstants.TurretRotateScoreOffset;
 
-      // Step 1: Bring target near current angle by adding/subtracting 2π
-      double adjustedTarget = TurretThetaTarget;
-
-      while (adjustedTarget - TurretThetaActual > Math.PI) {
-            adjustedTarget -= 2 * Math.PI;
+      while (TurretThetaTargetRaw1 < -Math.PI) {
+        TurretThetaTargetRaw1 += 2.0 * Math.PI;
       }
-
-      while (adjustedTarget - TurretThetaActual < -Math.PI) {
-            adjustedTarget += 2 * Math.PI;
+      while (TurretThetaTargetRaw1 > Math.PI) {
+        TurretThetaTargetRaw1 -= 2.0 * Math.PI;
       }
-
-      // Step 2: Clamp to turret mechanical limits
-      double max = 3.49066;
-      double min = -3.49066;
-
-      if (adjustedTarget > max) {
-            adjustedTarget -= 2 * Math.PI;
-      } else if (adjustedTarget < min) {
-            adjustedTarget += 2 * Math.PI;
+      double TurretThetaTargetRaw2 = TurretThetaTargetRaw1;
+      double BestDist = 2.0 * Math.PI;
+      for (int i = -1; i <= 1; i++) {
+        double PossibleTarget = TurretThetaTargetRaw1 + (double)i * 2.0 * Math.PI;
+        double Min = -3.49066;
+        double Max = 3.49066;
+        if (PossibleTarget <= Min || PossibleTarget >= Max) {
+          continue;
+        }
+        double Dist = Math.abs(PossibleTarget - TurretThetaActual);
+        if (Dist >= BestDist) {
+          continue;
+        }
+        BestDist = Dist;
+        TurretThetaTargetRaw2 = PossibleTarget;
       }
       TurretThetaTarget = MathUtil.clamp(
-        adjustedTarget,
+        TurretThetaTargetRaw2,
         -3.49066,
         3.49066
       );
