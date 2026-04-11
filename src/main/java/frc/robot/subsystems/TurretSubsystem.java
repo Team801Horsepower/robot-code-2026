@@ -56,13 +56,12 @@ public class TurretSubsystem extends SubsystemBase {
       Constants.TurretSubsystemConstants.RobotToTurretYaw));
 
   Transform3d TurretToForward = new Transform3d(-0.09, -0.09405, 0, new Rotation3d(0, 0, 0));
+  Transform3d QuestToTurret = new Transform3d(-0.194,0.329,0, new Rotation3d(0,0,3.14159));
 
   public Pose3d TurretPose = new Pose3d();
-  public Pose3d TurretForwardPose = new Pose3d();
   public Rotation3d RobotRotation = new Rotation3d();
 
   StructPublisher<Pose2d> turretPosePublisher = NetworkTableInstance.getDefault().getStructTopic("TurretPose", Pose2d.struct).publish();
-  StructPublisher<Pose2d> turretForwardPosePublisher = NetworkTableInstance.getDefault().getStructTopic("TurretForwardPose", Pose2d.struct).publish();
 
   LinearFilter VelocityFilterX = LinearFilter.movingAverage(5);
   LinearFilter VelocityFilterY = LinearFilter.movingAverage(5);
@@ -161,8 +160,6 @@ public class TurretSubsystem extends SubsystemBase {
     // Turret Shooter Encoder  * * * * *
     ShooterEncoder = s_ShooterMotorRight.getEncoder();
     ShooterVelocityActual = ShooterEncoder.getVelocity();
-
-    SmartDashboard.putNumber("Turret Yaw Offset", 0);
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
@@ -171,22 +168,17 @@ public class TurretSubsystem extends SubsystemBase {
  * GET ROBOT POSITION AND VELOCITY ---------------------------------------------------------------------------------------------
  */
     // Robot Position  * * * * *
-    TurretPose = questNav.RobotPose.transformBy(RobotToTurret);
-    TurretForwardPose = questNav.RobotPose.transformBy(TurretToForward);
-
+    // TurretPose = questNav.QuestPose;
+    TurretPose = questNav.QuestPose.transformBy(QuestToTurret);
     RobotRotation = TurretPose.getRotation();
 
     turretPosePublisher.set(TurretPose.toPose2d());
-    turretForwardPosePublisher.set(TurretForwardPose.toPose2d());
 
-    double TurretToGoalX = vX; //a1
-    double TurretToGoalY = vY; //a2
-
-    double TurretForwardX = TurretForwardPose.getX() - TurretPose.getX(); //b1
-    double TurretForwardY = TurretForwardPose.getY() - TurretPose.getY(); //b2
+    double TurretToGoalX = vX;
+    double TurretToGoalY = vY;
 
     // Turret Yaw
-    TurretYaw = Math.atan2(((TurretToGoalX * TurretForwardY) - (TurretToGoalY * TurretForwardX)), ((TurretToGoalX * TurretForwardX) + (TurretForwardY * TurretToGoalY))) + SmartDashboard.getNumber("Turret Yaw Offset", 0);
+    TurretYaw = (-1 * Math.atan2(TurretToGoalY, TurretToGoalX)) + RobotRotation.getZ();
 
     // Robot Velocity  * * * * *
     TurretVx = VelocityFilterX.calculate((TurretPose.getX() - TurretXMinusOne) / 0.02);
@@ -247,9 +239,8 @@ public class TurretSubsystem extends SubsystemBase {
 
     
       // Calculate Turret Rotate * * * * *
-      //double TurretThetaTargetRaw1 = TurretYaw;
+      double TurretThetaTargetRaw1 = TurretYaw;
       
-      /*
       while (TurretThetaTargetRaw1 < -Math.PI) {
         TurretThetaTargetRaw1 += 2.0 * Math.PI;
       }
@@ -272,12 +263,11 @@ public class TurretSubsystem extends SubsystemBase {
         BestDist = Dist;
         TurretThetaTargetRaw2 = PossibleTarget;
       }
-      */
       
       TurretThetaTarget = MathUtil.clamp(
-        TurretYaw,
-        -3.15905,
-        3.15905
+        TurretThetaTargetRaw2,
+        -3.49066,
+        3.49066
       );
 
       // Calculate  Turret Hood  * * * * *
