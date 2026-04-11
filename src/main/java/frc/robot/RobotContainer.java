@@ -170,12 +170,10 @@ public class RobotContainer {
             new Rumble(m_driverController, 4.0)));
 
     // X button → retract hopper
-    /*
-    Removed because hooper retract will hurt robot :(
+    // Removed because hooper retract will hurt robot :(
     m_driverController
         .x()
         .onTrue(Commands.runOnce(() -> m_hopper.retract(), m_hopper));
-    */
 
     m_driverController
         .b()

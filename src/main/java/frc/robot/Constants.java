@@ -61,7 +61,7 @@ public final class Constants {
      * Fully-extended motor encoder position (motor rotations from home).
      * Measured with motor encoder zeroed at full retraction.
      */
-    public static final double kExtendedSetpoint = 27.183872;
+    public static final double kExtendedSetpoint = 15.801;
     /**
      * Partial extension motor encoder position (motor rotations from home).
      * Measured with motor encoder zeroed at full retraction.
@@ -71,17 +71,17 @@ public final class Constants {
     public static final double kTolerance = 0.1;
 
     // Position thresholds for extended/retracted checks (motor rotations).
-    public static final double kExtendMinPosition = 26.75;
-    public static final double kExtendMaxPosition = 27.0;
-    public static final double kRetractMinPosition = 0.75;
-    public static final double kRetractMaxPosition = 1.25;
+    public static final double kExtendMinPosition = 15.4;
+    public static final double kExtendMaxPosition = 16.0;
+    public static final double kRetractMinPosition = 1;
+    public static final double kRetractMaxPosition = 2;
 
     // PID gains for hopper extension
-    public static final double kExtendP = 0.09;
+    public static final double kExtendP = 0.1;
     public static final double kExtendI = 0;
     public static final double kExtendD = 0;
     // PID gains for hopper retraction
-    public static final double kRetractP = 0.065;
+    public static final double kRetractP = 0.1;
     public static final double kRetractI = 0;
     public static final double kRetractD = 0;
 
