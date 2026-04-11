@@ -43,8 +43,8 @@ public class Gather extends SubsystemBase {
 
   /** Spins the gatherer roller at the given power. Positive = intake direction. */
   public void gather(double power) {
-    m_motor_one.set(power);
-    m_motor_two.set(-power);
+    m_motor_one.set(-power);
+    m_motor_two.set(power);
   }
 
   /** Stops the gatherer roller. */
@@ -55,8 +55,8 @@ public class Gather extends SubsystemBase {
 
   /** Drives the motor at the given power for test mode. */
   public void testRun(double power) {
-    m_motor_one.set(power);
-    m_motor_two.set(-power);
+    m_motor_one.set(-power);
+    m_motor_two.set(power);
   }
 
   /** Enables or disables test-mode telemetry publishing. */
