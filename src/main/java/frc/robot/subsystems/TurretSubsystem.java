@@ -55,7 +55,7 @@ public class TurretSubsystem extends SubsystemBase {
       Constants.TurretSubsystemConstants.RobotToTurretPitch, 
       Constants.TurretSubsystemConstants.RobotToTurretYaw));
 
-  Transform3d TurretToForward = new Transform3d(-0.2, -0.09405, 0, new Rotation3d(0, 0, 0));
+  Transform3d TurretToForward = new Transform3d(-0.09, -0.09405, 0, new Rotation3d(0, 0, 0));
 
   public Pose3d TurretPose = new Pose3d();
   public Pose3d TurretForwardPose = new Pose3d();
@@ -161,6 +161,8 @@ public class TurretSubsystem extends SubsystemBase {
     // Turret Shooter Encoder  * * * * *
     ShooterEncoder = s_ShooterMotorRight.getEncoder();
     ShooterVelocityActual = ShooterEncoder.getVelocity();
+
+    SmartDashboard.putNumber("Turret Yaw Offset", 0);
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
@@ -184,7 +186,7 @@ public class TurretSubsystem extends SubsystemBase {
     double TurretForwardY = TurretForwardPose.getY() - TurretPose.getY(); //b2
 
     // Turret Yaw
-    TurretYaw = Math.atan2(((TurretToGoalX * TurretForwardY) - (TurretToGoalY * TurretForwardX)), ((TurretToGoalX * TurretForwardX) + (TurretForwardY * TurretToGoalY))) + 3.14159;
+    TurretYaw = Math.atan2(((TurretToGoalX * TurretForwardY) - (TurretToGoalY * TurretForwardX)), ((TurretToGoalX * TurretForwardX) + (TurretForwardY * TurretToGoalY))) + SmartDashboard.getNumber("Turret Yaw Offset", 0);
 
     // Robot Velocity  * * * * *
     TurretVx = VelocityFilterX.calculate((TurretPose.getX() - TurretXMinusOne) / 0.02);
@@ -243,11 +245,11 @@ public class TurretSubsystem extends SubsystemBase {
       vX = (GoalX - (TurretVx * TimeOfFlight)) - TurretPose.getX();
       vY = (GoalY - (TurretVy * TimeOfFlight)) - TurretPose.getY();
 
+    
       // Calculate Turret Rotate * * * * *
-      double TurretThetaTargetRaw1 =
-        + TurretYaw
-        + Constants.TurretSubsystemConstants.TurretRotateScoreOffset;
-
+      //double TurretThetaTargetRaw1 = TurretYaw;
+      
+      /*
       while (TurretThetaTargetRaw1 < -Math.PI) {
         TurretThetaTargetRaw1 += 2.0 * Math.PI;
       }
@@ -270,10 +272,12 @@ public class TurretSubsystem extends SubsystemBase {
         BestDist = Dist;
         TurretThetaTargetRaw2 = PossibleTarget;
       }
+      */
+      
       TurretThetaTarget = MathUtil.clamp(
-        TurretThetaTargetRaw2,
-        -3.49066,
-        3.49066
+        TurretYaw,
+        -3.15905,
+        3.15905
       );
 
       // Calculate  Turret Hood  * * * * *
