@@ -137,6 +137,8 @@ public class TurretSubsystem extends SubsystemBase {
     s_HoodTiltMotor.getEncoder().setPosition(0);
 
     ShooterPID.setIZone(50.0);
+
+    SmartDashboard.setDefaultNumber("Turret Yaw Offset", 0.0);
   }
 
   public void setTestMode(boolean enabled) { m_testMode = enabled; }
@@ -161,8 +163,6 @@ public class TurretSubsystem extends SubsystemBase {
     // Turret Shooter Encoder  * * * * *
     ShooterEncoder = s_ShooterMotorRight.getEncoder();
     ShooterVelocityActual = ShooterEncoder.getVelocity();
-
-    SmartDashboard.putNumber("Turret Yaw Offset", 0);
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
@@ -185,11 +185,8 @@ public class TurretSubsystem extends SubsystemBase {
     double TurretForwardX = TurretForwardPose.getX() - TurretPose.getX(); //b1
     double TurretForwardY = TurretForwardPose.getY() - TurretPose.getY(); //b2
 
-    // Turret Yaw — signed angle to rotate TurretForward onto TurretToGoal (CCW positive)
-    TurretYaw = Math.atan2(
-      (TurretForwardX * TurretToGoalY) - (TurretForwardY * TurretToGoalX),
-      (TurretForwardX * TurretToGoalX) + (TurretForwardY * TurretToGoalY)
-    ) + SmartDashboard.getNumber("Turret Yaw Offset", 0);
+    // Turret Yaw
+    TurretYaw = Math.atan2(((TurretToGoalX * TurretForwardY) - (TurretToGoalY * TurretForwardX)), ((TurretToGoalX * TurretForwardX) + (TurretForwardY * TurretToGoalY))) + SmartDashboard.getNumber("Turret Yaw Offset", 0);
 
     // Robot Velocity  * * * * *
     TurretVx = VelocityFilterX.calculate((TurretPose.getX() - TurretXMinusOne) / 0.02);
