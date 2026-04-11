@@ -56,7 +56,7 @@ public class TurretSubsystem extends SubsystemBase {
       Constants.TurretSubsystemConstants.RobotToTurretYaw));
 
   Transform3d TurretToForward = new Transform3d(-0.09, -0.09405, 0, new Rotation3d(0, 0, 0));
-  Transform3d QuestToTurret = new Transform3d(-0.194,0.329,0, new Rotation3d(0,0,3.14159));
+  Transform3d QuestToTurret = new Transform3d(0.0,0.0,0, new Rotation3d(0,0,3.14159));
 
   public Pose3d TurretPose = new Pose3d();
   public Rotation3d RobotRotation = new Rotation3d();
@@ -183,6 +183,9 @@ public class TurretSubsystem extends SubsystemBase {
     // Robot Velocity  * * * * *
     TurretVx = VelocityFilterX.calculate((TurretPose.getX() - TurretXMinusOne) / 0.02);
     TurretVy = VelocityFilterY.calculate((TurretPose.getY() - TurretYMinusOne) / 0.02);
+
+    // Time of Flight * * * * *
+    TimeOfFlight = 0.976 + 0.0027 * DistanceToGoal + 0.00677 * Math.pow(DistanceToGoal, 2);
 
     // Distance to Goal
     DistanceToGoal = Math.sqrt((TurretToGoalX * TurretToGoalX) + (TurretToGoalY * TurretToGoalY));
