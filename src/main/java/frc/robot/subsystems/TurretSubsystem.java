@@ -185,8 +185,11 @@ public class TurretSubsystem extends SubsystemBase {
     double TurretForwardX = TurretForwardPose.getX() - TurretPose.getX(); //b1
     double TurretForwardY = TurretForwardPose.getY() - TurretPose.getY(); //b2
 
-    // Turret Yaw
-    TurretYaw = Math.atan2(((TurretToGoalX * TurretForwardY) - (TurretToGoalY * TurretForwardX)), ((TurretToGoalX * TurretForwardX) + (TurretForwardY * TurretToGoalY))) + SmartDashboard.getNumber("Turret Yaw Offset", 0);
+    // Turret Yaw — signed angle to rotate TurretForward onto TurretToGoal (CCW positive)
+    TurretYaw = Math.atan2(
+      (TurretForwardX * TurretToGoalY) - (TurretForwardY * TurretToGoalX),
+      (TurretForwardX * TurretToGoalX) + (TurretForwardY * TurretToGoalY)
+    ) + SmartDashboard.getNumber("Turret Yaw Offset", 0);
 
     // Robot Velocity  * * * * *
     TurretVx = VelocityFilterX.calculate((TurretPose.getX() - TurretXMinusOne) / 0.02);
@@ -247,19 +250,20 @@ public class TurretSubsystem extends SubsystemBase {
 
     
       // Calculate Turret Rotate * * * * *
-      //double TurretThetaTargetRaw1 = TurretYaw;
-      
-      /*
+      // Pick the multi-revolution equivalent of TurretYaw that lies inside the
+      // turret's mechanical range AND is closest to the current encoder reading.
+      // This avoids the ±pi atan2 wrap and lets the turret use its full travel.
+      TurretThetaTargetRaw1 = TurretYaw;
       while (TurretThetaTargetRaw1 < -Math.PI) {
         TurretThetaTargetRaw1 += 2.0 * Math.PI;
       }
       while (TurretThetaTargetRaw1 > Math.PI) {
         TurretThetaTargetRaw1 -= 2.0 * Math.PI;
       }
-      double TurretThetaTargetRaw2 = TurretThetaTargetRaw1;
+      TurretThetaTargetRaw2 = TurretThetaTargetRaw1;
       double BestDist = 2.0 * Math.PI;
       for (int i = -1; i <= 1; i++) {
-        double PossibleTarget = TurretThetaTargetRaw1 + (double)i * 2.0 * Math.PI;
+        double PossibleTarget = TurretThetaTargetRaw1 + (double) i * 2.0 * Math.PI;
         double Min = -3.49066;
         double Max = 3.49066;
         if (PossibleTarget <= Min || PossibleTarget >= Max) {
@@ -272,12 +276,11 @@ public class TurretSubsystem extends SubsystemBase {
         BestDist = Dist;
         TurretThetaTargetRaw2 = PossibleTarget;
       }
-      */
-      
+
       TurretThetaTarget = MathUtil.clamp(
-        TurretYaw,
-        -3.15905,
-        3.15905
+        TurretThetaTargetRaw2,
+        -3.49066,
+        3.49066
       );
 
       // Calculate  Turret Hood  * * * * *
