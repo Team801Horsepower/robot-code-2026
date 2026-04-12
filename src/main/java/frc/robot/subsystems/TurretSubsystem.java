@@ -60,6 +60,7 @@ public class TurretSubsystem extends SubsystemBase {
 
   public Pose3d TurretPose = new Pose3d();
   public Rotation3d RobotRotation = new Rotation3d();
+  public Rotation3d QuestRotation = new Rotation3d();
 
   StructPublisher<Pose2d> turretPosePublisher = NetworkTableInstance.getDefault().getStructTopic("TurretPose", Pose2d.struct).publish();
 
@@ -171,12 +172,19 @@ public class TurretSubsystem extends SubsystemBase {
     // TurretPose = questNav.QuestPose;
     TurretPose = questNav.QuestPose.transformBy(QuestToTurret);
     RobotRotation = TurretPose.getRotation();
+    QuestRotation = questNav.QuestPose.getRotation();
 
     turretPosePublisher.set(TurretPose.toPose2d());
 
     double TurretToGoalX = vX;
     double TurretToGoalY = vY;
 
+    // Turret X and Y
+    double TurretX = TurretPose.getX() + (-0.194 * Math.cos(-QuestRotation.getZ())) - 0.329 * Math.sin(-QuestRotation.getZ());
+    double TurretY = TurretPose.getY() + (-0.194 * Math.sin(-QuestRotation.getZ())) + 0.329 * Math.cos(-QuestRotation.getZ());
+
+    SmartDashboard.putNumber("TurretX", TurretX);
+    SmartDashboard.putNumber("TurretY", TurretY);
     // Turret Yaw
     TurretYaw = (-1 * Math.atan2(TurretToGoalY, TurretToGoalX)) + RobotRotation.getZ();
 
@@ -237,8 +245,8 @@ public class TurretSubsystem extends SubsystemBase {
       }
 
       // Adjust Goal Position For Robot Velocity * * * * *
-      vX = (GoalX - (TurretVx * TimeOfFlight)) - TurretPose.getX();
-      vY = (GoalY - (TurretVy * TimeOfFlight)) - TurretPose.getY();
+      vX = (GoalX - (TurretVx * TimeOfFlight)) - TurretX;
+      vY = (GoalY - (TurretVy * TimeOfFlight)) - TurretY;
 
     
       // Calculate Turret Rotate * * * * *
