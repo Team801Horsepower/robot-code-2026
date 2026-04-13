@@ -182,9 +182,11 @@ public class RobotContainer {
         .whileFalse(Commands.runOnce(() -> m_spindex.setReversing(false)));
 
     // D-pad Up → engage climb (runs until interrupted)
+    /*
     m_driverController
         .povUp()
         .onTrue(new Climbing(m_TurretSubsystem, m_climb));
+    */
 
     // D-pad Down → disengage climb (interrupts Climbing via shared subsystem requirement)
     m_driverController
@@ -192,7 +194,7 @@ public class RobotContainer {
         .onTrue(Commands.runOnce(() -> m_climb.rest(), m_climb));
 
     m_driverController
-        .povRight()
+        .povUp()
         .onTrue(Commands.runOnce(() -> m_climb.extend(), m_climb));
   }
 
