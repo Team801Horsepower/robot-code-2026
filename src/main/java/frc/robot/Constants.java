@@ -41,7 +41,8 @@ public final class Constants {
 
   public static final class GatherConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) powering the gatherer roller. */
-    public static final int kMotorId = 23;
+    public static final int kMotorOneID = 23;
+    public static final int kMotorTwoID = 22;
     /** Default roller power when gathering. Positive = intake direction. */
     public static final double kDefaultPower = 1.0;
     /** Full power for reverse (ejection) intake. Independently configurable. */
