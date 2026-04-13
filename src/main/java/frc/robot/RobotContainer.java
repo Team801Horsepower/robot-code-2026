@@ -55,8 +55,6 @@ public class RobotContainer {
 
   private final DrivetrainSubsystem m_drivetrain = TunerConstants.createDrivetrain();
   private final QuestSubsystem m_QuestSubsystem = new QuestSubsystem();
-  private final TurretSubsystem m_TurretSubsystem = new TurretSubsystem(
-      m_QuestSubsystem);
 
   private final Gather   m_gather  = new Gather();
   private final Hopper   m_hopper  = new Hopper();
@@ -69,6 +67,8 @@ public class RobotContainer {
   private final Possession  m_possession = new Possession(m_hopper, m_gather);
   private final Launch      m_launch     = new Launch(m_spindex, m_feeder, m_gather);
   private final Manipulator m_manipulator = new Manipulator(m_possession, m_launch);
+  private final TurretSubsystem m_TurretSubsystem = new TurretSubsystem(
+      m_QuestSubsystem, m_drive);
 
   // ─── Controllers ───────────────────────────────────────────────────────────
 
@@ -332,7 +332,9 @@ public class RobotContainer {
     m_startPositionChooser.addOption("Far Right",
         new Pose2d(4.414, 0.432, Rotation2d.fromDegrees(0.0)));
     m_startPositionChooser.addOption("Right Goal",
-        new Pose2d(3.599852, 3.812136, Rotation2d.fromDegrees(180.0)));
+        new Pose2d(3.680596, 3.780631, Rotation2d.fromDegrees(180.0)));
+    m_startPositionChooser.addOption("Robot at Zero",
+        new Pose2d(0, 0, Rotation2d.fromDegrees(180.0)));
     SmartDashboard.putData("Start Position", m_startPositionChooser);
   }
 
