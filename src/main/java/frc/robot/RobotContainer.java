@@ -192,6 +192,10 @@ public class RobotContainer {
     m_driverController
         .povDown()
         .onTrue(Commands.runOnce(() -> m_climb.rest(), m_climb));
+
+    m_driverController
+        .povRight()
+        .onTrue(Commands.runOnce(() -> m_climb.extend(), m_climb));
   }
 
   // ─── Test Mode Bindings ─────────────────────────────────────────────────────

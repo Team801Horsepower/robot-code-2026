@@ -26,7 +26,8 @@ public class Climb extends SubsystemBase {
 
   private final SparkFlex m_motor;
   private final RelativeEncoder m_encoder;
-  private final PIDController m_pid;
+  private final PIDController m_Climb_pid;
+  private final PIDController m_Reset_pid;
 
   /** Current PID target (motor rotations). */
   private double m_setpoint = 0.0;
@@ -46,18 +47,19 @@ public class Climb extends SubsystemBase {
   public Climb() {
     m_motor = new SparkFlex(ClimbConstants.kMotorId, MotorType.kBrushless);
 
-    m_pid = new PIDController(ClimbConstants.kP, ClimbConstants.kI, ClimbConstants.kD);
+    m_Reset_pid = new PIDController(ClimbConstants.kResetP, ClimbConstants.kResetI, ClimbConstants.kResetD);
+    m_Climb_pid = new PIDController(ClimbConstants.kClimbP,ClimbConstants.kClimbI, ClimbConstants.kClimbD);
 
     SparkFlexConfig config = new SparkFlexConfig();
     config.idleMode(IdleMode.kBrake);
-    config.smartCurrentLimit(60);
+    config.smartCurrentLimit(40);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     m_encoder = m_motor.getEncoder();
     m_encoder.setPosition(0);
 
-    SmartDashboard.putData("Climb PID", m_pid);
+    SmartDashboard.putData("Climb PID", m_Reset_pid);
 
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Climb");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
@@ -73,6 +75,11 @@ public class Climb extends SubsystemBase {
   /** Drives the climb mechanism to the fully-climbed position. */
   public void climb() {
     m_setpoint = ClimbConstants.kClimbedSetpoint;
+    m_pidActive = true;
+  }
+
+  public void extend() {
+    m_setpoint = ClimbConstants.kExtendSetpoint;
     m_pidActive = true;
   }
 
@@ -108,11 +115,19 @@ public class Climb extends SubsystemBase {
   @Override
   public void periodic() {
     if (m_pidActive) {
-      double output = m_pid.calculate(m_encoder.getPosition(), m_setpoint);
+      if (m_setpoint == ClimbConstants.kClimbedSetpoint) {
+        double output = m_Climb_pid.calculate(m_encoder.getPosition(), m_setpoint);
+        m_motor.set(output);
+      }
+    else {
+      double output = m_Reset_pid.calculate(m_encoder.getPosition(), m_setpoint);
       m_motor.set(output);
+      }
     }
 
     SmartDashboard.putNumber("Climb/Position", m_encoder.getPosition());
+
+    SmartDashboard.putData("ClimberClibPID", m_Climb_pid);
 
     if (m_testMode) {
       m_testPowerPub.set(m_motor.get());
@@ -120,9 +135,9 @@ public class Climb extends SubsystemBase {
       m_testVelocityPub.set(m_encoder.getVelocity());
       m_testSetpointPub.set(m_setpoint);
       m_testErrorPub.set(m_setpoint - m_encoder.getPosition());
-      m_testPPub.set(m_pid.getP());
-      m_testIPub.set(m_pid.getI());
-      m_testDPub.set(m_pid.getD());
+      m_testPPub.set(m_Reset_pid.getP());
+      m_testIPub.set(m_Reset_pid.getI());
+      m_testDPub.set(m_Reset_pid.getD());
     }
   }
 }
