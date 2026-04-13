@@ -185,10 +185,6 @@ public class TurretSubsystem extends SubsystemBase {
     double TurretToGoalX = vX;
     double TurretToGoalY = vY;
 
-    // Turret X and Y
-    double TurretX = GoalX - TurretPose.getX();
-    double TurretY = GoalY - TurretPose.getY();
-
     // Turret Yaw
     double atan2Result = Math.atan2(TurretToGoalY, TurretToGoalX);
     SmartDashboard.putNumber("atan2Result", atan2Result);
@@ -203,13 +199,14 @@ public class TurretSubsystem extends SubsystemBase {
     TurretVx = VelocityFilterX.calculate(TurretVxUnfiltered);
     TurretVy = VelocityFilterY.calculate(TurretVyUnfiltered);
 
-    // Time of Flight * * * * *
-    TimeOfFlight = 0.976 + 0.0027 * DistanceToGoal + 0.00677 * Math.pow(DistanceToGoal, 2);
+    // Time of Flight (Dynamic Distance to Goal) * * * * *
+    double staticGoalX = GoalX - TurretPose.getX();
+    double staticGoalY = GoalY - TurretPose.getY();
+    double staticDistanceToGoal = Math.sqrt((staticGoalX * staticGoalX) + (staticGoalY * staticGoalY));
+    TimeOfFlight = 0.976 + 0.0027 * staticDistanceToGoal + 0.00677 * Math.pow(staticDistanceToGoal, 2);
 
-    // Distance to Goal
-    double TurretXSquared = TurretX * TurretX;
-    double TurretYSquared = TurretY * TurretY;
-    DistanceToGoal = Math.sqrt((TurretXSquared) + (TurretYSquared));
+    // Distance to Goal (Dynamic)
+    DistanceToGoal = Math.sqrt((vX * vX) + (vY * vY));
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
