@@ -206,13 +206,13 @@ public final class Constants {
     // Blue Alliance Goal Position
     // Blue Alliance TargetPositions
     public static final Pose3d BlueAllianceGoal = new Pose3d(4.635, 4.034, 1.8288, new Rotation3d(0,0,0));
-    public static final Pose3d AimPointB1 = new Pose3d(3.977894, 5.759196, 1.8288, new Rotation3d(0,0,0));
-    public static final Pose3d AimPointB2 = new Pose3d(3.977894, 2.31013, 1.8288, new Rotation3d(0,0,0));
+    public static final Pose3d AimPointB1 = new Pose3d(1.977894, 5.759196, 1.8288, new Rotation3d(0,0,0));
+    public static final Pose3d AimPointB2 = new Pose3d(1.977894, 2.31013, 1.8288, new Rotation3d(0,0,0));
 
     // Red Alliance Goal TargetPositions
     public static final Pose3d RedAllianceGoal = new Pose3d(11.9068, 4.034, 1.8288, new Rotation3d(0,0,0));
-    public static final Pose3d AimPointR1 = new Pose3d(12.563094, 2.31013, 1.8288, new Rotation3d(0,0,0));
-    public static final Pose3d AimPointR2 = new Pose3d(12.563094, 5.759196, 1.8288, new Rotation3d(0,0,0));
+    public static final Pose3d AimPointR1 = new Pose3d(14.563094, 2.31013, 1.8288, new Rotation3d(0,0,0));
+    public static final Pose3d AimPointR2 = new Pose3d(14.563094, 5.759196, 1.8288, new Rotation3d(0,0,0));
     
     // Robot To Turret
     public static final double RobotToTurretX = -0.103165;
