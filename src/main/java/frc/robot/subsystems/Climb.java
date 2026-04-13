@@ -122,8 +122,8 @@ public class Climb extends SubsystemBase {
     else {
       double output = m_Reset_pid.calculate(m_encoder.getPosition(), m_setpoint);
       m_motor.set(output);
-      }
     }
+  }
 
     SmartDashboard.putNumber("Climb/Position", m_encoder.getPosition());
 
