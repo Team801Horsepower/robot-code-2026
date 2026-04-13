@@ -71,4 +71,8 @@ public class QuestSubsystem extends SubsystemBase {
     publisher.set(RobotPose.toPose2d());
     }
   }
+
+  public Pose2d getPose2d() {
+    return QuestPose.toPose2d();
+  }
 }

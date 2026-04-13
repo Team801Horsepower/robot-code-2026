@@ -11,3 +11,5 @@ Right Trigger: Launch, where the button is pressed more than 0.15, begin the lau
 Right Joystick (x axis): Rotate robot
 X Button: Retract hopper to home position (currently disabled — hopper retract risks damage)
 B Button: Reverse spindexer at reduced power (-0.3) while held
+D-pad Up: Engage climb mode — drives climb motor to fully climbed position and enables turret vertical displacement compensation
+D-pad Down: Disengage climb mode — returns climb motor to rest position and disables turret compensation
