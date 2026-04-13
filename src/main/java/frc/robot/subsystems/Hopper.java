@@ -115,6 +115,18 @@ public class Hopper extends SubsystemBase {
     m_extending = false;
   }
 
+  /** Drives to a jostle setpoint within the extended region, using the extend PID. */
+  public void jostleTo(double position) {
+    m_setpoint = position;
+    m_pidActive = true;
+    m_extending = true; // reuse extendPid for both legs; both targets are above retract home
+  }
+
+  /** True when encoder position is within tol of target (motor rotations). */
+  public boolean isAt(double target, double tol) {
+    return Math.abs(m_encoder.getPosition() - target) <= tol;
+  }
+
   /** Stops the hopper motor immediately, disabling PID control. */
   public void stop() {
     m_pidActive = false;

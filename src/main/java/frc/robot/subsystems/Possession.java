@@ -13,10 +13,26 @@ public class Possession extends SubsystemBase {
 
   private final Hopper m_hopper;
   private final Gather m_gather;
+  private boolean m_jostling = false;
 
   public Possession(Hopper hopper, Gather gather) {
     m_hopper = hopper;
     m_gather = gather;
+  }
+
+  /** Enables/disables jostling mode. When true, the hopper-extended guard is bypassed. */
+  public void setJostling(boolean on) {
+    m_jostling = on;
+  }
+
+  /** Commands the hopper to a jostle-range setpoint (motor rotations). */
+  public void jostleTo(double position) {
+    m_hopper.jostleTo(position);
+  }
+
+  /** Returns true when the hopper is within tol of the given target (motor rotations). */
+  public boolean isHopperAt(double target, double tol) {
+    return m_hopper.isAt(target, tol);
   }
 
   /**
@@ -25,7 +41,7 @@ public class Possession extends SubsystemBase {
    * <p>Call repeatedly from a command's execute() loop.
    */
   public void possess() {
-    if (!m_hopper.isExtended()) {
+    if (!m_jostling && !m_hopper.isExtended()) {
       m_hopper.extend();
     }
     m_gather.gather(GatherConstants.kDefaultPower);
@@ -37,7 +53,7 @@ public class Possession extends SubsystemBase {
    * <p>Call repeatedly from a command's execute() loop.
    */
   public void possessWithPower(double power) {
-    if (!m_hopper.isExtended()) {
+    if (!m_jostling && !m_hopper.isExtended()) {
       m_hopper.extend();
     }
     m_gather.gather(power);
