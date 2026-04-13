@@ -64,7 +64,7 @@ public class Hopper extends SubsystemBase {
 
     SparkFlexConfig config = new SparkFlexConfig();
     config.idleMode(IdleMode.kCoast);
-    config.smartCurrentLimit(60);
+    config.smartCurrentLimit(40);
     config.inverted(true);
 
     m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -110,7 +110,7 @@ public class Hopper extends SubsystemBase {
 
   /** Retracts the hopper to its home position (encoder = 0). */
   public void retract() {
-    m_setpoint = 0.0;
+    m_setpoint = 2;
     m_pidActive = true;
     m_extending = false;
   }
@@ -177,6 +177,7 @@ public class Hopper extends SubsystemBase {
     }
 
     SmartDashboard.putNumber("Hopper/Position", m_encoder.getPosition());
+    SmartDashboard.putNumber("Hopper Motor Power", m_motor.get());
 
     if (m_testMode) {
       m_testPowerPub.set(m_motor.get());
