@@ -152,7 +152,7 @@ public final class Constants {
     public static final double kMaxAngularSpeedRadPerSec = Math.PI * 1.5; // rad/s (~1.5π rad/s)
 
     /** Drive speed multiplier applied when right trigger > kShootSlowdownThreshold. */
-    public static final double kShootWhileMovingSpeedMultiplier = 0.3;
+    public static final double kShootWhileMovingSpeedMultiplier = 0.40;
 
     /** Right trigger axis value at which the speed multiplier activates. */
     public static final double kShootSlowdownThreshold = 0.15;
@@ -167,8 +167,8 @@ public final class Constants {
     public static final double RobotStart1TestYaw = Math.PI;
 
     // Quest to Robot Orientation
-    public static final double QuestToRobotX = -0.296671;
-    public static final double QuestToRobotY = 0.234704;
+    public static final double QuestToRobotX = -0.263;
+    public static final double QuestToRobotY = 0.229;
     public static final double QuestToRobotZ = 0.0;
     public static final double QuestToRobotRoll = 0.0;
     public static final double QuestToRobotPitch = 0.0;
