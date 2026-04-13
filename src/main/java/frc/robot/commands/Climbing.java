@@ -27,13 +27,13 @@ public class Climbing extends Command {
 
   @Override
   public void initialize() {
-    m_turret.setClimbing(true);
+    // m_turret.setClimbing(true);
     m_climb.climb();
   }
 
   @Override
   public void end(boolean interrupted) {
-    m_turret.setClimbing(false);
+    // m_turret.setClimbing(false);
     m_climb.rest();
   }
 
