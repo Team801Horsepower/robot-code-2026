@@ -1,31 +1,51 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
+// Copyright (c) 2026 Team 801 Horsepower
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
-/* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
+/**
+ * Rumbles the controller after it has been scheduled for a specified duration.
+ *
+ * <p>Designed to run in parallel with another command (e.g., {@link Shoot}) to
+ * alert the driver that the trigger has been held for an extended period.
+ */
 public class Rumble extends Command {
-  /** Creates a new Rumble. */
-  public Rumble() {
-    // Use addRequirements() here to declare subsystem dependencies.
+
+  private final CommandXboxController m_controller;
+  private final double m_delaySec;
+  private final Timer m_timer = new Timer();
+
+  /**
+   * @param controller the driver controller to rumble
+   * @param delaySec   seconds to wait before rumbling
+   */
+  public Rumble(CommandXboxController controller, double delaySec) {
+    m_controller = controller;
+    m_delaySec = delaySec;
   }
 
-  // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    m_timer.reset();
+    m_timer.start();
+  }
 
-  // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {}
+  public void execute() {
+    if (m_timer.hasElapsed(m_delaySec)) {
+      m_controller.getHID().setRumble(RumbleType.kBothRumble, 1.0);
+    }
+  }
 
-  // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    m_controller.getHID().setRumble(RumbleType.kBothRumble, 0.0);
+    m_timer.stop();
+  }
 
-  // Returns true when the command should end.
   @Override
   public boolean isFinished() {
     return false;

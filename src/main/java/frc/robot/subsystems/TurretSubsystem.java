@@ -14,6 +14,7 @@ import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -75,6 +76,7 @@ public class TurretSubsystem extends SubsystemBase {
   // Vector Variables  * * * * *
   public double vX;
   public double vY;
+  public double vZ;
 
   public double GoalX;
   public double GoalY;
@@ -114,9 +116,7 @@ public class TurretSubsystem extends SubsystemBase {
 
   private boolean m_testMode = false;
   private boolean m_hoodAutoAimEnabled = false;
-/*
- * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
- */
+  private boolean m_climbing = false;
 
 /*
  * GET ALLIANCE COLOR ------------------------------------------------------------------------------------------------------------
@@ -144,6 +144,7 @@ public class TurretSubsystem extends SubsystemBase {
 
   public void setTestMode(boolean enabled) { m_testMode = enabled; }
   public void setHoodAutoAim(boolean enabled) { m_hoodAutoAimEnabled = enabled; }
+  public void setClimbing(boolean enabled) { m_climbing = enabled; }
   public void testRunLaunch(double power) { s_ShooterMotorLeft.set(power); }
   public void testRunHood(double power) { s_HoodTiltMotor.set(power); }
   public void testRunRotate(double power) { s_TurretRotateMotor.set(power); }
@@ -303,10 +304,45 @@ public class TurretSubsystem extends SubsystemBase {
       // Calculate  Turret Hood  * * * * *
       HoodEncoder = s_HoodTiltMotor.getEncoder();
       HoodThetaActual = (((HoodEncoder.getPosition()) / (Constants.TurretSubsystemConstants.HoodGearRatio)) * (2 * Math.PI)) + 0.261799;
-      HoodThetaTarget = MathUtil.clamp(
-        (0.0136 + 0.234 * DistanceToGoal + -0.0205 * Math.pow(DistanceToGoal, 2)),
-        0.261799, 0.785398
-      );
+      // Flat-ground polynomial baseline
+      double hoodPolynomial = 0.0136 + 0.234 * effectiveDistance + -0.0205 * Math.pow(effectiveDistance, 2);
+
+      double elevationCorrection = 0.0;
+      double requiredHoodAngle;
+
+      if (m_climbing) {
+        // Full vertical displacement compensation (pitch/roll/elevation)
+        elevationCorrection = Math.atan2(vZ, DistanceToGoal)
+            - Math.atan2(Constants.TurretSubsystemConstants.BaselineDeltaZ, DistanceToGoal);
+
+        double desiredFieldElevation = hoodPolynomial + elevationCorrection;
+
+        double aimYawField = Math.atan2(vY, vX);
+        double cElev = Math.cos(desiredFieldElevation);
+        double sElev = Math.sin(desiredFieldElevation);
+        Translation3d fieldDir = new Translation3d(
+            cElev * Math.cos(aimYawField),
+            cElev * Math.sin(aimYawField),
+            sElev);
+
+        Translation3d robotDir = fieldDir.rotateBy(TurretRotation.unaryMinus());
+
+        double robotDirHoriz = Math.sqrt(
+            robotDir.getX() * robotDir.getX() + robotDir.getY() * robotDir.getY());
+        requiredHoodAngle = Math.atan2(robotDir.getZ(), robotDirHoriz);
+      } else {
+        // Flat ground — no pitch/roll/elevation correction
+        requiredHoodAngle = hoodPolynomial;
+      }
+
+      HoodThetaTarget = MathUtil.clamp(requiredHoodAngle, 0.261799, 0.785398);
+
+      SmartDashboard.putNumber("Hood/Polynomial", Math.toDegrees(hoodPolynomial));
+      SmartDashboard.putNumber("Hood/ElevationCorrection", Math.toDegrees(elevationCorrection));
+      SmartDashboard.putNumber("Hood/RequiredHoodAngle", Math.toDegrees(requiredHoodAngle));
+      SmartDashboard.putNumber("Hood/TurretZ", TurretZ);
+      SmartDashboard.putNumber("Hood/RobotPitch", Math.toDegrees(TurretRotation.getY()));
+      SmartDashboard.putNumber("Hood/RobotRoll", Math.toDegrees(TurretRotation.getX()));
 
       // Calculate Turret Shooter  * * * * *
       BallVelocityTarget = 6 - 0.00447 * DistanceToGoal + 0.104 * Math.pow(DistanceToGoal, 2);
@@ -391,18 +427,20 @@ public class TurretSubsystem extends SubsystemBase {
  * TURRET HOOD SET / RESET METHODS -----------------------------------------------------------------------------------------------
  */
   public void HoodAim() {
-    s_HoodTiltMotor.set(
-      (TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)) +
-      (TurretHoodFeedForward.calculate(0))
-    );
+    double hoodOutput = TurretHoodPID.calculate(HoodThetaActual, HoodThetaTarget)
+        + TurretHoodFeedForward.calculate(0);
+    s_HoodTiltMotor.set(hoodOutput);
+    SmartDashboard.putNumber("Hood/ActualAngle", Math.toDegrees(HoodThetaActual));
+    SmartDashboard.putNumber("Hood/MotorPower", hoodOutput);
   }
 
   public void HoodReset() {
     double HoodResetTarget = 0.261799;
-    s_HoodTiltMotor.set(
-      (TurretHoodPID.calculate(HoodThetaActual, HoodResetTarget)) +
-      (TurretHoodFeedForward.calculate(0))
-    );
+    double hoodOutput = TurretHoodPID.calculate(HoodThetaActual, HoodResetTarget)
+        + TurretHoodFeedForward.calculate(0);
+    s_HoodTiltMotor.set(hoodOutput);
+    SmartDashboard.putNumber("Hood/ActualAngle", Math.toDegrees(HoodThetaActual));
+    SmartDashboard.putNumber("Hood/MotorPower", hoodOutput);
   }
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o

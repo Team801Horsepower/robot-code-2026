@@ -165,7 +165,9 @@ public class RobotContainer {
         .rightTrigger(0.15)
         .onTrue(Commands.runOnce(() -> m_TurretSubsystem.setHoodAutoAim(true)))
         .onFalse(Commands.runOnce(() -> m_TurretSubsystem.setHoodAutoAim(false)))
-        .whileTrue(new Shoot(m_launch, m_gather, m_spindex, m_feeder));
+        .whileTrue(Commands.parallel(
+            new Shoot(m_launch, m_gather, m_spindex, m_feeder),
+            new Rumble(m_driverController, 4.0)));
 
     // X button → retract hopper
     /*

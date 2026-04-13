@@ -11,13 +11,13 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "C-H1"
+                  "pathName": "FL-OC"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "gathering"
+                  "name": "shoot"
                 }
               }
             ]
@@ -30,7 +30,7 @@
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 6.0
+                  "waitTime": 8.0
                 }
               },
               {

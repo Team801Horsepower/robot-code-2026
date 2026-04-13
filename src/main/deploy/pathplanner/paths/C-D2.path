@@ -3,61 +3,61 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.81707228916137,
-        "y": 7.072903614463751
+        "x": 0.4938659058487873,
+        "y": 6.228102710413695
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.3298112335265624,
-        "y": 7.840706752837503
+        "x": 0.028074179743223626,
+        "y": 8.32416547788873
       },
       "isLocked": false,
-      "linkedName": "Upleft Shoot"
+      "linkedName": "Depot"
     },
     {
       "anchor": {
-        "x": 5.887759036144579,
-        "y": 6.8434216867469875
+        "x": 7.752453637660485,
+        "y": 6.0081455064194005
       },
       "prevControl": {
-        "x": 6.0232659981601575,
-        "y": 7.756310694009829
+        "x": 9.188604612405182,
+        "y": 7.498490857569561
       },
       "nextControl": {
-        "x": 5.680132530120481,
-        "y": 5.44467469879518
+        "x": 7.066704707560629,
+        "y": 5.296519258202568
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 6.018891566265061,
-        "y": 1.4669879518072286
+        "x": 5.863409415121255,
+        "y": 7.237318116975749
       },
       "prevControl": {
-        "x": 6.018891566265061,
-        "y": 2.8793707992451933
+        "x": 6.403946220384963,
+        "y": 6.876960246799943
       },
       "nextControl": {
-        "x": 6.018891566265061,
-        "y": 0.3523614457831319
+        "x": 5.2035378031383726,
+        "y": 7.677232524964338
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.8170722891566267,
-        "y": 1.204722891566264
+        "x": 2.81707228916137,
+        "y": 7.072903614463751
       },
       "prevControl": {
-        "x": 2.7733614457831326,
-        "y": 0.4288554216867475
+        "x": 3.2239229671897287,
+        "y": 7.509029957203994
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Upright Shoot"
+      "linkedName": "Upleft Shoot"
     }
   ],
   "rotationTargets": [
@@ -66,8 +66,8 @@
       "rotationDegrees": 0.0
     },
     {
-      "waypointRelativePos": 1.5,
-      "rotationDegrees": -90.0
+      "waypointRelativePos": 1.0,
+      "rotationDegrees": -45.0
     }
   ],
   "constraintZones": [],
@@ -83,13 +83,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 179.2189502087628
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -90.0
   },
   "useDefaultConstraints": true
 }
