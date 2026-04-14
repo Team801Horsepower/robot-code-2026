@@ -34,7 +34,9 @@
 
 21: Turret NEO Vortex (main shooting wheel 2)
 
-23: Gather NEO Vortex (spinning rod)
+22: Gather NEO Vortex (spinning rod, motor 2)
+
+23: Gather NEO Vortex (spinning rod, motor 1)
 
 24: Feeder NEO Vortex (feeder)
 
