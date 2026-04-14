@@ -156,7 +156,6 @@ public class TurretSubsystem extends SubsystemBase {
  */
     // Turret Rotate Encoder  * * * * *
     TurretThetaActual = s_TurretRotateEncoder.get() - Constants.TurretSubsystemConstants.TurretRotateOffset;
-    SmartDashboard.putNumber("TurretThetaActual", TurretThetaActual);
 
     // Turret Hood Encoder  * * * * *
     HoodEncoder = s_HoodTiltMotor.getEncoder();
@@ -178,7 +177,6 @@ public class TurretSubsystem extends SubsystemBase {
     //RobotRotation = TurretPose.getRotation();
     RobotRotation3D = drive.getPose2d().getRotation();
     double RobotRotation = RobotRotation3D.getRadians();
-    SmartDashboard.putNumber("RobotRotation", RobotRotation);
 
     turretPosePublisher.set(TurretPose.toPose2d());
 
@@ -186,24 +184,17 @@ public class TurretSubsystem extends SubsystemBase {
     double TurretToGoalY = vY;
 
     // Turret Yaw
-    double atan2Result = Math.atan2(TurretToGoalY, TurretToGoalX);
-    SmartDashboard.putNumber("atan2Result", atan2Result);
-    TurretYaw = (-1 * (atan2Result)) + RobotRotation;
-    SmartDashboard.putNumber("TurretYaw", TurretYaw);
+    TurretYaw = (-1 * (Math.atan2(TurretToGoalY, TurretToGoalX))) + RobotRotation;
 
     // Robot Velocity  * * * * *
-    double TurretDx = questNav.RobotPose.getX() - TurretXMinusOne;
-    double TurretDy = questNav.RobotPose.getY() - TurretYMinusOne;
-    double TurretVxUnfiltered = (TurretDx)/ 0.02;
-    double TurretVyUnfiltered = (TurretDy) / 0.02;
-    TurretVx = VelocityFilterX.calculate(TurretVxUnfiltered);
-    TurretVy = VelocityFilterY.calculate(TurretVyUnfiltered);
+    TurretVx = VelocityFilterX.calculate((questNav.RobotPose.getX() - TurretXMinusOne)/ 0.02);
+    TurretVy = VelocityFilterY.calculate((questNav.RobotPose.getY() - TurretYMinusOne) / 0.02);
 
     // Time of Flight (Dynamic Distance to Goal) * * * * *
     double staticGoalX = GoalX - TurretPose.getX();
     double staticGoalY = GoalY - TurretPose.getY();
     double staticDistanceToGoal = Math.sqrt((staticGoalX * staticGoalX) + (staticGoalY * staticGoalY));
-    TimeOfFlight = 0.976 + 0.0027 * staticDistanceToGoal + 0.00677 * Math.pow(staticDistanceToGoal, 2);
+    TimeOfFlight = 0.976 + 0.0027 * staticDistanceToGoal + 0.00677 * (staticDistanceToGoal * staticDistanceToGoal);
 
     // Distance to Goal (Dynamic)
     DistanceToGoal = Math.sqrt((vX * vX) + (vY * vY));
@@ -255,14 +246,8 @@ public class TurretSubsystem extends SubsystemBase {
       }
 
       // Adjust Goal Position For Robot Velocity * * * * *
-      double vXTOFOffset = TurretVx * TimeOfFlight;
-      SmartDashboard.putNumber("vxTOFOffset", vXTOFOffset);
-      double vyTOFOffset = TurretVy * TimeOfFlight;
-      SmartDashboard.putNumber("vYTOFOffset", vyTOFOffset);
-      vX = (GoalX - (vXTOFOffset)) - TurretPose.getX();
-      SmartDashboard.putNumber("vXVector", vX);
-      vY = (GoalY - (vyTOFOffset)) - TurretPose.getY();
-      SmartDashboard.putNumber("vYVector", vY);
+      vX = (GoalX - (TurretVx * TimeOfFlight)) - TurretPose.getX();
+      vY = (GoalY - (TurretVy * TimeOfFlight)) - TurretPose.getY();
 
     
       // Calculate Turret Rotate * * * * *
@@ -301,12 +286,12 @@ public class TurretSubsystem extends SubsystemBase {
       HoodEncoder = s_HoodTiltMotor.getEncoder();
       HoodThetaActual = (((HoodEncoder.getPosition()) / (Constants.TurretSubsystemConstants.HoodGearRatio)) * (2 * Math.PI)) + 0.261799;
       HoodThetaTarget = MathUtil.clamp(
-        (0.0136 + 0.234 * DistanceToGoal + -0.0205 * Math.pow(DistanceToGoal, 2)),
+        (0.0136 + 0.234 * DistanceToGoal + -0.0205 * (DistanceToGoal * DistanceToGoal)),
         0.261799, 0.785398
       );
 
       // Calculate Turret Shooter  * * * * *
-      BallVelocityTarget = 6 - 0.00447 * DistanceToGoal + 0.104 * Math.pow(DistanceToGoal, 2);
+      BallVelocityTarget = 6 - 0.00447 * DistanceToGoal + 0.104 * (DistanceToGoal * DistanceToGoal);
       ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterWheelCircumference);
 
   }
@@ -362,17 +347,7 @@ public class TurretSubsystem extends SubsystemBase {
 /*
  * SMART DASHBOARD -------------------------------------------------------------------------------------------------------------
  */
-    // Robot Velocity  * * * * *
-    SmartDashboard.putNumber("TurretVx", TurretVx);
-    SmartDashboard.putNumber("TurretVy", TurretVy);
-
-    // Targeting  * * * * *
-    SmartDashboard.putNumber("DistanceToGoal", DistanceToGoal);
-
-    // Turret
-    SmartDashboard.putData("ShooterPID", ShooterPID);
-    SmartDashboard.putData("TurretRotatePID", TurretRotatePID);
-    SmartDashboard.putNumber("TurretRotation", TurretYaw);
+    // NA
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
