@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.GatherConstants;
+import frc.robot.Constants.HopperConstants;
 
 /**
  * Possession – composite that coordinates the Hopper and Gather subsystems to intake game pieces.
@@ -14,25 +15,38 @@ public class Possession extends SubsystemBase {
   private final Hopper m_hopper;
   private final Gather m_gather;
   private boolean m_jostling = false;
+  private double m_jostleTarget = HopperConstants.kJostleSetpoint;
 
   public Possession(Hopper hopper, Gather gather) {
     m_hopper = hopper;
     m_gather = gather;
   }
 
-  /** Enables/disables jostling mode. When true, the hopper-extended guard is bypassed. */
-  public void setJostling(boolean on) {
-    m_jostling = on;
+  /** Begins jostling: bypasses the extend guard and commands the lower jostle setpoint. */
+  public void startJostle() {
+    m_jostling = true;
+    m_jostleTarget = HopperConstants.kJostleSetpoint;
+    m_hopper.jostleTo(m_jostleTarget);
   }
 
-  /** Commands the hopper to a jostle-range setpoint (motor rotations). */
-  public void jostleTo(double position) {
-    m_hopper.jostleTo(position);
+  /**
+   * Advances the jostle state machine. Flips the hopper target between the two jostle endpoints
+   * when the current endpoint is reached. Only re-issues {@code jostleTo} on a flip, so repeated
+   * calls within tolerance do not thrash the PID setpoint.
+   */
+  public void advanceJostle() {
+    if (m_hopper.isAt(m_jostleTarget, HopperConstants.kJostleTolerance)) {
+      m_jostleTarget = (m_jostleTarget == HopperConstants.kJostleSetpoint)
+          ? HopperConstants.kExtendedSetpoint
+          : HopperConstants.kJostleSetpoint;
+      m_hopper.jostleTo(m_jostleTarget);
+    }
   }
 
-  /** Returns true when the hopper is within tol of the given target (motor rotations). */
-  public boolean isHopperAt(double target, double tol) {
-    return m_hopper.isAt(target, tol);
+  /** Ends jostling: clears the guard-bypass flag and parks the hopper fully extended. */
+  public void endJostle() {
+    m_jostling = false;
+    m_hopper.jostleTo(HopperConstants.kExtendedSetpoint);
   }
 
   /**
