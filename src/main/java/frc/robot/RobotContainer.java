@@ -336,6 +336,12 @@ public class RobotContainer {
 
     NamedCommands.registerCommand("gathering",
         Commands.run(() -> m_possession.possess(), m_possession, m_gather, m_hopper));
+
+    NamedCommands.registerCommand("climbing",
+        new Climbing(m_TurretSubsystem, m_climb));
+
+    NamedCommands.registerCommand("climbRest",
+        Commands.runOnce(() -> m_climb.rest(), m_climb));
   }
 
   // ─── Auto Chooser ─────────────────────────────────────────────────────────
