@@ -58,7 +58,7 @@ public class TurretSubsystem extends SubsystemBase {
       Constants.TurretSubsystemConstants.RobotToTurretYaw));
 
   Transform3d TurretToForward = new Transform3d(-0.09, -0.09405, 0, new Rotation3d(0, 0, 0));
-  Transform3d QuestToTurret = new Transform3d(-0.193555,0.328755,0, new Rotation3d(0,0,3.14159));
+  Transform3d QuestToTurret = new Transform3d(-0.016,0.323,0, new Rotation3d(0,0,3.14159));
 
   public Pose3d TurretPose = new Pose3d();
   public Rotation2d RobotRotation3D = new Rotation2d();
@@ -174,7 +174,7 @@ public class TurretSubsystem extends SubsystemBase {
  */
     // Robot Position  * * * * *
     // TurretPose = questNav.QuestPose;
-    TurretPose = questNav.RobotPose.transformBy(RobotToTurret);
+    TurretPose = questNav.QuestPose.transformBy(QuestToTurret);
     //RobotRotation = TurretPose.getRotation();
     RobotRotation3D = drive.getPose2d().getRotation();
     double RobotRotation = RobotRotation3D.getRadians();
@@ -192,8 +192,8 @@ public class TurretSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("TurretYaw", TurretYaw);
 
     // Robot Velocity  * * * * *
-    double TurretDx = TurretPose.getX() - TurretXMinusOne;
-    double TurretDy = TurretPose.getY() - TurretYMinusOne;
+    double TurretDx = questNav.RobotPose.getX() - TurretXMinusOne;
+    double TurretDy = questNav.RobotPose.getY() - TurretYMinusOne;
     double TurretVxUnfiltered = (TurretDx)/ 0.02;
     double TurretVyUnfiltered = (TurretDy) / 0.02;
     TurretVx = VelocityFilterX.calculate(TurretVxUnfiltered);
@@ -323,10 +323,10 @@ public class TurretSubsystem extends SubsystemBase {
       ShooterVelocityTarget = 1754.463941;
     
       //Hood  * * * * *
-      HoodThetaTarget = 0.855398;
+      HoodThetaTarget = 0.558;
       
       // Rotate  * * * * *
-      TurretThetaTarget = -0.797;
+      TurretThetaTarget = -1.5708;
 
     }
 /*
@@ -353,8 +353,8 @@ public class TurretSubsystem extends SubsystemBase {
 /*
  * STORE PREVIOUS ROBOT POSITION -----------------------------------------------------------------------------------------------
  */
-    TurretXMinusOne = TurretPose.getX();
-    TurretYMinusOne = TurretPose.getY();
+    TurretXMinusOne = questNav.RobotPose.getX();
+    TurretYMinusOne = questNav.RobotPose.getY();
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
