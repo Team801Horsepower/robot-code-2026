@@ -181,6 +181,11 @@ public class RobotContainer {
         .whileTrue(Commands.runOnce(() -> m_spindex.setReversing(true)))
         .whileFalse(Commands.runOnce(() -> m_spindex.setReversing(false)));
 
+    // Y button (held) → jostle hopper between kExtendedSetpoint and kJostleSetpoint
+    m_driverController
+        .y()
+        .whileTrue(new Jostling(m_possession, m_hopper));
+
     // D-pad Up → engage climb (runs until interrupted)
     /*
     m_driverController

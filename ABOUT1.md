@@ -12,7 +12,7 @@ Our robot uses a ROBORIO 2.0 computer, and a fault-tolerant CAN bus architecture
 
 
 
-Our advanced design uses an extendable hopper with a gatherer (roller) at the end, allowing for high capacity and intake efficiency. The gatherer itself uses a motor to spin the roller. The hopper also uses a motor to expand and retract the hopper. The robot cannot intake with the gatherer unless the hopper is extended. The hopper uses a rail system with a buffer, though ideally the system is tuned as to not cause damage to the buffer. This rail system only requires one motor. The rail system uses the SparkFlex built-in motor encoder for closed-loop position control (units: motor rotations, zeroed on startup). A REV Through Bore Encoder (connected to roboRIO DIO ports 1 and 3) is kept initialized but unused. Full extension = 27.183872 motor rotations; partial extension = 23.245955 motor rotations.
+Our advanced design uses an extendable hopper with a gatherer (roller) at the end, allowing for high capacity and intake efficiency. The gatherer uses two NEO Vortex motors to spin the roller. The hopper uses one motor to extend and retract a rail system with a buffer; the system should be tuned so as not to damage the buffer. The rail uses the SparkFlex built-in motor encoder for closed-loop position control (units: motor rotations, zeroed on startup) with separate WPILib software PID gains for the extend and retract directions. A REV Through Bore Encoder (connected to roboRIO DIO ports 1 and 3) is kept initialized but unused. Full extension = 15.801 motor rotations. The robot cannot intake with the gatherer unless the hopper is extended, except while the jostling routine is active: in that case the extension guard is bypassed and the hopper oscillates under the extend PID between `kExtendedSetpoint` (15.801) and `kJostleSetpoint` (= `kExtendedSetpoint` − `kJostleAmplitude` = 11.801 motor rotations) to dislodge stuck game pieces. When the jostle command ends, the hopper parks at the fully extended setpoint.
 
 
 
@@ -99,7 +99,23 @@ getDrivetrain(): DrivetrainSubsystem
 
 possess()
 
-* If not already extended, runs Hopper.extend(); then runs Gather.gather() at the default intake power
+* If not already extended (and not jostling), runs Hopper.extend(); then runs Gather.gather() at the default intake power
+
+possessWithPower(power: double)
+
+* Same extension guard as possess(), but spins the gatherer at the caller-supplied power (used for trigger-scaled intake)
+
+setJostling(on: boolean)
+
+* Enables/disables jostling mode. While true, the "hopper-must-be-extended-before-gathering" guard in possess()/possessWithPower() is bypassed so the hopper can oscillate freely within the jostle range even if gather calls are running.
+
+jostleTo(position: double)
+
+* Passthrough to Hopper.jostleTo() — commands the hopper to a jostle-range setpoint using the extend PID
+
+isHopperAt(target: double, tol: double): boolean
+
+* Passthrough to Hopper.isAt() — true when the motor encoder is within `tol` motor rotations of `target`
 
 stop()
 
@@ -146,11 +162,55 @@ extendTo(pct: double)
 
 retract()
 
-* Retracts the hopper to its starting point (encoder = 0)
+* Retracts the hopper toward its home position (setpoint = 2 motor rotations, within the configured retract band)
+
+jostleTo(position: double)
+
+* Drives to a jostle-range setpoint (motor rotations) using the extend PID. Both jostle endpoints live well above retract home, so the tuned extend gains are reused for both legs of the oscillation.
+
+isAt(target: double, tol: double): boolean
+
+* True when the motor encoder is within `tol` motor rotations of `target`
+
+isExtended(): boolean
+
+* True when the motor encoder is inside the configured extended band (`kExtendMinPosition`..`kExtendMaxPosition`)
+
+isRetracted(): boolean
+
+* True when the motor encoder is inside the configured retracted band (`kRetractMinPosition`..`kRetractMaxPosition`)
 
 check(): boolean
 
-* Returns whether the hopper is currently considered extended
+* **Deprecated.** Use `isExtended()` instead; retained only for backwards compatibility.
+
+stop()
+
+* Disables the software PID loop and stops the motor immediately
+
+testRun(power: double) / testSetPosition(position: double) / setTestMode(enabled: boolean)
+
+* Test-mode hooks for raw-power driving, PID target tuning, and telemetry publishing to the `TestMode/Hopper` NetworkTables table
+
+
+
+**climb.java (class Climb)**
+
+extend()
+
+* Drives the climb motor toward `kExtendSetpoint` under the climb PID (fully deployed position)
+
+climb()
+
+* Drives the climb motor toward `kClimbedSetpoint` under the climb PID (fully climbed position)
+
+rest()
+
+* Drives the climb motor toward encoder position 0 under the reset PID
+
+stop() / testRun(power: double) / testSetPosition(position: double) / setTestMode(enabled: boolean)
+
+* Immediate stop plus test-mode hooks analogous to Hopper
 
 
 
@@ -219,5 +279,22 @@ Score(manipulator: Manipulator)
 
 * Runs Manipulator.score() each loop; stops on end
 * Primarily for autonomous use
+
+
+
+Jostling(possession: Possession, hopper: Hopper)
+
+* Sets `Possession.setJostling(true)` to disable the "hopper must be extended before gathering" guard, then oscillates the hopper PID target between `HopperConstants.kJostleSetpoint` (11.801) and `HopperConstants.kExtendedSetpoint` (15.801) under the standard extend PID
+* Flips the target each time the motor encoder is within `kJostleTolerance` of the current target
+* `isFinished()` always returns false — runs until interrupted (typically `whileTrue` on the Y button)
+* On end, clears the jostling flag and parks the hopper at the fully extended setpoint
+* Requires `Possession` and `Hopper`
+
+
+
+Climbing(turret: TurretSubsystem, climb: Climb)
+
+* Drives the climb motor toward the fully climbed setpoint via `Climb.climb()` and engages the turret's vertical displacement compensation while held
+* Currently *not* bound in `RobotContainer` (the binding is commented out); D-pad Up/Down are wired directly to `Climb.extend()` / `Climb.rest()` instead
 
 

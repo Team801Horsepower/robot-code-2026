@@ -67,15 +67,23 @@ public final class Constants {
      * Partial extension motor encoder position (motor rotations from home).
      * Measured with motor encoder zeroed at full retraction.
      */
-    public static final double kPartialExtendSetpoint = 23.245955;
+    
     /** Closed-loop position tolerance (motor rotations). */
     public static final double kTolerance = 0.1;
+
+    /** Amplitude of the jostling motion (how many rotations from endpoint) */
+    public static final double kJostleAmplitude = 4.0;
+    /** Lower endpoint of the jostle oscillation (motor rotations). */
+    public static final double kJostleSetpoint = kExtendedSetpoint - kJostleAmplitude; // 11.801
+    /** Tolerance for detecting jostle endpoint arrival (motor rotations). */
+    public static final double kJostleTolerance = 0.15;
 
     // Position thresholds for extended/retracted checks (motor rotations).
     public static final double kExtendMinPosition = 15.4;
     public static final double kExtendMaxPosition = 16.0;
     public static final double kRetractMinPosition = 1;
     public static final double kRetractMaxPosition = 2;
+    public static final double kPartialExtendSetpoint = 15.0;
 
     // PID gains for hopper extension
     public static final double kExtendP = 0.1;
