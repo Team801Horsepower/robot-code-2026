@@ -151,6 +151,10 @@ public class TurretSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
 
+    // Pull the newest Quest frame before any pose reads below, so we don't
+    // see a one-loop-old pose if QuestSubsystem ticks after us this loop.
+    questNav.refreshPose();
+
 /*
  * GET ENCODER VALUES ----------------------------------------------------------------------------------------------------------
  */

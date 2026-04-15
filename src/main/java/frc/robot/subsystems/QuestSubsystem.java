@@ -54,21 +54,26 @@ public class QuestSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     questNav.commandPeriodic();
+    refreshPose();
+  }
 
+  /**
+   * Drains any unread Quest pose frames and updates {@link #QuestPose} / {@link #RobotPose}
+   * to the newest one. Safe (and cheap) to call multiple times per loop — if no frames have
+   * arrived since the last call, this is a no-op. Consumers that need the freshest possible
+   * pose (e.g. TurretSubsystem) can call this at the top of their own periodic to avoid the
+   * one-loop lag from subsystem-periodic ordering.
+   */
+  public void refreshPose() {
     PoseFrame[] poseFrames = questNav.getAllUnreadPoseFrames();
 
     for (PoseFrame questFrame : poseFrames) {
-            // Make sure the Quest was tracking the pose for this frame
-            if (questNav.isTracking()) {
-                // Get the pose of the Quest
-                QuestPose = questFrame.questPose3d();
-                RobotPose = QuestPose.transformBy(QuestToRobot);
-                
-                // Get timestamp for when the data was sent
-                //double timestamp = questFrame.dataTimestamp();
-            }
+      if (questNav.isTracking()) {
+        QuestPose = questFrame.questPose3d();
+        RobotPose = QuestPose.transformBy(QuestToRobot);
+      }
 
-    publisher.set(RobotPose.toPose2d());
+      publisher.set(RobotPose.toPose2d());
     }
   }
 
