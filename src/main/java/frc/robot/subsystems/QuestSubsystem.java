@@ -22,18 +22,22 @@ public class QuestSubsystem extends SubsystemBase {
   public Pose3d QuestPose = new Pose3d();
 
   Transform3d QuestToRobot = new Transform3d(
-    Constants.QuestSubsystemConstants.QuestToRobotX, 
-    Constants.QuestSubsystemConstants.QuestToRobotY, 
-    Constants.QuestSubsystemConstants.QuestToRobotZ, 
+    Constants.QuestSubsystemConstants.QuestToRobotX,
+    Constants.QuestSubsystemConstants.QuestToRobotY,
+    Constants.QuestSubsystemConstants.QuestToRobotZ,
     new Rotation3d(
-      Constants.QuestSubsystemConstants.QuestToRobotRoll, 
-      Constants.QuestSubsystemConstants.QuestToRobotPitch, 
+      Constants.QuestSubsystemConstants.QuestToRobotRoll,
+      Constants.QuestSubsystemConstants.QuestToRobotPitch,
       Constants.QuestSubsystemConstants.QuestToRobotYaw));
 
   StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
 
-  /** Creates a new QuestSubsystem. */
-  public QuestSubsystem() {}
+  private final DrivetrainSubsystem m_drivetrain;
+
+  /** Creates a new QuestSubsystem that feeds vision measurements to the drivetrain. */
+  public QuestSubsystem(DrivetrainSubsystem drivetrain) {
+    m_drivetrain = drivetrain;
+  }
 
   /**
    * Seeds QuestNav with a known robot pose. Call at the start of autonomous
@@ -58,21 +62,20 @@ public class QuestSubsystem extends SubsystemBase {
     PoseFrame[] poseFrames = questNav.getAllUnreadPoseFrames();
 
     for (PoseFrame questFrame : poseFrames) {
-            // Make sure the Quest was tracking the pose for this frame
-            if (questNav.isTracking()) {
-                // Get the pose of the Quest
-                QuestPose = questFrame.questPose3d();
-                RobotPose = QuestPose.transformBy(QuestToRobot);
-                
-                // Get timestamp for when the data was sent
-                //double timestamp = questFrame.dataTimestamp();
-            }
+      if (questNav.isTracking()) {
+        QuestPose = questFrame.questPose3d();
+        RobotPose = QuestPose.transformBy(QuestToRobot);
 
-    publisher.set(RobotPose.toPose2d());
+        Pose2d robotPose2d = RobotPose.toPose2d();
+        double timestamp = questFrame.dataTimestamp();
+
+        m_drivetrain.addVisionMeasurement(robotPose2d, timestamp);
+        publisher.set(robotPose2d);
+      }
     }
   }
 
   public Pose2d getPose2d() {
-    return QuestPose.toPose2d();
+    return RobotPose.toPose2d();
   }
 }

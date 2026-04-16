@@ -54,7 +54,7 @@ public class RobotContainer {
   // ─── Leaf subsystems ───────────────────────────────────────────────────────
 
   private final DrivetrainSubsystem m_drivetrain = TunerConstants.createDrivetrain();
-  private final QuestSubsystem m_QuestSubsystem = new QuestSubsystem();
+  private final QuestSubsystem m_QuestSubsystem = new QuestSubsystem(m_drivetrain);
 
   private final Gather   m_gather  = new Gather();
   private final Hopper   m_hopper  = new Hopper();

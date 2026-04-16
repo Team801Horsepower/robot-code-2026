@@ -2,6 +2,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants.ClimbConstants;
 import frc.robot.subsystems.Climb;
 import frc.robot.subsystems.TurretSubsystem;
 
@@ -28,17 +29,19 @@ public class Climbing extends Command {
   @Override
   public void initialize() {
     // m_turret.setClimbing(true);
-    m_climb.climb();
+    m_climb.extend();
   }
 
   @Override
   public void end(boolean interrupted) {
     // m_turret.setClimbing(false);
-    m_climb.rest();
+    if (!interrupted) {
+      m_climb.rest();
+    }
   }
 
   @Override
   public boolean isFinished() {
-    return false;
+    return Math.abs(m_climb.getPosition() - ClimbConstants.kExtendSetpoint) < ClimbConstants.kExtendTolerance;
   }
 }

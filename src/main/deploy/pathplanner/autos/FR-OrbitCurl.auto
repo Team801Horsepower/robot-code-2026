@@ -11,13 +11,32 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "FR-OC"
+                  "pathName": "FR-OC1"
                 }
               },
               {
                 "type": "named",
                 "data": {
                   "name": "shoot"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "FR-OC2"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "gathering"
                 }
               }
             ]
