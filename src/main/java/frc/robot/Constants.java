@@ -99,15 +99,11 @@ public final class Constants {
   public static final class ClimbConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) powering the climb mechanism. */
     public static final int kMotorId = 29;
-    /** Fully-climbed motor encoder position (motor rotations from rest). Placeholder — tune on robot. */
-    public static final double kClimbedSetpoint = -125.0;
-    /** Fully extended setpoint */
+    /** Fully extended setpoint (motor rotations from rest). */
     public static final double kExtendSetpoint = -216.75;
-    /** Climber Climb PID Values */
-    public static final double kClimbP = 0.05;
-    public static final double kClimbI = 0;
-    public static final double kClimbD = 0;
-    //** Climber Reset PID Values */
+    /** Position tolerance for considering the climber "at setpoint" (motor rotations). */
+    public static final double kExtendTolerance = 2.0;
+    /** Climber PID Values */
     public static final double kResetP = 0.05;
     public static final double kResetI = 0;
     public static final double kResetD = 0;

@@ -11,13 +11,32 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "FL-OC"
+                  "pathName": "FL-OC1"
                 }
               },
               {
                 "type": "named",
                 "data": {
                   "name": "shoot"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "FL-OC2"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "gathering"
                 }
               }
             ]
