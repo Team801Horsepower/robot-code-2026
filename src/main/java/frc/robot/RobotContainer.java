@@ -116,6 +116,7 @@ public class RobotContainer {
     m_drive.setDefaultCommand(
         m_drive.applyRequest(() -> buildFieldCentricRequest()));
     m_gather.setDefaultCommand(Commands.run(() -> m_gather.rest(), m_gather));
+    m_hopper.setDefaultCommand(Commands.run(() -> m_hopper.stop(), m_hopper));
     m_spindex.setDefaultCommand(Commands.run(() -> m_spindex.rest(), m_spindex));
     m_feeder.setDefaultCommand(Commands.run(() -> m_feeder.rest(), m_feeder));
   }
@@ -170,11 +171,12 @@ public class RobotContainer {
             new Shoot(m_launch, m_gather, m_spindex, m_feeder),
             new Rumble(m_driverController, 4.0)));
 
-    // X button → retract hopper
+    // X button → retract hopper (held until retracted, then default command takes over)
     // Removed because hooper retract will hurt robot :(
     m_driverController
         .x()
-        .onTrue(Commands.runOnce(() -> m_hopper.retract(), m_hopper));
+        .onTrue(Commands.run(() -> m_hopper.retract(), m_hopper)
+            .until(() -> m_hopper.isRetracted()));
 
     m_driverController
         .b()

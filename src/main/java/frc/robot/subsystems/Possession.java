@@ -43,10 +43,10 @@ public class Possession extends SubsystemBase {
     }
   }
 
-  /** Ends jostling: clears the guard-bypass flag and parks the hopper fully extended. */
+  /** Ends jostling: clears the guard-bypass flag and stops the hopper motor. */
   public void endJostle() {
     m_jostling = false;
-    m_hopper.jostleTo(HopperConstants.kExtendedSetpoint);
+    m_hopper.stop();
   }
 
   /**
