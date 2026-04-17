@@ -176,7 +176,7 @@ public final class Constants {
     public static final double kMaxAngularSpeedRadPerSec = Math.PI * 1.5; // rad/s (~1.5π rad/s)
 
     /** Drive speed multiplier applied when right trigger > kShootSlowdownThreshold. */
-    public static final double kShootWhileMovingSpeedMultiplier = 0.40;
+    public static final double kShootWhileMovingSpeedMultiplier = 0.20;
 
     /** Right trigger axis value at which the speed multiplier activates. */
     public static final double kShootSlowdownThreshold = 0.15;
