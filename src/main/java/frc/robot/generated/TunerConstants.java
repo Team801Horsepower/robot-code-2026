@@ -73,19 +73,19 @@ public class TunerConstants {
 
   // ─── Current Limits ────────────────────────────────────────────────────────
 
-  private static final Current kSlipCurrent = Amps.of(60);
+  private static final Current kSlipCurrent = Amps.of(50);
 
   // ─── Initial Configs ───────────────────────────────────────────────────────
 
   private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration()
       .withCurrentLimits(
           new CurrentLimitsConfigs()
-              .withStatorCurrentLimit(Amps.of(60))
+              .withStatorCurrentLimit(Amps.of(50))
               .withStatorCurrentLimitEnable(true));
   private static final TalonFXConfiguration steerInitialConfigs = new TalonFXConfiguration()
       .withCurrentLimits(
           new CurrentLimitsConfigs()
-              .withStatorCurrentLimit(Amps.of(60))
+              .withStatorCurrentLimit(Amps.of(50))
               .withStatorCurrentLimitEnable(true));
   private static final CANcoderConfiguration encoderInitialConfigs = new CANcoderConfiguration();
   private static final Pigeon2Configuration pigeonConfigs = null;
