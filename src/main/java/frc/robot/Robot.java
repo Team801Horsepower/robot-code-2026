@@ -65,6 +65,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
+    m_robotContainer.setDriveCurrentLimit(60);
     m_robotContainer.seedAutoStartPose();
 
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
@@ -91,6 +92,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+    m_robotContainer.setDriveCurrentLimit(50);
     m_robotContainer.cacheAlliance();
     m_robotContainer.configureNormalMode();
   }

@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
@@ -219,6 +220,20 @@ public class DrivetrainSubsystem
    */
   public void seedPose(Pose2d pose) {
     resetPose(pose);
+  }
+
+  /**
+   * Sets the stator current limit on all four drive motors.
+   *
+   * @param amps Stator current limit in amps
+   */
+  public void setDriveCurrentLimit(double amps) {
+    var config = new CurrentLimitsConfigs()
+        .withStatorCurrentLimit(amps)
+        .withStatorCurrentLimitEnable(true);
+    for (int i = 0; i < 4; i++) {
+      getModule(i).getDriveMotor().getConfigurator().apply(config);
+    }
   }
 
   // ─── Periodic ──────────────────────────────────────────────────────────────

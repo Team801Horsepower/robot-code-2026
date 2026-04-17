@@ -436,6 +436,11 @@ public class RobotContainer {
     m_TurretSubsystem.setAlliance(m_cachedAlliance);
   }
 
+  /** Sets the stator current limit on all four drive motors. */
+  public void setDriveCurrentLimit(double amps) {
+    m_drivetrain.setDriveCurrentLimit(amps);
+  }
+
   // ─── Helpers ───────────────────────────────────────────────────────────────
 
   private static double applyDeadband(double input) {
