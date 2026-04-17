@@ -86,11 +86,11 @@ public final class Constants {
     public static final double kPartialExtendSetpoint = 15.0;
 
     // PID gains for hopper extension
-    public static final double kExtendP = 0.1;
+    public static final double kExtendP = 0.115;
     public static final double kExtendI = 0;
     public static final double kExtendD = 0;
     // PID gains for hopper retraction
-    public static final double kRetractP = 0.1;
+    public static final double kRetractP = 0.115;
     public static final double kRetractI = 0;
     public static final double kRetractD = 0;
 
