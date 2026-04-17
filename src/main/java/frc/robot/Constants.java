@@ -79,7 +79,7 @@ public final class Constants {
     public static final double kJostleTolerance = 0.15;
 
     // Position thresholds for extended/retracted checks (motor rotations).
-    public static final double kExtendMinPosition = 15.75;
+    public static final double kExtendMinPosition = 15.9;
     public static final double kExtendMaxPosition = 16.0;
     public static final double kRetractMinPosition = 1;
     public static final double kRetractMaxPosition = 2;
