@@ -291,6 +291,9 @@ public class TurretSubsystem extends SubsystemBase {
         (0.0136 + 0.234 * DistanceToGoal + -0.0205 * (DistanceToGoal * DistanceToGoal)),
         0.261799, 0.785398
       );
+      if (FieldConstants.getFieldZone(TurretPose.getX(), m_alliance) == FieldZone.FAR_AWAY) {
+        HoodThetaTarget = 0.785398;
+      }
 
       // Calculate Turret Shooter  * * * * *
       BallVelocityTarget = 6 - 0.00447 * DistanceToGoal + 0.104 * (DistanceToGoal * DistanceToGoal);
