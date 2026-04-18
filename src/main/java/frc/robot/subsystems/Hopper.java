@@ -110,7 +110,7 @@ public class Hopper extends SubsystemBase {
 
   /** Retracts the hopper to its home position (encoder = 0). */
   public void retract() {
-    m_setpoint = 2;
+    m_setpoint = 0.5;
     m_pidActive = true;
     m_extending = false;
   }
