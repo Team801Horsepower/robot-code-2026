@@ -251,7 +251,7 @@ public final class Constants {
 
   // ─── Field ──────────────────────────────────────────────────────────────────
 
-  public enum FieldZone { LAUNCH, TRENCH, FAR }
+  public enum FieldZone { LAUNCH, TRENCH, FAR, FAR_TRENCH, FAR_AWAY }
 
   public static final class FieldConstants {
     /** Field length in meters (54 ft 1 in). */
