@@ -263,6 +263,10 @@ public final class Constants {
     public static final double kLaunchZoneEndMeters = 3.978;
     /** End of trench zone, measured from friendly wall (201.01 inches). */
     public static final double kTrenchZoneEndMeters = 5.106;
+    /** End of far zone, measured from friendly wall. */
+    public static final double kFarZoneEndMeters = 11.3;
+    /** End of far-trench zone, measured from friendly wall. */
+    public static final double kFarTrenchZoneEndMeters = 12.428;
 
     /**
      * Returns the field zone the robot is currently in.
