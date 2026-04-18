@@ -47,6 +47,7 @@ import frc.robot.subsystems.*;
  *   <li><b>Left trigger (&gt;0.08, held)</b> – Scaled intake (trigger axis = gather power)
  *   <li><b>Left bumper (held)</b> – Reverse intake (full configurable power)
  *   <li><b>Right trigger (&gt;0.15, held)</b> – Shoot (run launch sequence)
+ *   <li><b>Back (view) button (toggle)</b> – Static shoot (toggle on/off)
  * </ul>
  */
 public class RobotContainer {
@@ -204,11 +205,20 @@ public class RobotContainer {
         .povUp()
         .onTrue(Commands.runOnce(() -> m_climb.extend(), m_climb));
 
+    // Back (view) button → toggle static shoot on/off
+    m_driverController
+        .back()
+        .toggleOnTrue(Commands.parallel(
+            Commands.startEnd(
+                () -> m_TurretSubsystem.setHoodAutoAim(true),
+                () -> m_TurretSubsystem.setHoodAutoAim(false)),
+            new Shoot(m_launch, m_gather, m_spindex, m_feeder)));
+
     // Start (menu) button → reset Pigeon heading to Center starting heading (180°)
     m_driverController
         .start()
         .onTrue(Commands.runOnce(
-            () -> m_drive.getDrivetrain().getPigeon2().setYaw(0)));
+            () -> m_drive.getDrivetrain().getPigeon2().setYaw(0))); //this is for blue
   }
 
   // ─── Test Mode Bindings ─────────────────────────────────────────────────────
@@ -371,6 +381,8 @@ public class RobotContainer {
         new Pose2d(4.414, 0.432, Rotation2d.fromDegrees(0.0)));
     m_startPositionChooser.addOption("Right Goal",
         new Pose2d(3.680596, 3.780631, Rotation2d.fromDegrees(180.0)));
+    m_startPositionChooser.addOption("Tower",
+        new Pose2d(0.730, 4.691, Rotation2d.fromDegrees(0.0)));
     m_startPositionChooser.addOption("Robot at Zero",
         new Pose2d(0, 0, Rotation2d.fromDegrees(180.0)));
     SmartDashboard.putData("Start Position", m_startPositionChooser);
