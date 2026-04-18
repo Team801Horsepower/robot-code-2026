@@ -116,6 +116,7 @@ public class TurretSubsystem extends SubsystemBase {
 
   private boolean m_testMode = false;
   private boolean m_hoodAutoAimEnabled = false;
+  private boolean m_turretAutoAimEnabled = true;
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
@@ -146,6 +147,7 @@ public class TurretSubsystem extends SubsystemBase {
 
   public void setTestMode(boolean enabled) { m_testMode = enabled; }
   public void setHoodAutoAim(boolean enabled) { m_hoodAutoAimEnabled = enabled; }
+  public void setTurretAutoAim(boolean enabled) {m_turretAutoAimEnabled = enabled; }
   public void testRunLaunch(double power) { s_ShooterMotorLeft.set(power); }
   public void testRunHood(double power) { s_HoodTiltMotor.set(power); }
   public void testRunRotate(double power) { s_TurretRotateMotor.set(power); }
@@ -215,7 +217,7 @@ public class TurretSubsystem extends SubsystemBase {
 /*
  * IF QUEST NAV IS TRACKNG -----------------------------------------------------------------------------------------------------
  */
-    if (questNav.isTracking()) {
+    if (questNav.isTracking() && m_turretAutoAimEnabled) {
 
       // Target Position  * * * * *
       if (m_alliance == Alliance.Red) {

@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -100,6 +101,8 @@ public class RobotContainer {
   // ─── Alliance cache ─────────────────────────────────────────────────────────
 
   private DriverStation.Alliance m_cachedAlliance = DriverStation.Alliance.Blue;
+
+  private boolean m_staticShootToggled = false;
 
   // ─── Constructor ───────────────────────────────────────────────────────────
 
@@ -205,14 +208,18 @@ public class RobotContainer {
         .povUp()
         .onTrue(Commands.runOnce(() -> m_climb.extend(), m_climb));
 
-    // Back (view) button → toggle static shoot on/off
+    // Back (view) button → toggle static shoot on/off.
+    // Static shoot also runs automatically whenever QuestNav is not tracking.
     m_driverController
         .back()
-        .toggleOnTrue(Commands.parallel(
+        .onTrue(Commands.runOnce(() -> m_staticShootToggled = !m_staticShootToggled));
+
+    new Trigger(() -> m_staticShootToggled || !m_QuestSubsystem.isTracking())
+        .whileTrue(Commands.parallel(
             Commands.startEnd(
-                () -> m_TurretSubsystem.setHoodAutoAim(true),
-                () -> m_TurretSubsystem.setHoodAutoAim(false)),
-            new Shoot(m_launch, m_gather, m_spindex, m_feeder)));
+                () -> m_TurretSubsystem.setTurretAutoAim(true),
+                () -> m_TurretSubsystem.setTurretAutoAim(false))));
+            //new Shoot(m_launch, m_gather, m_spindex, m_feeder)));
 
     // Start (menu) button → reset Pigeon heading to Center starting heading (180°)
     m_driverController
