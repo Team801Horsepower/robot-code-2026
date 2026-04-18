@@ -208,7 +208,7 @@ public class RobotContainer {
     m_driverController
         .start()
         .onTrue(Commands.runOnce(
-            () -> m_drive.getDrivetrain().getPigeon2().setYaw(180.0)));
+            () -> m_drive.getDrivetrain().getPigeon2().setYaw(0)));
   }
 
   // ─── Test Mode Bindings ─────────────────────────────────────────────────────

@@ -8,11 +8,27 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.0630602409638557,
-        "y": 6.06755421686747
+        "x": 0.6315301204819277,
+        "y": 7.3023855421686745
       },
       "isLocked": false,
       "linkedName": "Upleft Shoot"
+    },
+    {
+      "anchor": {
+        "x": 1.1451325301204818,
+        "y": 5.969204819277109
+      },
+      "prevControl": {
+        "x": 1.1937771275834204,
+        "y": 6.634391407840083
+      },
+      "nextControl": {
+        "x": 1.0863960843373492,
+        "y": 5.166018072289156
+      },
+      "isLocked": false,
+      "linkedName": null
     },
     {
       "anchor": {
@@ -20,15 +36,24 @@
         "y": 4.734373493975904
       },
       "prevControl": {
-        "x": 1.735228915662651,
-        "y": 5.696012048192772
+        "x": 1.1560602409638556,
+        "y": 5.029421686746989
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": "Left Climb One"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.9105802047781553,
+      "rotationDegrees": 180.0
+    },
+    {
+      "waypointRelativePos": 1.4375426621160299,
+      "rotationDegrees": 180.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
