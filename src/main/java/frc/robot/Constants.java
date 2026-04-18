@@ -287,8 +287,12 @@ public final class Constants {
         return FieldZone.LAUNCH;
       } else if (distFromFriendlyWall <= kTrenchZoneEndMeters) {
         return FieldZone.TRENCH;
-      } else {
+      } else if (distFromFriendlyWall <= kFarZoneEndMeters) {
         return FieldZone.FAR;
+      } else if (distFromFriendlyWall <= kFarTrenchZoneEndMeters) {
+        return FieldZone.FAR_TRENCH;
+      } else {
+        return FieldZone.FAR_AWAY;
       }
     }
   }
