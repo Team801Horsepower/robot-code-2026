@@ -220,38 +220,12 @@ public class TurretSubsystem extends SubsystemBase {
     if (questNav.isTracking() && m_turretAutoAimEnabled) {
 
       // Target Position  * * * * *
-      if (m_alliance == Alliance.Red) {
-        if (TurretPose.getX() < 11.915394 && TurretPose.getY() < 4.034536) {
-          GoalX = Constants.TurretSubsystemConstants.AimPointR1.getX();
-          GoalY = Constants.TurretSubsystemConstants.AimPointR1.getY();
-        }
-        else if (TurretPose.getX() < 11.915394 && TurretPose.getY() > 4.034536) {
-          GoalX = Constants.TurretSubsystemConstants.AimPointR2.getX();
-          GoalY = Constants.TurretSubsystemConstants.AimPointR2.getY();
-        }
-        else {
-          GoalX = Constants.TurretSubsystemConstants.RedAllianceGoal.getX();
-          GoalY = Constants.TurretSubsystemConstants.RedAllianceGoal.getY();
-        }
-      }
-      else {
-        if (TurretPose.getX() > 4.625594 && TurretPose.getY() < 4.034536) {
-          GoalX = Constants.TurretSubsystemConstants.AimPointB2.getX();
-          GoalY = Constants.TurretSubsystemConstants.AimPointB2.getY();
-        }
-        else if (TurretPose.getX() > 4.625594 && TurretPose.getY() > 4.034536) {
-          GoalX = Constants.TurretSubsystemConstants.AimPointB1.getX();
-          GoalY = Constants.TurretSubsystemConstants.AimPointB1.getY();
-        }
-        else {
-          GoalX = Constants.TurretSubsystemConstants.BlueAllianceGoal.getX();
-          GoalY = Constants.TurretSubsystemConstants.BlueAllianceGoal.getY();
-        }
-      }
+        GoalX = Constants.TurretSubsystemConstants.AimPointR1.getX();
+        GoalY = Constants.TurretSubsystemConstants.AimPointR1.getY();
 
-      // Adjust Goal Position For Robot Velocity * * * * *
-      vX = (GoalX - (TurretVx * TimeOfFlight)) - TurretPose.getX();
-      vY = (GoalY - (TurretVy * TimeOfFlight)) - TurretPose.getY();
+      //Goal Position
+      vX = GoalX - TurretPose.getX();
+      vY = GoalY - TurretPose.getY();
 
     
       // Calculate Turret Rotate * * * * *
@@ -289,20 +263,11 @@ public class TurretSubsystem extends SubsystemBase {
       // Calculate  Turret Hood  * * * * *
       HoodEncoder = s_HoodTiltMotor.getEncoder();
       HoodThetaActual = (((HoodEncoder.getPosition()) / (Constants.TurretSubsystemConstants.HoodGearRatio)) * (2 * Math.PI)) + 0.261799;
-      HoodThetaTarget = MathUtil.clamp(
-        (0.0136 + 0.234 * DistanceToGoal + -0.0205 * (DistanceToGoal * DistanceToGoal)),
-        0.261799, 0.785398
-      );
-      if (FieldConstants.getFieldZone(TurretPose.getX(), m_alliance) == FieldZone.FAR_AWAY) {
-        HoodThetaTarget = 0.785398;
-      }
+      HoodThetaTarget = (0.508);
 
       // Calculate Turret Shooter  * * * * *
-      BallVelocityTarget = 6 - 0.00447 * DistanceToGoal + 0.104 * (DistanceToGoal * DistanceToGoal);
-      ShooterVelocityTarget = (60 * BallVelocityTarget) / (Constants.TurretSubsystemConstants.ShooterWheelCircumference);
-
-  }
-
+      ShooterVelocityTarget = 1700;
+    }
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */
@@ -312,10 +277,10 @@ public class TurretSubsystem extends SubsystemBase {
  */
     else {
       // Shooter  * * * * *
-      ShooterVelocityTarget = 1754.463941;
+      ShooterVelocityTarget = 1700;
     
       //Hood  * * * * *
-      HoodThetaTarget = 0.558;
+      HoodThetaTarget = 0.508;
       
       // Rotate  * * * * *
       TurretThetaTarget = -1.5708;
@@ -338,15 +303,6 @@ public class TurretSubsystem extends SubsystemBase {
     ShooterVelocityPIDSet = ShooterPID.calculate(ShooterVelocityActual, ShooterVelocityTarget) + ShooterFeedForward.calculate(ShooterVelocityTarget);
     s_ShooterMotorLeft.setVoltage(-1 * ShooterVelocityPIDSet);
     s_ShooterMotorRight.setVoltage(ShooterVelocityPIDSet);
-/*
- * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
- */
-
-/*
- * STORE PREVIOUS ROBOT POSITION -----------------------------------------------------------------------------------------------
- */
-    TurretXMinusOne = questNav.RobotPose.getX();
-    TurretYMinusOne = questNav.RobotPose.getY();
 /*
  * o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o     o
  */

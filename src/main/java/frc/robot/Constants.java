@@ -44,7 +44,7 @@ public final class Constants {
     public static final int kMotorOneID = 23;
     public static final int kMotorTwoID = 22;
     /** Default roller power when gathering. Positive = intake direction. */
-    public static final double kDefaultPower = 1.0;
+    public static final double kDefaultPower = 0.5;
     /** Full power for reverse (ejection) intake. Independently configurable. */
     public static final double kReverseIntakePower = 0.7;
   }
@@ -176,7 +176,7 @@ public final class Constants {
     public static final double kMaxAngularSpeedRadPerSec = Math.PI * 1.5; // rad/s (~1.5π rad/s)
 
     /** Drive speed multiplier applied when right trigger > kShootSlowdownThreshold. */
-    public static final double kShootWhileMovingSpeedMultiplier = 0.20;
+    public static final double kShootWhileMovingSpeedMultiplier = 0.10;
 
     /** Right trigger axis value at which the speed multiplier activates. */
     public static final double kShootSlowdownThreshold = 0.15;

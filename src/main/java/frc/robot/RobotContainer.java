@@ -126,7 +126,7 @@ public class RobotContainer {
   }
 
   private SwerveRequest.FieldCentric buildFieldCentricRequest() {
-    double speedScale = 1.0;
+    double speedScale = 0.1;
     if (m_driverController.getRightTriggerAxis() > DriveConstants.kShootSlowdownThreshold) {
       speedScale = DriveConstants.kShootWhileMovingSpeedMultiplier;
     }
@@ -160,12 +160,6 @@ public class RobotContainer {
         .whileTrue(new Gathering(m_possession, m_gather, m_hopper,
             () -> m_driverController.getLeftTriggerAxis()));
 
-    // Left bumper (held) → reverse intake at configurable full power
-    m_driverController
-        .leftBumper()
-        .whileTrue(Commands.run(
-            () -> m_gather.gather(-GatherConstants.kReverseIntakePower), m_gather));
-
     // Right trigger (>0.15, held) → shoot with hood auto-aim
     m_driverController
         .rightTrigger(0.15)
@@ -187,27 +181,6 @@ public class RobotContainer {
         .whileTrue(Commands.runOnce(() -> m_spindex.setReversing(true)))
         .whileFalse(Commands.runOnce(() -> m_spindex.setReversing(false)));
 
-    // Y button (held) → jostle hopper between kExtendedSetpoint and kJostleSetpoint
-    m_driverController
-        .y()
-        .whileTrue(new Jostling(m_possession, m_hopper));
-
-    // D-pad Up → engage climb (runs until interrupted)
-    /*
-    m_driverController
-        .povUp()
-        .onTrue(new Climbing(m_TurretSubsystem, m_climb));
-    */
-
-    // D-pad Down → disengage climb (interrupts Climbing via shared subsystem requirement)
-    m_driverController
-        .povDown()
-        .onTrue(Commands.runOnce(() -> m_climb.rest(), m_climb));
-
-    m_driverController
-        .povUp()
-        .onTrue(Commands.runOnce(() -> m_climb.extend(), m_climb));
-
     // Back (view) button → toggle static shoot on/off.
     // Static shoot also runs automatically whenever QuestNav is not tracking.
     m_driverController
@@ -220,12 +193,6 @@ public class RobotContainer {
                 () -> m_TurretSubsystem.setTurretAutoAim(true),
                 () -> m_TurretSubsystem.setTurretAutoAim(false))));
             //new Shoot(m_launch, m_gather, m_spindex, m_feeder)));
-
-    // Start (menu) button → reset Pigeon heading to Center starting heading (180°)
-    m_driverController
-        .start()
-        .onTrue(Commands.runOnce(
-            () -> m_drive.getDrivetrain().getPigeon2().setYaw(0))); //this is for blue
   }
 
   // ─── Test Mode Bindings ─────────────────────────────────────────────────────
