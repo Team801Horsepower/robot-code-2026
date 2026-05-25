@@ -16,70 +16,91 @@ All calculations depend on the robot's field-relative pose from QuestNav (Meta Q
 
 ## 1\. Coordinate Systems and Pose Pipeline
 
-**QuestNav** provides a full `Pose3d` (X, Y, Z, roll, pitch, yaw) of the robot in field coordinates.
+**QuestNav** (`QuestSubsystem.java`) tracks the Meta Quest headset pose and publishes:
 
-The turret is offset from the Quest headset mounting point. A rigid-body `Transform3d` converts the robot pose to the turret pose:
+* `QuestPose` — the raw 3D headset pose in field coordinates
+* `RobotPose` — headset pose transformed by `QuestToRobot` (X: -0.263 m, Y: 0.229 m, Yaw: π)
+
+`QuestSubsystem` also feeds vision measurements into the drivetrain's pose estimator each cycle via `m_drivetrain.addVisionMeasurement()`.
+
+The **turret pose** is derived directly from the Quest headset pose using a separate `QuestToTurret` transform:
 
 ```
-TurretPose = RobotPose \* RobotToTurret
+TurretPose = QuestPose * QuestToTurret
 ```
 
-Where `RobotToTurret` has offsets:
+Where `QuestToTurret` has offsets:
 
-* X: -0.103165 m (turret is behind Quest mount)
-* Y: -0.094050 m (turret is right of Quest mount)
-* Z: 0.5588 m (turret launch point is 22 inches above ground)
-* Roll, Pitch, Yaw: all 0 (turret base is aligned with robot frame)
+* X: -0.016 m
+* Y: 0.323 m
+* Z: 0 m
+* Yaw: π (180°, turret is mounted facing opposite the headset)
 
-From the turret pose we extract:
+The robot's **heading** for yaw calculations comes from the drivetrain's pose estimator (`drive.getPose2d().getRotation()`), not from QuestNav directly.
 
-* `TurretX`, `TurretY`, `TurretZ` — field-frame position
-* `TurretYaw` — robot heading (equals `TurretRotation.getZ()`)
-* `TurretRotation` — full 3D orientation (used for tilt compensation)
+> **Note:** `Constants.TurretSubsystemConstants` also defines `RobotToTurret` offsets (X: -0.103165 m, Y: -0.094050 m, Z: 0.5588 m) — these are stored for reference but the actual turret pose computation uses `QuestToTurret` above.
 
 
 
 ## 2\. Goal Selection (Alliance-Aware Aim Points)
 
-There are 6 aim points (3 per alliance). The turret selects which one to target based on the robot's zone on the field.
+There are 6 aim points (3 per alliance). The turret selects which one to target based on the turret's X and Y position.
 
 **Blue Alliance:**
 
 |Aim Point|Field Coordinates (X, Y, Z)|When Selected|
 |-|-|-|
-|AimPointB1|(3.978, 5.759, 1.829)|X > 4.626, Y > 4.035|
-|AimPointB2|(3.978, 2.310, 1.829)|X > 4.626, Y < 4.035|
-|BlueAllianceGoal|(4.635, 4.034, 1.829)|X <= 4.626 (near goal)|
+|AimPointB1|(1.978, 5.759, 1.8288)|X > 4.626, Y > 4.035|
+|AimPointB2|(1.978, 2.310, 1.8288)|X > 4.626, Y < 4.035|
+|BlueAllianceGoal|(4.635, 4.034, 1.8288)|X <= 4.626 (near goal)|
 
 **Red Alliance:**
 
 |Aim Point|Field Coordinates (X, Y, Z)|When Selected|
 |-|-|-|
-|AimPointR1|(12.563, 2.310, 1.829)|X < 11.915, Y < 4.035|
-|AimPointR2|(12.563, 5.759, 1.829)|X < 11.915, Y > 4.035|
-|RedAllianceGoal|(11.907, 4.034, 1.829)|X >= 11.915 (near goal)|
+|AimPointR1|(14.563, 2.310, 1.8288)|X < 11.915, Y < 4.035|
+|AimPointR2|(14.563, 5.759, 1.8288)|X < 11.915, Y > 4.035|
+|RedAllianceGoal|(11.907, 4.034, 1.8288)|X >= 11.915 (near goal)|
 
-All aim points are at Z = 1.8288 m (72 inches), the height of the scoring target.
+All aim points are at Z = 1.8288 m (72 inches), the height of the scoring target. Exact selection thresholds from code: X = 4.625594 (blue), X = 11.915394 (red), Y = 4.034536.
 
-The vector from turret to goal:
+The static vector from turret to goal (before velocity adjustment):
 
 ```
-vX = GoalX - TurretX
-vY = GoalY - TurretY
-vZ = GoalZ - TurretZ
+staticGoalX = GoalX - TurretPose.getX()
+staticGoalY = GoalY - TurretPose.getY()
 ```
 
 
 
-## 3\. Distance Calculation
+## 3\. Velocity Estimation and Time-of-Flight Lead
 
-**Horizontal distance** (used as input to the polynomial fits):
+**Robot velocity** is estimated by finite difference of `questNav.RobotPose` between cycles, smoothed through a 5-sample moving average filter:
+
+```
+TurretVx = movingAverage((RobotPose.X - RobotPose.X_prev) / 0.02)
+TurretVy = movingAverage((RobotPose.Y - RobotPose.Y_prev) / 0.02)
+```
+
+**Time of flight** is a polynomial fit against static distance to goal:
+
+```
+D_static = sqrt(staticGoalX^2 + staticGoalY^2)
+TimeOfFlight = 0.976 + 0.0027 * D_static + 0.00677 * D_static^2
+```
+
+The lead-compensated aim vectors are computed by projecting where the goal will be relative to the robot after the ball is in flight:
+
+```
+vX = (GoalX - TurretVx * TimeOfFlight) - TurretPose.getX()
+vY = (GoalY - TurretVy * TimeOfFlight) - TurretPose.getY()
+```
+
+**Horizontal distance** used for all subsequent polynomial evaluations:
 
 ```
 D = sqrt(vX^2 + vY^2)
 ```
-
-This is intentionally 2D. The polynomial equations for hood angle and ball velocity were empirically tuned against horizontal distance on flat ground. Vertical displacement is handled separately (see Section 7).
 
 
 
@@ -87,146 +108,69 @@ This is intentionally 2D. The polynomial equations for hood angle and ball veloc
 
 ### 4.1 Base Target Angle
 
-The turret aims at the goal by computing the bearing from the turret to the goal, adjusted for the robot's heading and a mechanical scoring offset:
+The turret target yaw is the bearing from the turret to the lead-compensated goal, adjusted for the robot's heading from the drivetrain odometry:
 
 ```
-theta\_raw = -atan2(vY, vX) + TurretYaw + TurretRotateScoreOffset
+TurretYaw = -atan2(vY, vX) + RobotRotation
 ```
 
-Where `TurretRotateScoreOffset = -0.797 rad` accounts for the mechanical difference between encoder zero and the actual forward-scoring direction.
+Where `RobotRotation` is `drive.getPose2d().getRotation().getRadians()`.
 
-### 4.2 Lead Compensation
+> **Note:** `TurretRotateScoreOffset = -0.797 rad` is defined in `Constants.TurretSubsystemConstants` but is not applied in the current `periodic()` implementation.
 
-When the robot is moving, the ball has the robot's velocity added to the launch velocity. To compensate, the turret leads the target by an angle proportional to the robot's velocity perpendicular to the goal line.
+### 4.2 Angle Wrapping and Clamping
 
-1. Convert chassis speeds from robot-relative to field-relative:
+The turret has a physical range of +/-3.49066 rad (+/-200 deg):
 
-```
-   fieldSpeeds = fromRobotRelativeSpeeds(robotSpeeds, TurretYaw)
-   ```
+1. Wrap `TurretYaw` into \[-π, π]
+2. Check three candidate angles: `TurretYaw`, `TurretYaw + 2*π`, `TurretYaw - 2*π`
+3. Select the candidate closest to the current turret position that falls strictly within (-3.49066, 3.49066)
+4. Clamp result to \[-3.49066, 3.49066]
 
-2. Compute the unit vector from turret to goal:
-
-```
-   uX = vX / D
-   uY = vY / D
-   ```
-
-3. Compute the robot's velocity perpendicular to the goal line (signed dot product with 90 deg CCW rotation of unit vector):
+### 4.3 PID Control
 
 ```
-   v\_perp = vx\_field \* (-uY) + vy\_field \* uX
-   ```
-
-4. Lead offset:
-
-```
-   leadOffset = atan(v\_perp / V\_ball) \* kLeadFactor
-   ```
-
-   Where `kLeadFactor = 2.0`. Note that distance cancels out of the flight time calculation, making lead compensation range-independent.
-
-5. The lead offset is added to `theta\_raw`.
-
-   ### 4.3 Radial Velocity Compensation
-
-   When the robot moves toward or away from the goal (radial motion), the ball inherits that velocity component. This affects three things: flight time, required muzzle velocity, and effective distance.
-
-   **Radial velocity** is the dot product of the field-relative velocity with the unit vector toward the goal:
-
-   ```
-   v\_radial = vx\_field \* uX + vy\_field \* uY
-   ```
-
-   Positive = approaching the goal; negative = retreating.
-
-   **1. Corrected lead formula:** The flight time denominator uses the effective ball-to-goal speed instead of raw ball velocity:
-
-   ```
-   effectiveBallSpeed = V\_ball + v\_radial \* kRadialVelocityFactor
-   leadOffset = atan(v\_perp / effectiveBallSpeed) \* kLeadFactor
-   ```
-
-   When approaching, flight time is shorter, so less lateral lead is needed. When retreating, more lead is needed.
-
-   **2. Flywheel velocity adjustment:** The ball's effective speed toward the goal includes the robot's radial velocity. To maintain the correct arrival velocity, reduce the muzzle velocity when approaching and increase it when retreating:
-
-   ```
-   adjustedBallVelocity = V\_ball - v\_radial \* kRadialVelocityFactor
-   ShooterVelocityTarget = (60 \* adjustedBallVelocity) / WheelCircumference
-   ```
-
-   At max shooting speed (1.5 m/s), this is a 15–25% adjustment on ball velocities of 6–10 m/s.
-
-   **3. Effective distance for hood angle:** The hood polynomial uses the predicted distance the ball actually travels, not the static turret-to-goal distance:
-
-   ```
-   flightTime = D / effectiveBallSpeed
-   D\_effective = D - v\_radial \* kRadialVelocityFactor \* flightTime
-   ```
-
-   The hood polynomial (Section 6) uses `D_effective` instead of `D`.
-
-   **Safety properties:**
-   * When stationary, `v_radial = 0` and all corrections are zero — identical to static behavior
-   * `adjustedBallVelocity` is clamped to a minimum of 1.0 m/s
-   * `effectiveDistance` is clamped to a minimum of 0.5 m
-   * `kRadialVelocityFactor = 0` disables all radial corrections independently from `kLeadFactor`
-   * `kRadialVelocityFactor` default = 1.0 (full physics-based compensation)
-
-   ### 4.4 Angle Wrapping and Clamping
-
-   The turret has a physical range of +/-3.49066 rad (+/-200 deg). After adding the lead offset:
-
-1. Wrap `theta\_raw` into \[-pi, pi]
-2. Check three candidate angles: `theta\_raw`, `theta\_raw + 2\*pi`, `theta\_raw - 2\*pi`
-3. Select the candidate closest to the current turret position that is within the physical limits
-4. Clamp to \[-3.49066, 3.49066]
-
-   ### 4.5 PID Control
-
-   ```
 Motor output = PID(TurretThetaActual, TurretThetaTarget) + Feedforward(0)
 ```
 
 * PID: P = 1.5, I = 0, D = 0
 * Feedforward gains are all 0 (placeholder)
-* Encoder: absolute DutyCycleEncoder on DIO, offset by `TurretRotateOffset = 3.66519 rad`
+* Encoder: absolute DutyCycleEncoder on DIO port 0, offset by `TurretRotateOffset = 3.66519 rad`
 
 
 
-  ## 5\. Flywheel Velocity
+## 5\. Flywheel Velocity
 
-  ### 5.1 Ball Velocity Polynomial
+### 5.1 Ball Velocity Polynomial
 
-  The required ball exit velocity (m/s) as a function of horizontal distance (meters):
+The required ball exit velocity (m/s) as a function of horizontal distance (meters):
 
-  ```
-V\_ball = 6 - 0.00447 \* D + 0.104 \* D^2
+```
+V_ball = 6 - 0.00447 * D + 0.104 * D^2
 ```
 
-  This is a quadratic fit from physics analysis. At close range (\~2m), V\_ball is approximately 6.4 m/s. At longer range (\~6m), V\_ball is approximately 9.7 m/s.
+This is a quadratic fit from physics analysis. At close range (~2 m), V_ball is approximately 6.4 m/s. At longer range (~6 m), V_ball is approximately 9.7 m/s.
 
-  ### 5.2 Motor RPM Conversion
+### 5.2 Motor RPM Conversion
 
-  ```
-ShooterVelocityTarget = (60 \* V\_ball) / WheelCircumference
+```
+ShooterVelocityTarget = (60 * V_ball) / WheelCircumference
 ```
 
-  Where `WheelCircumference = 0.2394 m`. This converts ball velocity (m/s) to flywheel RPM.
+Where `WheelCircumference = 0.2394 m`. This converts ball velocity (m/s) to flywheel RPM.
 
-  ### 5.3 Dual Flywheel Control
+### 5.3 Dual Flywheel Control
 
-  The shooter uses two flywheels (left and right) spinning in opposite directions:
+The shooter uses two flywheels (left and right) spinning in opposite directions:
 
 * Right motor: `+ShooterVelocityPIDSet` voltage
 * Left motor: `-ShooterVelocityPIDSet` voltage (inverted)
 
-  Velocity feedback comes from the right flywheel encoder.
+Velocity feedback comes from the right flywheel encoder.
 
-  ### 5.4 PID + Feedforward
+### 5.4 PID + Feedforward
 
-  ```
+```
 ShooterVelocityPIDSet = PID(actual, target) + Feedforward(target)
 ```
 
@@ -236,161 +180,134 @@ ShooterVelocityPIDSet = PID(actual, target) + Feedforward(target)
 
 
 
-  ## 6\. Hood Angle — Flat-Ground Polynomial
+## 6\. Hood Angle
 
-  The hood tilt angle (radians) as a function of horizontal distance (meters). When the robot is moving, `D_effective` from Section 4.3 is used instead of `D`:
+### 6.1 Flat-Ground Polynomial
 
-  ```
-theta\_hood = 0.0136 + 0.234 \* D\_effective - 0.0205 \* D\_effective^2
+The hood tilt angle (radians) as a function of the lead-compensated horizontal distance D:
+
+```
+theta_hood = 0.0136 + 0.234 * D - 0.0205 * D^2
 ```
 
-  This polynomial was **empirically tuned on flat ground** with the turret at 22 inches (0.5588 m) and the goal at 72 inches (1.8288 m), giving a baseline vertical displacement of:
+This polynomial was **empirically tuned on flat ground** with the turret at 22 inches (0.5588 m) and the goal at 72 inches (1.8288 m), giving a baseline vertical displacement of:
 
-  ```
+```
 BaselineDeltaZ = 1.8288 - 0.5588 = 1.27 m
 ```
 
-  The hood angle is clamped to \[0.261799, 0.785398] rad, which is \[15 deg, 45 deg].
+The hood angle is clamped to \[0.261799, 0.785398] rad, which is \[15 deg, 45 deg].
 
-  ### 6.1 Hood Encoder
+### 6.2 FAR_AWAY Zone Override
 
-  The hood uses a relative encoder (NEO Vortex internal) with a gear ratio of 26.25:1.
+When the robot is in the `FAR_AWAY` field zone (determined by `FieldConstants.getFieldZone()`), the hood is overridden to maximum elevation regardless of distance:
 
-  ```
-theta\_actual = (encoder\_position / 26.25) \* 2\*pi + 0.261799
+```
+if zone == FAR_AWAY:
+    HoodThetaTarget = 0.785398  (45 deg, maximum)
 ```
 
-  The `+ 0.261799` offset means encoder zero corresponds to the minimum hood angle (15 deg).
+### 6.3 Hood Encoder
 
-  ### 6.2 Hood PID Control
+The hood uses a relative encoder (NEO Vortex internal) with a gear ratio of 26.25:1.
 
-  ```
+```
+theta_actual = (encoder_position / 26.25) * 2*pi + 0.261799
+```
+
+The `+ 0.261799` offset means encoder zero corresponds to the minimum hood angle (15 deg).
+
+### 6.4 Hood PID Control
+
+```
 Motor output = PID(HoodThetaActual, HoodThetaTarget) + Feedforward(0)
 ```
 
-* PID: P = 0.9, I = 0.003, D = 0
+* PID: P = 0.7, I = 0, D = 0.0085
 * Feedforward gains are all 0
 
 
 
-  ## 7\. Hood Angle — Vertical Displacement Compensation
+## 7\. Hood Angle — Vertical Displacement Compensation (Design/Future)
 
-  > **Note:** All corrections in this section (elevation correction, pitch/roll inverse rotation, and Z-height compensation) are **only active when the `Climb` command is running**. When not climbing, `elevationCorrection = 0` and `requiredHoodAngle = polynomial(D)` — the flat-ground polynomial is used directly with no pitch, roll, yaw, or Z adjustments. The `Climb` command is currently a boilerplate command that is never bound to a button or auto routine, so these corrections are effectively disabled.
+> **Note:** The vertical displacement compensation described in this section is **not implemented** in the current `TurretSubsystem.java`. The flat-ground polynomial (Section 6) is used directly with no pitch, roll, or Z adjustments. This section documents the intended design for tilt-compensated shooting.
 
-  ### 7.1 The Problem
+### 7.1 The Problem
 
-  The flat-ground polynomial (Section 6) does not account for two effects that arise when the robot is on a tilted surface (ramp, bump, uneven field):
+The flat-ground polynomial does not account for two effects when the robot is on a tilted surface:
 
-1. **Height change**: The turret's actual Z position changes, altering the vertical distance to the goal (vZ differs from the 1.27 m baseline)
-2. **Frame coupling**: When the robot has nonzero pitch and/or roll, the turret's rotation axis (robot Z) is no longer vertical. This means turret yaw rotation also changes the field-frame launch elevation — the hood no longer has independent control over vertical aim.
+1. **Height change**: The turret's actual Z position changes, altering the vertical distance to the goal
+2. **Frame coupling**: Nonzero pitch/roll causes turret yaw rotation to also affect field-frame launch elevation
 
-   ### 7.2 Step 1: Elevation Correction
+### 7.2 Elevation Correction
 
-   The polynomial was tuned for a fixed baseline height difference. When the actual height difference changes, the required launch elevation changes:
-
-   ```
+```
 elevationCorrection = atan2(vZ, D) - atan2(BaselineDeltaZ, D)
 ```
 
-   On flat ground, `vZ = GoalZ - TurretZ = 1.8288 - 0.5588 = 1.27 = BaselineDeltaZ`, so the correction is exactly 0.
+On flat ground, `vZ = 1.27 m = BaselineDeltaZ`, so correction is exactly 0.
 
-   ### 7.3 Step 2: Desired Field-Frame Elevation
+### 7.3 Full 3D Hood Computation
 
-   The polynomial output is a robot-frame hood angle that, on flat ground, equals the desired field-frame launch elevation (since robot frame = field frame when flat). Adding the elevation correction gives the desired field-frame elevation at the current height:
+```
+theta_field = polynomial(D) + elevationCorrection
+aim_yaw = atan2(vY, vX)
 
-   ```
-theta\_field = polynomial(D) + elevationCorrection
+field_dir = (cos(theta_field) * cos(aim_yaw),
+             cos(theta_field) * sin(aim_yaw),
+             sin(theta_field))
+
+robot_dir = Rotation3d_inverse(TurretRotation) * field_dir
+horiz = sqrt(robot_dir.x^2 + robot_dir.y^2)
+theta_hood = atan2(robot_dir.z, horiz)
 ```
 
-   ### 7.4 Step 3: Construct Field-Frame Launch Direction
-
-   Build a unit vector pointing in the desired direction (field-frame yaw toward goal, field-frame elevation from Step 2):
-
-   ```
-aim\_yaw = atan2(vY, vX)
-
-field\_dir = (
-    cos(theta\_field) \* cos(aim\_yaw),
-    cos(theta\_field) \* sin(aim\_yaw),
-    sin(theta\_field)
-)
-```
-
-   ### 7.5 Step 4: Inverse Rotation to Robot Frame
-
-   Transform the desired field-frame direction into the robot's frame using the **inverse** of the robot's full 3D orientation:
-
-   ```
-robot\_dir = Rotation3d\_inverse(field\_dir)
-```
-
-   This step is where the pitch/roll/yaw coupling is resolved. The full `Rotation3d` (quaternion-based in WPILib) correctly handles:
-
-* Pure pitch (robot tilted forward/backward)
-* Pure roll (robot tilted left/right)
-* Combined pitch + roll + yaw (all three changing simultaneously)
-* The fact that turret yaw rotation (around tilted robot Z) also affects field-frame elevation
-
-  In code, WPILib provides `Translation3d.rotateBy(Rotation3d)` and `Rotation3d.unaryMinus()` for the inverse.
-
-  ### 7.6 Step 5: Extract Hood Angle
-
-  The required robot-frame hood angle is the elevation of the robot-frame direction vector:
-
-  ```
-horiz = sqrt(robot\_dir.x^2 + robot\_dir.y^2)
-theta\_hood = atan2(robot\_dir.z, horiz)
-```
-
-  Clamped to \[15 deg, 45 deg] as before.
-
-  ### 7.7 Flat-Ground Safety Property
-
-  When the robot is on flat ground:
-
-* `TurretRotation` is approximately the identity rotation (pitch and roll near zero)
-* The inverse rotation is also approximately identity
-* `robot\_dir` approximately equals `field\_dir`
-* `theta\_hood` approximately equals `theta\_field` approximately equals `polynomial(D)`
-
-  The compensation has **zero effect on flat ground**. The proven polynomial operates unmodified.
+Clamped to \[15 deg, 45 deg]. When the robot is flat, this reduces identically to the polynomial output.
 
 
 
-  ## 8\. Fallback Mode (No QuestNav Tracking)
+## 8\. Fallback Mode (No QuestNav Tracking)
 
-  When QuestNav does not have valid tracking data, the turret uses safe defaults:
+When QuestNav does not have valid tracking data, the turret uses safe defaults:
 
 * `ShooterVelocityTarget` = 1754.46 RPM (pre-spin for immediate readiness)
-* `HoodThetaTarget` = 0.785398 rad (45 deg, maximum elevation)
-* `TurretThetaTarget` = 0 (face forward)
+* `HoodThetaTarget` = 0.558 rad (~32 deg, mid-range elevation)
+* `TurretThetaTarget` = -1.5708 rad (-π/2, turret faces right in robot frame)
 
-  Motor PID loops still run — they drive toward these default targets.
+Motor PID loops still run — they drive toward these default targets.
 
 
 
-  ## 9\. Control Flow Summary
+## 9\. Control Flow Summary
 
-  ```
-periodic() \[every 20 ms]:
+```
+periodic() [every 20 ms]:
+    Read encoders: TurretThetaActual, HoodThetaActual, ShooterVelocityActual
+
+    Compute TurretPose = QuestPose * QuestToTurret
+    RobotRotation = drive.getPose2d().getRotation()
+    Estimate TurretVx, TurretVy via filtered finite difference of RobotPose
+    Compute TimeOfFlight polynomial (static distance)
+    Compute DistanceToGoal from lead-adjusted vX, vY
+
     if testMode -> return (manual control only)
 
-    if QuestNav.isTracking():
-        1. Transform robot pose to turret pose
-        2. Select aim point based on zone and alliance
-        3. Compute vX, vY, vZ, DistanceToGoal (2D)
-        4. Compute BallVelocityTarget (polynomial)
-        5. Compute ShooterVelocityTarget (RPM conversion, default)
-        6. Compute vRadial, vPerp from field-relative chassis speeds
-        7. Adjust ShooterVelocityTarget for radial velocity
-        8. Compute effectiveDistance for hood polynomial
-        9. Compute TurretThetaTarget (bearing + lead with corrected flight time + wrap)
-        10. Compute HoodThetaTarget (polynomial on effectiveDistance; vertical displacement compensation only if climbing)
+    if QuestNav.isTracking() and turretAutoAimEnabled:
+        1. Select aim point (GoalX, GoalY) based on TurretPose and alliance
+        2. Compute lead-adjusted vX, vY (goal position minus velocity * time-of-flight)
+        3. Compute TurretYaw = -atan2(vY, vX) + RobotRotation
+        4. Wrap/select/clamp TurretThetaTarget
+        5. Compute HoodThetaTarget = clamp(polynomial(D), 15deg, 45deg)
+        6. If FAR_AWAY zone: HoodThetaTarget = 45 deg (override)
+        7. Compute BallVelocityTarget (polynomial), ShooterVelocityTarget (RPM)
     else:
-        Use fallback defaults
+        ShooterVelocityTarget = 1754.46 RPM
+        HoodThetaTarget = 0.558 rad
+        TurretThetaTarget = -1.5708 rad
 
     Drive turret rotate motor (PID)
     Drive shooter motors (PID + FF)
+    Store RobotPose as previous for next cycle's velocity estimate
 
     if hoodAutoAimEnabled:
         Drive hood motor to HoodThetaTarget (PID)
@@ -400,27 +317,6 @@ periodic() \[every 20 ms]:
 
 
 
-  ## 10\. SmartDashboard Telemetry
+## 10\. SmartDashboard Telemetry
 
-  Key values published for tuning and debugging:
-
-|Key|Unit|Description|
-|-|-|-|
-|DistanceToGoal|m|2D horizontal distance to selected aim point|
-|RadialVelocity|m/s|Robot velocity toward (+) or away from (-) goal|
-|AdjustedBallVelocity|m/s|Flywheel target after radial velocity correction|
-|EffectiveDistance|m|Predicted ball travel distance accounting for radial motion|
-|LeadOffset|deg|Turret lead compensation angle|
-|TurretEncoderActual|rad|Current turret yaw from encoder|
-|TurretPositionTarget|rad|Target turret yaw|
-|ShooterVelocityTarget|RPM|Desired flywheel speed|
-|ShooterVelocityActual|RPM|Measured flywheel speed|
-|Hood/Polynomial|deg|Raw polynomial output (flat-ground baseline)|
-|Hood/ElevationCorrection|deg|Height difference correction|
-|Hood/RequiredHoodAngle|deg|Final hood angle after all corrections|
-|Hood/TurretZ|m|Turret height in field frame|
-|Hood/RobotPitch|deg|Robot pitch from QuestNav|
-|Hood/RobotRoll|deg|Robot roll from QuestNav|
-
-
-
+As of current code, SmartDashboard publishing in `TurretSubsystem` is not active (section marked `// NA`). The turret pose is published to NetworkTables via a `StructPublisher<Pose2d>` on the `"TurretPose"` topic. `QuestSubsystem` publishes robot pose to `"MyPose"`.
