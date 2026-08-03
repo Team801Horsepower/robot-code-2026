@@ -164,7 +164,7 @@ public class RobotContainer {
     m_driverController
         .leftBumper()
         .whileTrue(Commands.run(
-            () -> m_gather.gather(-GatherConstants.kReverseIntakePower), m_gather));
+            () -> m_gather.eject(), m_gather));
 
     // Right trigger (>0.15, held) → shoot with hood auto-aim
     m_driverController
@@ -179,8 +179,8 @@ public class RobotContainer {
     // Removed because hooper retract will hurt robot :(
     m_driverController
         .x()
-        .onTrue(Commands.run(() -> m_hopper.retract(), m_hopper)
-            .until(() -> m_hopper.isRetracted()));
+        .onTrue(Commands.run(() -> m_hopper.retract(), m_hopper).alongWith(Commands.run(() -> m_gather.gather(), m_gather))
+            .until(() -> m_hopper.isRetracted()).andThen(Commands.run(() -> m_gather.rest(), m_gather)));
 
     m_driverController
         .b()
@@ -188,9 +188,11 @@ public class RobotContainer {
         .whileFalse(Commands.runOnce(() -> m_spindex.setReversing(false)));
 
     // Y button (held) → jostle hopper between kExtendedSetpoint and kJostleSetpoint
+    /*
     m_driverController
         .y()
         .whileTrue(new Jostling(m_possession, m_hopper));
+    */
 
     // D-pad Up → engage climb (runs until interrupted)
     /*

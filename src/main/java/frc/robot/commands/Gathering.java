@@ -26,7 +26,7 @@ public class Gathering extends Command {
 
   @Override
   public void execute() {
-    m_possession.possessWithPower(m_powerSupplier.getAsDouble());
+    m_possession.possessWithPower();
   }
 
   @Override

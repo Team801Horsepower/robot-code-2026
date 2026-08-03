@@ -19,7 +19,7 @@ public class Launch extends SubsystemBase {
   public void launch() {
     m_spindex.spin();
     m_feeder.spin();
-    m_gather.gather(GatherConstants.kDefaultPower); //originally times 0.5
+    m_gather.gather(); //originally times 0.5
   }
 
   /** Stops spindexer and feeder. */

@@ -58,7 +58,7 @@ public class Possession extends SubsystemBase {
     if (!m_jostling && !m_hopper.isExtended()) {
       m_hopper.extend();
     }
-    m_gather.gather(GatherConstants.kDefaultPower);
+    m_gather.gather();
   }
 
   /**
@@ -66,11 +66,11 @@ public class Possession extends SubsystemBase {
    *
    * <p>Call repeatedly from a command's execute() loop.
    */
-  public void possessWithPower(double power) {
+  public void possessWithPower() {
     if (!m_jostling && !m_hopper.isExtended()) {
       m_hopper.extend();
     }
-    m_gather.gather(power);
+    m_gather.gather();
   }
 
   /** Stops gathering and optionally retracts. Gather stops; hopper stays in current position. */

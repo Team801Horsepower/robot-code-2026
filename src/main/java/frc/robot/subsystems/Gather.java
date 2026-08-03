@@ -42,9 +42,14 @@ public class Gather extends SubsystemBase {
   }
 
   /** Spins the gatherer roller at the given power. Positive = intake direction. */
-  public void gather(double power) {
-    m_motor_one.set(-power);
-    m_motor_two.set(power);
+  public void gather() {
+    m_motor_one.set(-1);
+    m_motor_two.set(1);
+  } 
+
+  public void eject() {
+    m_motor_one.set(1);
+    m_motor_two.set(-1);
   }
 
   /** Stops the gatherer roller. */
