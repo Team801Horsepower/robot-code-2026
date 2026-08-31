@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Team 801 Horsepower
 package frc.robot.subsystems;
 
+
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -16,6 +17,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.HopperConstants;
 
+
 /**
  * Hopper – extends and retracts the hopper rail system.
  *
@@ -25,11 +27,15 @@ import frc.robot.Constants.HopperConstants;
  */
 public class Hopper extends SubsystemBase {
 
-  private final SparkFlex m_motor;
+
+  private final SparkFlex m_motorR;
+  private final SparkFlex m_motorL;
   private final Encoder m_throughBoreEncoder;
-  private final RelativeEncoder m_encoder;
+  private final RelativeEncoder m_encoderR;
+  private final RelativeEncoder m_encoderL;
   private final PIDController m_extendPid;
   private final PIDController m_retractPid;
+
 
   /** Current PID target (motor rotations). */
   private double m_setpoint = 0.0;
@@ -37,6 +43,7 @@ public class Hopper extends SubsystemBase {
   private boolean m_pidActive = false;
   /** True when the active setpoint is an extension target, false for retraction. */
   private boolean m_extending = false;
+
 
   private boolean m_testMode = false;
   private final DoublePublisher m_testPowerPub;
@@ -51,30 +58,42 @@ public class Hopper extends SubsystemBase {
   private final DoublePublisher m_testRetractIPub;
   private final DoublePublisher m_testRetractDPub;
 
+
   public Hopper() {
-    m_motor = new SparkFlex(HopperConstants.kMotorId, MotorType.kBrushless);
+    m_motorR = new SparkFlex(HopperConstants.kMotorRId, MotorType.kBrushless);
+    m_motorL = new SparkFlex(HopperConstants.kMotorLId, MotorType.kBrushless);
+
 
     // Through Bore Encoder — kept initialized but no longer used for control
     m_throughBoreEncoder = new Encoder(HopperConstants.kEncoderDioA, HopperConstants.kEncoderDioB);
+
 
     m_extendPid = new PIDController(
         HopperConstants.kExtendP, HopperConstants.kExtendI, HopperConstants.kExtendD);
     m_retractPid = new PIDController(
         HopperConstants.kRetractP, HopperConstants.kRetractI, HopperConstants.kRetractD);
 
+
     SparkFlexConfig config = new SparkFlexConfig();
     config.idleMode(IdleMode.kCoast);
     config.smartCurrentLimit(60);
     config.inverted(true);
 
-    m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-    m_encoder = m_motor.getEncoder();
-    m_encoder.setPosition(0);
+    m_motorR.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    m_motorL.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+
+    m_encoderR = m_motorR.getEncoder();
+    m_encoderR.setPosition(0);
+    m_encoderL = m_motorL.getEncoder();
+    m_encoderL.setPosition(0);
+
 
     // Publish PID controllers as Sendables for editing in Shuffleboard/AdvantageScope
     SmartDashboard.putData("Hopper Extend PID", m_extendPid);
     SmartDashboard.putData("Hopper Retract PID", m_retractPid);
+
 
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Hopper");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
@@ -90,12 +109,14 @@ public class Hopper extends SubsystemBase {
     m_testRetractDPub = table.getDoubleTopic("Retract kD").publish();
   }
 
+
   /** Extends the hopper fully to the configured setpoint. */
   public void extend() {
     m_setpoint = HopperConstants.kExtendedSetpoint;
     m_pidActive = true;
     m_extending = true;
   }
+
 
   /**
    * Extends the hopper to a percentage of its full travel.
@@ -108,12 +129,14 @@ public class Hopper extends SubsystemBase {
     m_extending = true;
   }
 
+
   /** Retracts the hopper to its home position (encoder = 0). */
   public void retract() {
     m_setpoint = 0.5;
     m_pidActive = true;
     m_extending = false;
   }
+
 
   /** Drives to a jostle setpoint within the extended region, using the extend PID. */
   public void jostleTo(double position) {
@@ -122,36 +145,42 @@ public class Hopper extends SubsystemBase {
     m_extending = true; // reuse extendPid for both legs; both targets are above retract home
   }
 
+
   /** True when encoder position is within tol of target (motor rotations). */
   public boolean isAt(double target, double tol) {
-    return Math.abs(m_encoder.getPosition() - target) <= tol;
+    return Math.abs(m_encoderR.getPosition() - target) <= tol;
   }
+
 
   /** Stops the hopper motor immediately, disabling PID control. */
   public void stop() {
     m_pidActive = false;
-    m_motor.stopMotor();
+    m_motorR.stopMotor();
+    m_motorL.stopMotor();
   }
+
 
   /**
    * Returns whether the hopper is currently at the extended position,
    * based on the actual encoder reading.
    */
   public boolean isExtended() {
-    double pos = m_encoder.getPosition();
+    double pos = m_encoderR.getPosition();
     return pos >= HopperConstants.kExtendMinPosition
         && pos <= HopperConstants.kExtendMaxPosition;
   }
+
 
   /**
    * Returns whether the hopper is currently at the retracted position,
    * based on the actual encoder reading.
    */
   public boolean isRetracted() {
-    double pos = m_encoder.getPosition();
+    double pos = m_encoderR.getPosition();
     return pos >= HopperConstants.kRetractMinPosition
         && pos <= HopperConstants.kRetractMaxPosition;
   }
+
 
   /**
    * Returns whether the hopper is currently extended.
@@ -162,41 +191,51 @@ public class Hopper extends SubsystemBase {
     return isExtended();
   }
 
+
   /** Drives the motor at raw power, bypassing PID control. */
   public void testRun(double power) {
     m_pidActive = false;
-    m_motor.set(power);
+    m_motorR.set(power);
+    m_motorL.set(-power);
   }
+
 
   /** Sets a PID position target for test mode tuning (motor rotations). */
   public void testSetPosition(double position) {
     m_setpoint = position;
     m_pidActive = true;
-    m_extending = position > m_encoder.getPosition();
+    m_extending = position > m_encoderR.getPosition();
   }
+
 
   /** Enables or disables test mode telemetry publishing. */
   public void setTestMode(boolean enabled) {
     m_testMode = enabled;
   }
 
+
   @Override
   public void periodic() {
     if (m_pidActive) {
       PIDController activePid = m_extending ? m_extendPid : m_retractPid;
-      double output = activePid.calculate(m_encoder.getPosition(), m_setpoint);
-      m_motor.set(output);
+      double output = activePid.calculate(m_encoderR.getPosition(), m_setpoint);
+      m_motorR.set(output);
+      m_motorL.set(-output);
     }
 
-    SmartDashboard.putNumber("Hopper/Position", m_encoder.getPosition());
-    SmartDashboard.putNumber("Hopper Motor Power", m_motor.get());
+
+    SmartDashboard.putNumber("Rightside Hopper/Position", m_encoderR.getPosition());
+    SmartDashboard.putNumber("Hopper Motor Right Power", m_motorR.get());
+    SmartDashboard.putNumber("Leftside Hopper/Position", m_encoderL.getPosition());
+    SmartDashboard.putNumber("Hopper Motor Left Power", m_motorL.get());
+
 
     if (m_testMode) {
-      m_testPowerPub.set(m_motor.get());
-      m_testPositionPub.set(m_encoder.getPosition());
-      m_testVelocityPub.set(m_encoder.getVelocity());
+      m_testPowerPub.set(m_motorR.get());
+      m_testPositionPub.set(m_encoderR.getPosition());
+      m_testVelocityPub.set(m_encoderR.getVelocity());
       m_testSetpointPub.set(m_setpoint);
-      m_testErrorPub.set(m_setpoint - m_encoder.getPosition());
+      m_testErrorPub.set(m_setpoint - m_encoderR.getPosition());
       m_testExtendPPub.set(m_extendPid.getP());
       m_testExtendIPub.set(m_extendPid.getI());
       m_testExtendDPub.set(m_extendPid.getD());
@@ -206,3 +245,5 @@ public class Hopper extends SubsystemBase {
     }
   }
 }
+
+

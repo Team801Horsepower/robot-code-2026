@@ -1,8 +1,10 @@
 // Copyright (c) 2026 Team 801 Horsepower
 package frc.robot;
 
+
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+
 
 /**
  * Robot-wide constants shared across subsystems and commands.
@@ -18,15 +20,19 @@ import edu.wpi.first.math.geometry.Rotation3d;
  */
 public final class Constants {
 
+
   // Prevent instantiation
   private Constants() {}
 
+
   // ─── Controller / OI ───────────────────────────────────────────────────────
+
 
   /** Xbox controller port numbers as configured in the DS. */
   public static final class OperatorConstants {
     /** Driver controller – USB port 0. Left stick = translation, Right stick = rotation. */
     public static final int kDriverControllerPort = 0;
+
 
     /**
      * Joystick deadband applied before any math is done on stick values. Prevents drift from a
@@ -35,9 +41,12 @@ public final class Constants {
     public static final double kDeadbandDriver = 0.08;
   }
 
+
   // ─── QuestNav ──────────────────────────────────────────────────────────────
 
+
   // ─── Gather ────────────────────────────────────────────────────────────────
+
 
   public static final class GatherConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) powering the gatherer roller. */
@@ -49,11 +58,15 @@ public final class Constants {
     public static final double kReverseIntakePower = 0.7;
   }
 
+
   // ─── Hopper ────────────────────────────────────────────────────────────────
 
+
   public static final class HopperConstants {
-    /** CAN ID of the NEO Vortex (SparkFlex) driving the hopper rail. */
-    public static final int kMotorId = 27;
+    /** CAN ID of the NEO Vortex (SparkFlex) driving the right hopper rail. */
+    public static final int kMotorRId = 27;
+    /** CAN ID of the NEO Vortex (SparkFlex) driving the left hopper rail. */
+    public static final int kMotorLId = 18;
     /** DIO channel A for the REV Through Bore Encoder (quadrature). */
     public static final int kEncoderDioA = 1;
     /** DIO channel B for the REV Through Bore Encoder (quadrature). */
@@ -67,9 +80,10 @@ public final class Constants {
      * Partial extension motor encoder position (motor rotations from home).
      * Measured with motor encoder zeroed at full retraction.
      */
-    
+   
     /** Closed-loop position tolerance (motor rotations). */
     public static final double kTolerance = 0.1;
+
 
     /** Amplitude of the jostling motion (how many rotations from endpoint) */
     public static final double kJostleAmplitude = 4.0;
@@ -78,12 +92,14 @@ public final class Constants {
     /** Tolerance for detecting jostle endpoint arrival (motor rotations). */
     public static final double kJostleTolerance = 0.15;
 
+
     // Position thresholds for extended/retracted checks (motor rotations).
     public static final double kExtendMinPosition = 15.9;
     public static final double kExtendMaxPosition = 16.0;
     public static final double kRetractMinPosition = 0.1;
     public static final double kRetractMaxPosition = 2;
     public static final double kPartialExtendSetpoint = 15.0;
+
 
     // PID gains for hopper extension
     public static final double kExtendP = 0.115;
@@ -94,15 +110,19 @@ public final class Constants {
     public static final double kRetractI = 0;
     public static final double kRetractD = 0;
 
+
     /** @deprecated Use kExtendP instead. Kept for SmartDashboard compatibility. */
     @Deprecated
     public static final double kP = 0;
     public static final double kI = 0;
     public static final double kD = 0;
 
+
   }
 
+
   // ─── Climb ─────────────────────────────────────────────────────────────
+
 
   public static final class ClimbConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) powering the climb mechanism. */
@@ -117,7 +137,9 @@ public final class Constants {
     public static final double kResetD = 0;
   }
 
+
   // ─── Spindex ───────────────────────────────────────────────────────────────
+
 
   public static final class SpindexConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) spinning the spindexer. */
@@ -136,7 +158,9 @@ public final class Constants {
     public static final double kVelocityFFkV = 0.00016;
   }
 
+
   // ─── Feeder ────────────────────────────────────────────────────────────────
+
 
   public static final class FeederConstants {
     /** CAN ID of the NEO Vortex (SparkFlex) powering the feeder. */
@@ -154,9 +178,12 @@ public final class Constants {
     /** Velocity feedforward kV */
     public static final double kVelocityFFkV = 0.00016;
 
+
   }
 
+
   // ─── Drive ─────────────────────────────────────────────────────────────────
+
 
   /** Teleop drive speed limits. */
   public static final class DriveConstants {
@@ -169,14 +196,17 @@ public final class Constants {
      */
     public static final double kMaxSpeedMetersPerSecond = 5.0; // m/s
 
+
     /**
      * Maximum rotational speed during teleop. Full stick = one full rotation per ~1.4 seconds
      * which is comfortable to drive.
      */
     public static final double kMaxAngularSpeedRadPerSec = Math.PI * 1.5; // rad/s (~1.5π rad/s)
 
+
     /** Drive speed multiplier applied when right trigger > kShootSlowdownThreshold. */
     public static final double kShootWhileMovingSpeedMultiplier = 0.20;
+
 
     /** Right trigger axis value at which the speed multiplier activates. */
     public static final double kShootSlowdownThreshold = 0.15;
@@ -190,6 +220,7 @@ public final class Constants {
     public static final double RobotStart1TestPitch = 0.0;
     public static final double RobotStart1TestYaw = Math.PI;
 
+
     // Quest to Robot Orientation
     public static final double QuestToRobotX = -0.263;
     public static final double QuestToRobotY = 0.229;
@@ -197,7 +228,7 @@ public final class Constants {
     public static final double QuestToRobotRoll = 0.0;
     public static final double QuestToRobotPitch = 0.0;
     public static final double QuestToRobotYaw = 3.14159;
-    
+   
   }
   public static final class TurretSubsystemConstants{
     // CANIDS
@@ -207,17 +238,19 @@ public final class Constants {
     public static final int HoodTiltMotorCANID = 26;
     public static final int TurretRotateEncoderDIOID = 0;
 
+
     // Blue Alliance Goal Position
     // Blue Alliance TargetPositions
     public static final Pose3d BlueAllianceGoal = new Pose3d(4.635, 4.034, 1.8288, new Rotation3d(0,0,0));
     public static final Pose3d AimPointB1 = new Pose3d(1.977894, 5.759196, 1.8288, new Rotation3d(0,0,0));
     public static final Pose3d AimPointB2 = new Pose3d(1.977894, 2.31013, 1.8288, new Rotation3d(0,0,0));
 
+
     // Red Alliance Goal TargetPositions
     public static final Pose3d RedAllianceGoal = new Pose3d(11.9068, 4.034, 1.8288, new Rotation3d(0,0,0));
     public static final Pose3d AimPointR1 = new Pose3d(14.563094, 2.31013, 1.8288, new Rotation3d(0,0,0));
     public static final Pose3d AimPointR2 = new Pose3d(14.563094, 5.759196, 1.8288, new Rotation3d(0,0,0));
-    
+   
     // Robot To Turret
     public static final double RobotToTurretX = -0.103165;
     public static final double RobotToTurretY = -0.094050;
@@ -226,38 +259,48 @@ public final class Constants {
     public static final double RobotToTurretPitch = 0.0;
     public static final double RobotToTurretYaw = 0.0;
 
+
     // Measurements
     public static final double HoodGearRatio = 26.25;
     public static final double ShooterWheelCircumference = 0.2394;
 
+
     // Turret Limits
     public static final double TurretRotateFreedom = 7.33038;
     public static final double TurretRotateOffset = 3.66519;
+
 
     // Tuning Constants
     public static double ShooterVelcoityEfficiency = 0.5;
     public static double ShooterVelocityMultiplier = 1.0;
     public static double TurretRotateScoreOffset = -0.797;
 
+
     /** Multiplier on turret lead offset. 0 = disabled, 1 = full compensation. */
     public static final double kLeadFactor = 1.0;
 
+
     /** Multiplier on radial velocity correction. 0 = disabled, 1 = full compensation. */
     public static final double kRadialVelocityFactor = 1.0;
+
 
     /** Baseline vertical distance from turret to goal on flat ground (meters). */
     public static final double BaselineDeltaZ = 1.27; // GoalHeight(1.8288) - TurretHeight(0.5588)
   }
 
+
   // ─── Field ──────────────────────────────────────────────────────────────────
 
+
   public enum FieldZone { LAUNCH, TRENCH, FAR, FAR_TRENCH, FAR_AWAY }
+
 
   public static final class FieldConstants {
     /** Field length in meters (54 ft 1 in). */
     public static final double kFieldLengthMeters = 16.5418;
     /** Field width in meters (26 ft 7.25 in). */
     public static final double kFieldWidthMeters = 8.0518;
+
 
     /** End of launch zone, measured from friendly wall (156.61 inches). */
     public static final double kLaunchZoneEndMeters = 3.978;
@@ -267,6 +310,7 @@ public final class Constants {
     public static final double kFarZoneEndMeters = 11.3;
     /** End of far-trench zone, measured from friendly wall. */
     public static final double kFarTrenchZoneEndMeters = 12.428;
+
 
     /**
      * Returns the field zone the robot is currently in.
@@ -283,6 +327,7 @@ public final class Constants {
         distFromFriendlyWall = robotX;
       }
 
+
       if (distFromFriendlyWall <= kLaunchZoneEndMeters) {
         return FieldZone.LAUNCH;
       } else if (distFromFriendlyWall <= kTrenchZoneEndMeters) {
@@ -296,5 +341,6 @@ public final class Constants {
       }
     }
   }
+
 
 }
