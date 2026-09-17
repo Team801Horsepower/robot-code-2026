@@ -66,7 +66,7 @@ public final class Constants {
     /** CAN ID of the NEO Vortex (SparkFlex) driving the right hopper rail. */
     public static final int kMotorRId = 27;
     /** CAN ID of the NEO Vortex (SparkFlex) driving the left hopper rail. */
-    public static final int kMotorLId = 18;
+    public static final int kMotorLId = 32;
     /** DIO channel A for the REV Through Bore Encoder (quadrature). */
     public static final int kEncoderDioA = 1;
     /** DIO channel B for the REV Through Bore Encoder (quadrature). */
@@ -75,41 +75,64 @@ public final class Constants {
      * Fully-extended motor encoder position (motor rotations from home).
      * Measured with motor encoder zeroed at full retraction.
      */
-    public static final double kExtendedSetpoint = 15.801;
+    public static final double kExtendedSetpointR = 3;
+    public static final double kExtendedSetpointL = -3;
     /**
      * Partial extension motor encoder position (motor rotations from home).
      * Measured with motor encoder zeroed at full retraction.
      */
    
     /** Closed-loop position tolerance (motor rotations). */
-    public static final double kTolerance = 0.1;
-
-
+    public static final double kToleranceR = 0.1;
+    public static final double kToleranceL = -0.1;
+    //For the right motor
     /** Amplitude of the jostling motion (how many rotations from endpoint) */
-    public static final double kJostleAmplitude = 4.0;
+    public static final double kJostleAmplitudeR = 4.0;
     /** Lower endpoint of the jostle oscillation (motor rotations). */
-    public static final double kJostleSetpoint = kExtendedSetpoint - kJostleAmplitude; // 11.801
+    public static final double kJostleSetpointR = kExtendedSetpointR - kJostleAmplitudeR; // 11.801
     /** Tolerance for detecting jostle endpoint arrival (motor rotations). */
-    public static final double kJostleTolerance = 0.15;
+    public static final double kJostleToleranceR = 0.15;
+
+    //For the left motor
+    /** Amplitude of the jostling motion (how many rotations from endpoint) */
+    public static final double kJostleAmplitudeL = -4.0;
+    /** Lower endpoint of the jostle oscillation (motor rotations). */
+    public static final double kJostleSetpointL = kExtendedSetpointL - kJostleAmplitudeL; // 11.801
+    /** Tolerance for detecting jostle endpoint arrival (motor rotations). */
+    public static final double kJostleToleranceL = -0.15;
+
+    // Position thresholds for extended/retracted checks on the right motor (motor rotations).
+    public static final double kExtendMinPositionR = 47.7; //15.9
+    public static final double kExtendMaxPositionR = 48.0; //16.0
+    public static final double kRetractMinPositionR = 0.1;
+    public static final double kRetractMaxPositionR = 2;
+    public static final double kPartialExtendSetpointR = 15.0;
+    // Position thresholds for extended/retracted checks on the left motor (motor rotations).
+    public static final double kExtendMinPositionL = -47.7; //15.9
+    public static final double kExtendMaxPositionL = -48.0; //16.0
+    public static final double kRetractMinPositionL = -0.1;
+    public static final double kRetractMaxPositionL = -2;
+    public static final double kPartialExtendSetpointL = -15.0;
 
 
-    // Position thresholds for extended/retracted checks (motor rotations).
-    public static final double kExtendMinPosition = 47.7; //15.9
-    public static final double kExtendMaxPosition = 48.0; //16.0
-    public static final double kRetractMinPosition = 0.1;
-    public static final double kRetractMaxPosition = 2;
-    public static final double kPartialExtendSetpoint = 15.0;
 
+    // PID gains for rightside motor hopper extension
+    public static final double kExtendRP = 0.115;
+    public static final double kExtendRI = 0;
+    public static final double kExtendRD = 0;
+    // PID gains for rightside motor hopper retraction
+    public static final double kRetractRP = 0.115;
+    public static final double kRetractRI = 0;
+    public static final double kRetractRD = 0;
 
-    // PID gains for hopper extension
-    public static final double kExtendP = 0.115;
-    public static final double kExtendI = 0;
-    public static final double kExtendD = 0;
-    // PID gains for hopper retraction
-    public static final double kRetractP = 0.115;
-    public static final double kRetractI = 0;
-    public static final double kRetractD = 0;
-
+    // PID gains for leftside motor hopper extension
+    public static final double kExtendLP = 0.115;
+    public static final double kExtendLI = 0;
+    public static final double kExtendLD = 0;
+    // PID gains for leftside motor hopper retraction
+    public static final double kRetractLP = 0.115;
+    public static final double kRetractLI = 0;
+    public static final double kRetractLD = 0;
 
     /** @deprecated Use kExtendP instead. Kept for SmartDashboard compatibility. */
     @Deprecated

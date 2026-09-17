@@ -70,7 +70,7 @@
 27: Hopper NEO Vortex Right (extension)
 
 
-18: Hopper NEO Vortex Left (extension)
+32: Hopper NEO Vortex Left (extension)
 
 
 Hopper REV Through Bore Encoder (no CAN ID – connected to roboRIO DIO ports 1 and 3)
