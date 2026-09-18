@@ -15,7 +15,7 @@ public class Possession extends SubsystemBase {
   private final Hopper m_hopper;
   private final Gather m_gather;
   private boolean m_jostling = false;
-  private double m_jostleTarget = HopperConstants.kJostleSetpoint;
+  private double m_jostleTarget = HopperConstants.kJostleSetpointR;
 
   public Possession(Hopper hopper, Gather gather) {
     m_hopper = hopper;
@@ -25,7 +25,7 @@ public class Possession extends SubsystemBase {
   /** Begins jostling: bypasses the extend guard and commands the lower jostle setpoint. */
   public void startJostle() {
     m_jostling = true;
-    m_jostleTarget = HopperConstants.kJostleSetpoint;
+    m_jostleTarget = HopperConstants.kJostleSetpointR;
     m_hopper.jostleTo(m_jostleTarget);
   }
 
@@ -35,10 +35,10 @@ public class Possession extends SubsystemBase {
    * calls within tolerance do not thrash the PID setpoint.
    */
   public void advanceJostle() {
-    if (m_hopper.isAt(m_jostleTarget, HopperConstants.kJostleTolerance)) {
-      m_jostleTarget = (m_jostleTarget == HopperConstants.kJostleSetpoint)
-          ? HopperConstants.kExtendedSetpoint
-          : HopperConstants.kJostleSetpoint;
+    if (m_hopper.isAt(m_jostleTarget, HopperConstants.kJostleToleranceR)) {
+      m_jostleTarget = (m_jostleTarget == HopperConstants.kJostleSetpointR)
+          ? HopperConstants.kExtendedSetpointR
+          : HopperConstants.kJostleSetpointR;
       m_hopper.jostleTo(m_jostleTarget);
     }
   }

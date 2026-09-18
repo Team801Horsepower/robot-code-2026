@@ -260,12 +260,12 @@ public class RobotContainer {
     // D-pad Right → Hopper full extend (PID to kExtendedSetpoint)
     m_driverController.pov(0, 90, m_testLoop)
         .onTrue(Commands.runOnce(
-            () -> m_hopper.testSetPosition(HopperConstants.kExtendedSetpoint), m_hopper));
+            () -> m_hopper.testSetPosition(HopperConstants.kExtendedSetpointR), m_hopper));
 
     // A → Hopper partial extend (PID to kPartialExtendSetpoint)
     m_driverController.button(XboxController.Button.kA.value, m_testLoop)
         .onTrue(Commands.runOnce(
-            () -> m_hopper.testSetPosition(HopperConstants.kPartialExtendSetpoint), m_hopper));
+            () -> m_hopper.testSetPosition(HopperConstants.kPartialExtendSetpointR), m_hopper));
 
     // NOTE: Turret (B, X, Y, D-pad Up) handled via polling default command
     // WARNING: D-pad Left/Right and A overlap with turret polling — both subsystems will respond

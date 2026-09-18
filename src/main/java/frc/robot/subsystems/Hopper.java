@@ -223,7 +223,9 @@ public class Hopper extends SubsystemBase {
   public boolean isExtended(){
     return isLeftExtended() && isRightExtended();
   }
-
+  public boolean isRetracted(){
+    return isLeftRetracted() && isRightRetracted();
+  }
   /**
    * Returns whether the hopper is currently extended.
    * @deprecated Use {@link #isExtended()} for position-based checking.
