@@ -117,20 +117,20 @@ public final class Constants {
 
 
     // PID gains for rightside motor hopper extension
-    public static final double kExtendRP = 0.25;//All Ps used to be 0.25
+    public static final double kExtendRP = 0.11;//All Ps used to be 0.25
     public static final double kExtendRI = 0;
     public static final double kExtendRD = 0;
     // PID gains for rightside motor hopper retraction
-    public static final double kRetractRP = 0.25;
+    public static final double kRetractRP = 0.2;
     public static final double kRetractRI = 0;
     public static final double kRetractRD = 0;
 
     // PID gains for leftside motor hopper extension
-    public static final double kExtendLP = 1.5;
+    public static final double kExtendLP = 0.11;
     public static final double kExtendLI = 0;
     public static final double kExtendLD = 0;
     // PID gains for leftside motor hopper retraction
-    public static final double kRetractLP = 0.6;
+    public static final double kRetractLP = 0.08;
     public static final double kRetractLI = 0;
     public static final double kRetractLD = 0;
 
