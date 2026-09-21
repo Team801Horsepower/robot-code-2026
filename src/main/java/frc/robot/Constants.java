@@ -75,8 +75,8 @@ public final class Constants {
      * Fully-extended motor encoder position (motor rotations from home).
      * Measured with motor encoder zeroed at full retraction.
      */
-    public static final double kExtendedSetpointR = 3;
-    public static final double kExtendedSetpointL = -3;
+    public static final double kExtendedSetpointR = 3.15;
+    public static final double kExtendedSetpointL = -3.15;
     /**
      * Partial extension motor encoder position (motor rotations from home).
      * Measured with motor encoder zeroed at full retraction.

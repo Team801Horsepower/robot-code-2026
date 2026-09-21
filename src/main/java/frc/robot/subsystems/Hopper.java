@@ -156,8 +156,8 @@ public class Hopper extends SubsystemBase {
 
   /** Retracts the hopper to its home position (encoder = 0). */
   public void retract() {
-    m_setpointR = 0.5;
-    m_setpointL = -0.5;
+    m_setpointR = 0.2;
+    m_setpointL = -0.2;
     m_pidActiveR = true;
     m_pidActiveL = true;
     m_extendingR = false;
