@@ -104,8 +104,8 @@ public class Hopper extends SubsystemBase {
     // Publish PID controllers as Sendables for editing in Shuffleboard/AdvantageScope
     SmartDashboard.putData("Hopper Right Extend PID", m_extendRPid);
     SmartDashboard.putData("Hopper Right Retract PID", m_retractRPid);
-    SmartDashboard.putData("Hopper LEFT Extend PID", m_extendLPid);
-    SmartDashboard.putData("Hopper LEFT Retract PID", m_retractLPid);
+    SmartDashboard.putData("Hopper Left Extend PID", m_extendLPid);
+    SmartDashboard.putData("Hopper Left Retract PID", m_retractLPid);
 
     var table = NetworkTableInstance.getDefault().getTable("TestMode").getSubTable("Hopper");
     m_testPowerPub = table.getDoubleTopic("Power").publish();
