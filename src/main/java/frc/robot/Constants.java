@@ -102,14 +102,14 @@ public final class Constants {
     public static final double kJostleToleranceL = -0.15;
 
     // Position thresholds for extended/retracted checks on the right motor (motor rotations).
-    public static final double kExtendMinPositionR = 47.7; //15.9
-    public static final double kExtendMaxPositionR = 48.0; //16.0
+    public static final double kExtendMinPositionR = 3.12; //15.9
+    public static final double kExtendMaxPositionR = 3.18; //16.0
     public static final double kRetractMinPositionR = 0.1;
     public static final double kRetractMaxPositionR = 2;
     public static final double kPartialExtendSetpointR = 15.0;
     // Position thresholds for extended/retracted checks on the left motor (motor rotations).
-    public static final double kExtendMinPositionL = -47.7; //15.9
-    public static final double kExtendMaxPositionL = -48.0; //16.0
+    public static final double kExtendMinPositionL = -3.12; //15.9
+    public static final double kExtendMaxPositionL = -3.18; //16.0
     public static final double kRetractMinPositionL = -0.1;
     public static final double kRetractMaxPositionL = -2;
     public static final double kPartialExtendSetpointL = -15.0;
@@ -130,7 +130,7 @@ public final class Constants {
     public static final double kExtendLI = 0;
     public static final double kExtendLD = 0;
     // PID gains for leftside motor hopper retraction
-    public static final double kRetractLP = 0.08;
+    public static final double kRetractLP = 0.2;
     public static final double kRetractLI = 0;
     public static final double kRetractLD = 0;
 
