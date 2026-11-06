@@ -217,14 +217,14 @@ public final class Constants {
      * <p>Kraken X60 free-speed ~6000 RPM; with a 6.75:1 ratio and 4" wheels ≈ 5.4 m/s. Derate
      * slightly for safety.
      */
-    public static final double kMaxSpeedMetersPerSecond = 5.0; // m/s
+    public static final double kMaxSpeedMetersPerSecond = 2.5; // m/s
 
 
     /**
      * Maximum rotational speed during teleop. Full stick = one full rotation per ~1.4 seconds
      * which is comfortable to drive.
      */
-    public static final double kMaxAngularSpeedRadPerSec = Math.PI * 1.5; // rad/s (~1.5π rad/s)
+    public static final double kMaxAngularSpeedRadPerSec = Math.PI * 0.75; // rad/s (~1.5π rad/s)
 
 
     /** Drive speed multiplier applied when right trigger > kShootSlowdownThreshold. */
